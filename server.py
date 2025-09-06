@@ -3,10 +3,12 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 import os, re, requests
 from typing import Optional
+from dotenv import load_dotenv
 
 app = FastAPI()
 
 # ---------- Config ----------
+load_dotenv()  # take environment variables from .env.
 API_BIBLE_KEY = os.getenv("API_BIBLE_KEY")
 API_BIBLE_BASE = "https://api.scripture.api.bible/v1"
 
