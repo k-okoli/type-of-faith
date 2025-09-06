@@ -347,6 +347,13 @@
       return {scorePct:Math.round(score*100),distance:dist,baseLen:g.length};
     }
 
+    // --- Normalise quotes ---
+    function normalizeQuotes(s) {
+      return s
+        .replace(/[‘’‚‛]/g, "'")   // curly/single → straight apostrophe
+        .replace(/[“”„‟]/g, '"');  // curly/double → straight double quote
+    }
+
     // --- Live metrics ---
     function getElapsedSeconds(){ return !started?0:(performance.now()-startTime)/1000; }
     function computeLiveMetrics(currentTyped){
@@ -479,36 +486,55 @@
       if(blindActive){ showVerse(); startBlindPreviewThenHide(); } else { showVerse(); }
     }
 
-    // Typing logic + keystroke accuracy counting
+    // Typing logic + keystroke accuracy counting (quote-normalized)
     inputEl.addEventListener("input", () => {
-      const newVal=inputEl.value;
+      const newVal = inputEl.value;
 
-      // Count keystrokes/errors for inserted chars only
-      if(newVal.length>prevValue.length){
-        const added=newVal.slice(prevValue.length);
-        for(let i=0;i<added.length;i++){
-          const idx=prevValue.length+i; const ch=added[i];
-          totalKeystrokes++; if(ch!==verseText[idx]) errorKeystrokes++;
+      // Normalize once per event for consistent comparisons
+      const vtNorm = normalizeQuotes(verseText);
+      const newNorm = normalizeQuotes(newVal);
+      const prevNorm = normalizeQuotes(prevValue);
+
+      // Count keystrokes/errors for inserted chars only (compare normalized)
+      if (newVal.length > prevValue.length) {
+        const added = newNorm.slice(prevNorm.length);
+        for (let i = 0; i < added.length; i++) {
+          const idx = prevNorm.length + i;
+          const ch = added[i];
+          totalKeystrokes++;
+          if (ch !== vtNorm[idx]) errorKeystrokes++;
         }
       }
-      prevValue=newVal;
+      prevValue = newVal;
 
-      if(!started && newVal.length>0){ started=true; startTime=performance.now(); }
+      if (!started && newVal.length > 0) { started = true; startTime = performance.now(); }
       updateLiveMetrics();
 
-      const blindActive=blindToggleEl.checked;
-      const verseVisible=remainingEl.textContent.length>0;
+      const blindActive = blindToggleEl.checked;
+      const verseVisible = remainingEl.textContent.length > 0;
 
-      if(!blindActive || verseVisible){
-        const target=verseText.substring(0,newVal.length);
-        if(newVal===target){ typedEl.textContent=verseText.substring(0,newVal.length); remainingEl.textContent=verseText.substring(newVal.length); inputEl.style.color="black"; }
-        else { inputEl.style.color="var(--err)"; }
-        if(newVal.length===verseText.length && newVal===verseText){ finishAttempt(false); }
+      if (!blindActive || verseVisible) {
+        // For display, still use original verseText slices
+        const targetNorm = vtNorm.substring(0, newNorm.length);
+        if (newNorm === targetNorm) {
+          typedEl.textContent = verseText.substring(0, newVal.length);
+          remainingEl.textContent = verseText.substring(newVal.length);
+          inputEl.style.color = "black";
+        } else {
+          inputEl.style.color = "var(--err)";
+        }
+
+        // Finish condition (normalized equality, but keep exact length check)
+        if (newVal.length === verseText.length && newNorm === vtNorm) {
+          finishAttempt(false);
+        }
       } else {
-        const target=verseText.substring(0,newVal.length);
-        inputEl.style.color=(newVal===target)?"black":"var(--err)";
+        // Blind mode while hidden: only color based on normalized prefix match
+        const targetNorm = vtNorm.substring(0, newNorm.length);
+        inputEl.style.color = (newNorm === targetNorm) ? "black" : "var(--err)";
       }
     });
+
 
     // Buttons
     newVerseBtn.addEventListener("click", loadRandomVerseForSelection);
