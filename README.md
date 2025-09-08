@@ -11,12 +11,17 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 
 1. Install dependencies (Python 3.8+):
    ```bash
-   pip install fastapi uvicorn requests
+   pip install fastapi uvicorn requests dotenv
    ```
 
 2. Set your API keys (in PowerShell on Windows):
    ```powershell
    $env:API_BIBLE_KEY="your_api_bible_key_here"
+   ```
+
+   OR create a file called .env in your project folder. This keeps secret keys local and private.
+   ```bash
+   API_BIBLE_KEY="your_api_bible_key_here"
    ```
 
 3. Start the server:
