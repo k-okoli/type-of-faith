@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <title>Type of Faith — Verse Memory Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ---------- Theme tokens ---------- */
+    /* Light */
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555; --accent:#8b6b3b;
+      --panel:#ffffff; --border:#e9e3d7; --btn:#fff;
+      --ok:#0a7a0a; --err:#b00020; --link:#1a56db;
+      --banner-ok-bg:#eef8ff; --banner-ok-ink:#1a4f7a;
+      --banner-err-bg:#ffeeef; --banner-err-ink:#7a1a2a;
+      --opt-border:#cfc8ba; --opt-correct:#e9f8ee; --opt-correct-br:#6bcf8e;
+      --opt-wrong:#fdecee; --opt-wrong-br:#e38a95;
+      --shadow: 0 1px 1px rgba(0,0,0,.04), 0 4px 18px rgba(0,0,0,.06);
+    }
+    /* Dark */
+    :root[data-theme="dark"]{
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a; --btn:#151922;
+      --ok:#6ee7a0; --err:#ff6b81; --link:#87b3ff;
+      --banner-ok-bg:#142132; --banner-ok-ink:#a8c8ff;
+      --banner-err-bg:#301822; --banner-err-ink:#ff9dac;
+      --opt-border:#3a4252; --opt-correct:#1c2a23; --opt-correct-br:#6ee7a0;
+      --opt-wrong:#2a1b20; --opt-wrong-br:#ff6b81;
+      --shadow: 0 1px 1px rgba(0,0,0,.25), 0 4px 18px rgba(0,0,0,.25);
+    }
+
+    *{ box-sizing:border-box }
+    body{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); margin:24px; }
+    a{ color:var(--link) }
+
+    header{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    h1{ margin:0; color:var(--accent) }
+    .spacer{ flex:1 }
+    select, button{ font-size:16px; padding:8px 10px; border-radius:8px; border:1px solid var(--opt-border); background:var(--btn); color:var(--ink); }
+    button{ cursor:pointer; }
+    button:disabled{ opacity:.65; cursor:not-allowed; }
+
+    .card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow: var(--shadow); }
+    .controls{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; }
+    .right{ margin-left:auto }
+
+    #banner{ display:none; margin:8px 0 12px; padding:8px 10px; border-radius:8px; font-size:14px; }
+    #banner.ok{ display:block; background:var(--banner-ok-bg); color:var(--banner-ok-ink); }
+    #banner.err{ display:block; background:var(--banner-err-bg); color:var(--banner-err-ink); }
+
+    #categoryTitle{ color:var(--muted); font-size:14px; margin-bottom:6px; }
+    #verseBox{ font-size:20px; line-height:1.6; min-height:4.2em; }
+    #meta{ color:var(--muted); font-size:14px; margin-top:6px; }
+
+    .options{ display:grid; gap:10px; margin-top:14px; }
+    @media (min-width: 700px){ .options{ grid-template-columns: repeat(2, 1fr); } }
+    .opt{
+      text-align:left; border:1px solid var(--opt-border); background:var(--btn);
+      padding:12px; border-radius:10px; transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .opt:hover{ transform: translateY(-1px); }
+    .opt.correct{ background:var(--opt-correct); border-color:var(--opt-correct-br); }
+    .opt.wrong{ background:var(--opt-wrong); border-color:var(--opt-wrong-br); }
+
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .stat{ font-variant-numeric: tabular-nums; }
+    .muted{ color:var(--muted) }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Verse Memory Quiz</h1>
+    <div class="spacer"></div>
+    <label>Theme:
+      <select id="themeMode">
+        <option value="auto">Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    <a href="lessons.html"><button type="button" title="Go to Lessons">Lessons</button></a>
+    <a href="index.html"><button type="button" title="Back to Practice">Back to Practice</button></a>
+  </header>
+
+  <div class="controls">
+    <label>Category:
+      <select id="category"></select>
+    </label>
+    <label>Version:
+      <select id="version">
+        <option value="KJV">KJV (bible-api.com)</option>
+        <option value="WEB">WEB (World English Bible)</option>
+        <option value="FBV">FBV (api.bible via proxy)</option>
+        <option value="ESV">ESV (Crossway via proxy)</option>
+      </select>
+    </label>
+    <button id="newBtn">New Question</button>
+    <button id="revealBtn">Reveal Answer</button>
+    <div class="right stat muted" id="score">Score: 0 / 0 · Streak: 0</div>
+  </div>
+
+  <div id="banner" class="ok"></div>
+
+  <div class="card">
+    <div id="categoryTitle">All</div>
+    <div id="verseBox"></div>
+    <div id="meta"></div>
+
+    <div class="options" id="options"></div>
+
+    <div class="row" style="margin-top:14px">
+      <div id="feedback" class="stat">—</div>
+    </div>
+  </div>
+
+<script>
+/* ---------- THEME (shared approach with other pages) ---------- */
+const htmlEl = document.documentElement;
+const themeModeEl = document.getElementById("themeMode");
+const mediaDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(mode){
+  if(mode==='auto'){ htmlEl.setAttribute('data-theme', mediaDark && mediaDark.matches ? 'dark':'light'); }
+  else { htmlEl.setAttribute('data-theme', mode); }
+  localStorage.setItem("tof_theme", mode);
+  themeModeEl.value = mode;
+}
+mediaDark && mediaDark.addEventListener('change', ()=>{ const saved = localStorage.getItem("tof_theme")||'auto'; if(saved==='auto') applyTheme('auto'); });
+(function initTheme(){
+  const saved = localStorage.getItem("tof_theme")||'auto';
+  themeModeEl.value = saved; applyTheme(saved);
+  themeModeEl.addEventListener("change", ()=>applyTheme(themeModeEl.value));
+})();
+
+/* ---------- Data (same categories you use elsewhere) ---------- */
+const VERSE_CATEGORIES = {
+  anger: ["Ephesians 4:26", "Proverbs 15:1", "James 1:19-20", "Colossians 3:8"],
+  anxiety: ["Philippians 4:6-7", "1 Peter 5:7", "Matthew 6:34", "Psalm 94:19"],
+  courage: ["Joshua 1:9", "Psalm 27:1", "2 Timothy 1:7", "Deuteronomy 31:6"],
+  depression: ["Psalm 34:17-18", "Psalm 42:11", "Isaiah 41:10", "Matthew 11:28"],
+  doubt: ["James 1:6", "Mark 9:24", "Matthew 21:21", "John 20:27"],
+  faith: ["Hebrews 11:1", "Proverbs 3:5-6", "Mark 11:24", "2 Corinthians 5:7"],
+  fear: ["Isaiah 41:10", "2 Timothy 1:7", "Psalm 56:3", "Deuteronomy 31:6"],
+  forgiveness: ["Ephesians 4:32", "Colossians 3:13", "Matthew 6:14", "Psalm 103:12"],
+  healing: ["Jeremiah 30:17", "Isaiah 53:5", "James 5:14-15", "Psalm 147:3"],
+  hope: ["Jeremiah 29:11", "Romans 15:13", "Psalm 42:5", "Isaiah 40:31"],
+  jealousy: ["Proverbs 14:30", "James 3:16", "Galatians 5:26", "1 Corinthians 3:3"],
+  joy: ["Nehemiah 8:10", "Psalm 16:11", "Philippians 4:4", "John 15:11"],
+  loss: ["Psalm 34:18", "Matthew 5:4", "Revelation 21:4", "1 Thessalonians 4:13-14"],
+  love: ["1 Corinthians 13:4-7", "John 13:34", "1 John 4:7", "Romans 12:10", "John 3:16"],
+  patience: ["Galatians 6:9", "Romans 12:12", "James 5:8", "Ecclesiastes 7:8"],
+  peace: ["John 14:27", "Philippians 4:7", "Isaiah 26:3", "Colossians 3:15"],
+  pride: ["Proverbs 16:18", "James 4:6", "1 Peter 5:5", "Proverbs 11:2"],
+  stress: ["Matthew 11:28-30", "John 16:33", "Psalm 55:22", "Proverbs 12:25"],
+  temptation: ["1 Corinthians 10:13", "Matthew 26:41", "James 1:12-14", "Hebrews 2:18"],
+  wisdom: ["James 1:5", "Proverbs 1:7", "Proverbs 3:13", "Proverbs 4:7"]
+};
+const CAT_NAMES = ["all", ...Object.keys(VERSE_CATEGORIES).sort((a,b)=>a.localeCompare(b))];
+const ALL_REFS = Object.values(VERSE_CATEGORIES).flat();
+const REF_TO_CATEGORY = (()=>{ const m={}; for (const [k,arr] of Object.entries(VERSE_CATEGORIES)) for (const r of arr) m[r]=k; return m; })();
+
+/* ---------- DOM ---------- */
+const categoryEl = document.getElementById('category');
+const versionEl  = document.getElementById('version');
+const newBtn     = document.getElementById('newBtn');
+const revealBtn  = document.getElementById('revealBtn');
+const verseBox   = document.getElementById('verseBox');
+const optionsBox = document.getElementById('options');
+const bannerEl   = document.getElementById('banner');
+const metaEl     = document.getElementById('meta');
+const feedbackEl = document.getElementById('feedback');
+const scoreEl    = document.getElementById('score');
+const catTitleEl = document.getElementById('categoryTitle');
+
+/* ---------- State ---------- */
+let correctRef = null;
+let allowAnswer = false;
+let score = 0, total = 0, streak = 0;
+
+/* ---------- Helpers ---------- */
+function titleCase(s){ return s.replace(/\b\w/g,c=>c.toUpperCase()); }
+function showBanner(type,msg){ bannerEl.className = type==='error'?'err':'ok'; bannerEl.textContent = msg||''; bannerEl.style.display = msg?'block':'none'; }
+function setScore(){ scoreEl.textContent = `Score: ${score} / ${total} · Streak: ${streak}`; }
+function setCategoryTitle(){ const v = categoryEl.value; catTitleEl.textContent = v==='all' ? 'All' : titleCase(v); }
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function sampleDistinct(pool, k, avoidSet){
+  const out=[]; const used = new Set(avoidSet||[]);
+  const shuffled = pool.slice().sort(()=>Math.random()-0.5);
+  for (const x of shuffled){ if (used.has(x)) continue; used.add(x); out.push(x); if (out.length===k) break; }
+  return out;
+}
+
+/* ---------- Fetching verses ---------- */
+async function fetchViaBibleApi(ref, versionCode){
+  const t = (versionCode||'KJV').toLowerCase();
+  const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || 'HTTP error');
+  const data = JSON.parse(text);
+  const verseText = Array.isArray(data.verses) && data.verses.length
+    ? data.verses.map(v => v.text.trim()).join(' ')
+    : (data.text || '');
+  return { reference: data.reference||ref, text: verseText.replace(/\s+/g,' ').trim(), version:(versionCode||'KJV').toUpperCase(), copyright: data.copyright };
+}
+async function fetchViaProxy(ref, versionCode){
+  const url = `http://127.0.0.1:8000/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  if (!res.ok) throw new Error(text||'Proxy error');
+  return JSON.parse(text);
+}
+async function getVerse(ref, versionCode){
+  try{
+    if (['FBV','ESV'].includes(versionCode)) return await fetchViaProxy(ref, versionCode);
+    return await fetchViaBibleApi(ref, versionCode);
+  } catch(e){
+    if (['KJV','WEB'].includes(versionCode)){
+      showBanner('error', 'Verse provider unavailable. Try again or switch version.');
+    } else {
+      showBanner('error', 'Proxy/Key required for this version. Start FastAPI or change version.');
+    }
+    throw e;
+  }
+}
+
+/* ---------- Quiz logic ---------- */
+async function newQuestion(){
+  allowAnswer = false;
+  feedbackEl.textContent = '—';
+  optionsBox.innerHTML = '';
+  verseBox.textContent = '';
+  metaEl.textContent = '';
+  metaEl.style.visibility = 'hidden';
+  setCategoryTitle();
+  showBanner('', '');
+
+  const cat = categoryEl.value;
+  const ver = (versionEl.value||'KJV').toUpperCase();
+
+  const pool = (cat==='all') ? ALL_REFS : (VERSE_CATEGORIES[cat] || []);
+  if (!pool.length){ showBanner('error','No verses found for this category.'); return; }
+  correctRef = pickRandom(pool);
+
+  let data;
+  try{ data = await getVerse(correctRef, ver); }
+  catch(e){ console.error(e); return; }
+
+  verseBox.textContent = data.text || '';
+  metaEl.textContent = `${data.reference||correctRef} (${(data.version||ver).toUpperCase()})`;
+
+  const distractPool = (cat==='all') ? ALL_REFS : pool;
+  const distractors = sampleDistinct(distractPool, 3, new Set([correctRef]));
+  const choices = [correctRef, ...distractors].sort(()=>Math.random()-0.5);
+
+  for (const ref of choices){
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = ref;
+    btn.addEventListener('click', ()=> checkAnswer(btn, ref));
+    optionsBox.appendChild(btn);
+  }
+  allowAnswer = true;
+}
+
+function checkAnswer(btn, ref){
+  if (!allowAnswer) return;
+  allowAnswer = false; total += 1;
+
+  const buttons = Array.from(document.querySelectorAll('.opt'));
+  for (const b of buttons){
+    b.disabled = true;
+    if (b.textContent.trim() === correctRef) b.classList.add('correct');
+  }
+
+  if (ref === correctRef){
+    score += 1; streak += 1;
+    feedbackEl.textContent = '✅ Correct!';
+  } else {
+    streak = 0;
+    feedbackEl.textContent = `❌ Incorrect. Correct answer: ${correctRef}`;
+    btn.classList.add('wrong');
+  }
+  setScore();
+  metaEl.style.visibility = 'visible';
+}
+
+/* ---------- Init ---------- */
+(function init(){
+  categoryEl.innerHTML = CAT_NAMES.map(c => `<option value="${c}">${c==='all'?'All':titleCase(c)}</option>`).join('');
+  setScore(); setCategoryTitle();
+  newBtn.addEventListener('click', newQuestion);
+  revealBtn.addEventListener('click', ()=>{
+    if (!correctRef) return;
+    Array.from(document.querySelectorAll('.opt')).forEach(b=>{
+      b.disabled = true;
+      if (b.textContent.trim()===correctRef) b.classList.add('correct');
+    });
+    metaEl.style.visibility='visible';
+    allowAnswer=false;
+  });
+  categoryEl.addEventListener('change', newQuestion);
+  versionEl.addEventListener('change', newQuestion);
+  newQuestion();
+})();
+</script>
+</body>
+</html>

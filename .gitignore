@@ -1,3 +1,4 @@
 .env
 *.pyc
+*.docx
 __pycache__/
