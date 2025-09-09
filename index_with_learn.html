@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <title>Type of Faith MVP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+  <style>
+    /* ---------- Light theme (default) ---------- */
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555;
+      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
+      --panel:#fff; --border:#eee;
+      --banner-bg:#fff7e6; --link:#1a56db;
+      --input-border:#ddd; --btn-border:#ccc;
+    }
+    /* ---------- Dark theme overrides ---------- */
+    :root[data-theme="dark"] {
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
+      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a;
+      --banner-bg:#1d2430; --link:#87b3ff;
+      --input-border:#2b3240; --btn-border:#3a4252;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+    a { color: var(--link); }
+    h1 { margin: 0 0 8px; color: var(--accent); }
+    h2 { margin: 8px 0 16px; font-weight: 600; color: var(--ink); }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    select, button, label, input[type="number"] { font-size: 16px; }
+    select, button, input[type="number"] { padding: 8px 10px; }
+    input[type="number"] { width: 80px; background: var(--panel); color: var(--ink); border: 1px solid var(--input-border); border-radius: 6px; }
+    button { cursor: pointer; border: 1px solid var(--btn-border); background: var(--panel); color: var(--ink); border-radius: 6px; }
+    button:active { transform: translateY(1px); }
+    .toggle { display: inline-flex; gap: 8px; align-items: center; }
+    #meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+    #banner { font-size: 14px; color: var(--accent); margin: 6px 0 10px; padding: 6px 8px; border-radius: 6px; background: var(--banner-bg); display:none; }
+    #verse { font-size: 20px; line-height: 1.6; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 3.5em; }
+    #typed { color: var(--ok); }
+    #remaining { color: var(--muted); }
+    #hiddenMask { color: var(--muted); font-style: italic; }
+    #input { width: 100%; font-size: 20px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--panel); color: var(--ink); }
+    .bf-controls { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+    .right { margin-left: auto; }
+    .panels { display: grid; gap: 12px; grid-template-columns: 1fr; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .stat { font-variant-numeric: tabular-nums; }
+    #status { font-size: 14px; color: var(--muted); }
+    #result { font-size: 16px; }
+    #bestStats { font-size: 14px; }
+    #peekCount { font-weight: 600; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .copyline { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+    th { background: color-mix(in srgb, var(--panel) 60%, var(--border)); }
+    @media (min-width: 1000px) { .panels { grid-template-columns: 1fr 1fr; } }
+
+    /* Learn mode keyboard diagram */
+    #keyboard .row { margin: 2px 0; }
+    #keyboard .row span { display:inline-block; min-width:24px; padding:6px 8px; text-align:center; border:1px solid var(--border); border-radius:6px; background:var(--panel); margin-right:4px; }
+    [data-finger="lp"]{ background:#ffe7e7 } /* left pinky   */
+    [data-finger="lr"]{ background:#ffeeda } /* left ring    */
+    [data-finger="lm"]{ background:#fff7cc } /* left middle  */
+    [data-finger="li"]{ background:#eaffd1 } /* left index   */
+    [data-finger="ri"]{ background:#e0f3ff } /* right index  */
+    [data-finger="rm"]{ background:#eae0ff } /* right middle */
+    [data-finger="rr"]{ background:#f5e0ff } /* right ring   */
+    [data-finger="rp"]{ background:#fbe0ef } /* right pinky  */
+    .highlight { outline:2px solid var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Type of Faith MVP</h1>
+
+  <div class="controls">
+    <!-- Mode switch -->
+    <label class="toggle">
+      Mode:
+      <select id="mode">
+        <option value="practice">Practice</option>
+        <option value="learn">Learn</option>
+      </select>
+    </label>
+
+    <label>
+      Category:
+      <select id="category">
+        <option value="all">All</option>
+        <option value="anger">Anger</option>
+        <option value="anxiety">Anxiety</option>
+        <option value="courage">Courage</option>
+        <option value="depression">Depression</option>
+        <option value="doubt">Doubt</option>
+        <option value="faith">Faith</option>
+        <option value="fear">Fear</option>
+        <option value="forgiveness">Forgiveness</option>
+        <option value="healing">Healing</option>
+        <option value="hope">Hope</option>
+        <option value="jealousy">Jealousy</option>
+        <option value="joy">Joy</option>
+        <option value="loss">Loss</option>
+        <option value="love">Love</option>
+        <option value="patience">Patience</option>
+        <option value="peace">Peace</option>
+        <option value="pride">Pride</option>
+        <option value="stress">Stress</option>
+        <option value="temptation">Temptation</option>
+        <option value="wisdom">Wisdom</option>
+      </select>
+    </label>
+
+    <label>
+      Verse length:
+      <select id="length">
+        <option value="any">Any</option>
+        <option value="short">Short</option>
+        <option value="medium">Medium</option>
+        <option value="long">Long</option>
+      </select>
+    </label>
+
+    <label>
+      Version:
+      <select id="version">
+        <option value="KJV">KJV (bible-api.com)</option>
+        <option value="WEB">WEB (World English Bible)</option>
+        <option value="FBV">FBV (api.bible via proxy)</option>
+        <option value="ESV">ESV (Crossway API via proxy)</option>
+      </select>
+    </label>
+
+    <label class="toggle" title="Show verse briefly, then hide it so you type from memory">
+      <input type="checkbox" id="blindToggle" />
+      Blind Faith
+    </label>
+
+    <label class="toggle" title="Initial visible time before hiding (1–30s)">
+      Preview (s):
+      <input id="previewSec" type="number" min="1" max="30" step="1" />
+    </label>
+
+    <label class="toggle" title="Peek reveal time (1–10s)">
+      Peek (s):
+      <input id="peekSec" type="number" min="1" max="10" step="1" />
+    </label>
+
+    <button id="newVerseBtn" title="Ctrl+M">New Verse</button>
+    <button id="restartBtn" title="Restart this verse (Ctrl+R)">Restart</button>
+
+    <div class="right"></div>
+
+    <!-- Theme control -->
+    <label class="toggle" title="Color theme">
+      Theme:
+      <select id="themeMode">
+        <option value="auto">Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- PRACTICE header -->
+  <h2 id="categoryTitle">All</h2>
+
+  <div id="meta"></div>
+  <div id="banner"></div>
+
+  <div id="verse">
+    <span id="typed"></span><span id="remaining"></span><span id="hiddenMask"></span>
+  </div>
+
+  <div class="copyline" id="copyline"></div>
+
+  <!-- Blind Faith-only controls -->
+  <div class="bf-controls" id="bfControls" style="display:none;">
+    <button id="peekBtn" title="Reveal the verse (Ctrl+P)">Peek Verse</button>
+    <button id="finishBtn" title="Calculate your fairness score (Ctrl+Enter)">Finish Attempt</button>
+    <span>Peeks used: <span id="peekCount">0</span></span>
+    <span class="hint right">Shortcuts: Ctrl+P peek · Ctrl+Enter finish · Ctrl+R restart · Ctrl+M new</span>
+  </div>
+
+  <input id="input" placeholder="Start typing the verse here…" autocomplete="off" spellcheck="false" />
+
+  <div class="panels" id="practicePanels">
+    <div class="card">
+      <strong>Live Metrics</strong>
+      <div id="status" class="stat">WPM: 0 · Accuracy: 100% · Time: 0.0s</div>
+    </div>
+    <div class="card">
+      <strong>Result</strong>
+      <div id="result" class="stat">—</div>
+    </div>
+    <div class="card" style="grid-column: 1 / -1;">
+      <strong>Best of Session</strong>
+      <div id="bestStats" class="stat">
+        Best WPM: — · Best Accuracy: — · Fastest Time: — · Best Fairness (Blind): — 
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="practiceHistory" style="margin-top:12px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <strong>Session History</strong>
+      <button id="exportBtn" class="right" title="Download CSV of attempts">Export CSV</button>
+    </div>
+    <div style="overflow:auto;">
+      <table id="historyTable" aria-label="Session History">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Category</th>
+            <th>Reference</th>
+            <th>Mode</th>
+            <th>Peeks</th>
+            <th>Secs</th>
+            <th>WPM</th>
+            <th>Accuracy%</th>
+            <th>Fairness%</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LEARN MODE PANEL -->
+  <div id="learnPanel" class="card" style="margin-top:12px; display:none;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <strong>Learn: Touch Typing Fundamentals</strong>
+      <select id="lessonSelect"></select>
+      <button id="startDrillBtn">Start Drill</button>
+    </div>
+
+    <div style="margin-top:8px;" id="lessonText"></div>
+
+    <!-- Simple keyboard diagram -->
+    <div id="keyboard" style="margin-top:12px; display:grid; gap:6px;">
+      <div class="row">
+        <span data-finger="lp">Q</span><span data-finger="lr">W</span><span data-finger="lm">E</span><span data-finger="li">R</span><span data-finger="li">T</span>
+        <span data-finger="ri">Y</span><span data-finger="ri">U</span><span data-finger="rm">I</span><span data-finger="rr">O</span><span data-finger="rp">P</span>
+      </div>
+      <div class="row">
+        <span data-finger="lp">A</span><span data-finger="lr">S</span><span data-finger="lm">D</span><span data-finger="li">F</span><span data-finger="li">G</span>
+        <span data-finger="ri">H</span><span data-finger="ri">J</span><span data-finger="rm">K</span><span data-finger="rr">L</span><span data-finger="rp">;</span>
+      </div>
+      <div class="row">
+        <span data-finger="lp">Z</span><span data-finger="lr">X</span><span data-finger="lm">C</span><span data-finger="li">V</span><span data-finger="li">B</span>
+        <span data-finger="ri">N</span><span data-finger="ri">M</span><span data-finger="rm">,</span><span data-finger="rr">.</span><span data-finger="rp">/</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div><strong>Drill:</strong> <span id="drillName">—</span></div>
+      <div style="font-size:20px; margin-top:6px;">
+        <span id="drillTyped" style="color:var(--ok)"></span><span id="drillRemain" style="color:var(--muted)"></span>
+      </div>
+      <input id="drillInput" placeholder="Type the drill here…" autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px;">
+      <div class="stat" id="drillStats" style="margin-top:6px;">WPM: 0 · Accuracy: 100% · Errors by finger: —</div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Config / defaults =======
+    const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
+    const DEFAULT_PREVIEW_SEC = 10;
+    const DEFAULT_PEEK_SEC = 5;
+    const THEME_KEY = "tof_theme"; // 'auto' | 'light' | 'dark'
+
+    // ======= Categories =======
+    const VERSE_CATEGORIES = {
+      anger: ["Ephesians 4:26","Proverbs 15:1","James 1:19-20","Colossians 3:8"],
+      anxiety: ["Philippians 4:6-7","1 Peter 5:7","Matthew 6:34","Psalm 94:19"],
+      courage: ["Joshua 1:9","Psalm 27:1","2 Timothy 1:7","Deuteronomy 31:6"],
+      depression: ["Psalm 34:17-18","Psalm 42:11","Isaiah 41:10","Matthew 11:28"],
+      doubt: ["James 1:6","Mark 9:24","Matthew 21:21","John 20:27"],
+      faith: ["Hebrews 11:1","Proverbs 3:5-6","Mark 11:24","2 Corinthians 5:7"],
+      fear: ["Isaiah 41:10","2 Timothy 1:7","Psalm 56:3","Deuteronomy 31:6"],
+      forgiveness: ["Ephesians 4:32","Colossians 3:13","Matthew 6:14","Psalm 103:12"],
+      healing: ["Jeremiah 30:17","Isaiah 53:5","James 5:14-15","Psalm 147:3"],
+      hope: ["Jeremiah 29:11","Romans 15:13","Psalm 42:5","Isaiah 40:31"],
+      jealousy: ["Proverbs 14:30","James 3:16","Galatians 5:26","1 Corinthians 3:3"],
+      joy: ["Nehemiah 8:10","Psalm 16:11","Philippians 4:4","John 15:11"],
+      loss: ["Psalm 34:18","Matthew 5:4","Revelation 21:4","1 Thessalonians 4:13-14"],
+      love: ["1 Corinthians 13:4-7","John 13:34","1 John 4:7","Romans 12:10"],
+      patience: ["Galatians 6:9","Romans 12:12","James 5:8","Ecclesiastes 7:8"],
+      peace: ["John 14:27","Philippians 4:7","Isaiah 26:3","Colossians 3:15"],
+      pride: ["Proverbs 16:18","James 4:6","1 Peter 5:5","Proverbs 11:2"],
+      stress: ["Matthew 11:28-30","John 16:33","Psalm 55:22","Proverbs 12:25"],
+      temptation: ["1 Corinthians 10:13","Matthew 26:41","James 1:12-14","Hebrews 2:18"],
+      wisdom: ["James 1:5","Proverbs 1:7","Proverbs 3:13","Proverbs 4:7"]
+    };
+    const ALL_REFERENCES = Object.values(VERSE_CATEGORIES).flat();
+    const REF_TO_CATEGORY = (() => {
+      const map = {};
+      const cats = Object.keys(VERSE_CATEGORIES).sort((a,b)=>a.localeCompare(b));
+      for (const c of cats) for (const r of VERSE_CATEGORIES[c]) if (!map[r]) map[r] = c;
+      return map;
+    })();
+
+    // ======= Learn mode lessons =======
+    const LESSONS = [
+      {
+        id:"home-row",
+        title:"Home Row Basics",
+        text:"Place index fingers on F and J (small bumps). Keep wrists relaxed; return to home row after each key.",
+        drills:[
+          { name:"Home Row 1", text:"ffff jjjj f j fj jf jjff jjff" },
+          { name:"Home Row 2", text:"asdf ;lkj as df ;l kj jkl; aaaa ssss dddd ffff ;;;; llll kkkk jjjj" }
+        ]
+      },
+      {
+        id:"index-strength",
+        title:"Index Finger Strength",
+        text:"Build accuracy with index-finger stretches (R,T,F,G,V,B) and (Y,U,H,J,N,M). Keep shoulders relaxed.",
+        drills:[
+          { name:"Left Index", text:"rfrf gtgt vbvb rgtv rgtv" },
+          { name:"Right Index", text:"jyjy huhu nmnm jyhn jyhn" }
+        ]
+      }
+    ];
+
+    const FINGER_BY_KEY = {
+      q:"lp", a:"lp", z:"lp",  w:"lr", s:"lr", x:"lr",  e:"lm", d:"lm", c:"lm",
+      r:"li", f:"li", v:"li", t:"li", g:"li", b:"li",
+      y:"ri", h:"ri", n:"ri", u:"ri", j:"ri", m:"ri",
+      i:"rm", k:"rm", ",":"rm",  o:"rr", l:"rr", ".":"rr",  p:"rp", ";":"rp", "/":"rp"
+    };
+
+    // ======= DOM refs =======
+    const modeEl = document.getElementById("mode");
+    const categoryEl = document.getElementById("category");
+    const lengthEl = document.getElementById("length");
+    const versionEl = document.getElementById("version");
+    const blindToggleEl = document.getElementById("blindToggle");
+    const previewSecEl = document.getElementById("previewSec");
+    const peekSecEl = document.getElementById("peekSec");
+    const categoryTitleEl = document.getElementById("categoryTitle");
+    const newVerseBtn = document.getElementById("newVerseBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const metaEl = document.getElementById("meta");
+    const bannerEl = document.getElementById("banner");
+    const typedEl = document.getElementById("typed");
+    const remainingEl = document.getElementById("remaining");
+    const hiddenMaskEl = document.getElementById("hiddenMask");
+    const inputEl = document.getElementById("input");
+    const bfControlsEl = document.getElementById("bfControls");
+    const peekBtn = document.getElementById("peekBtn");
+    const finishBtn = document.getElementById("finishBtn");
+    const peekCountEl = document.getElementById("peekCount");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const bestStatsEl = document.getElementById("bestStats");
+    const exportBtn = document.getElementById("exportBtn");
+    const historyBody = document.getElementById("historyBody");
+    const copylineEl = document.getElementById("copyline");
+    const themeModeEl = document.getElementById("themeMode");
+    const htmlEl = document.documentElement;
+
+    // Learn DOM
+    const learnPanel = document.getElementById("learnPanel");
+    const lessonSelect = document.getElementById("lessonSelect");
+    const startDrillBtn = document.getElementById("startDrillBtn");
+    const lessonText = document.getElementById("lessonText");
+    const drillNameEl = document.getElementById("drillName");
+    const drillTypedEl = document.getElementById("drillTyped");
+    const drillRemainEl = document.getElementById("drillRemain");
+    const drillInputEl = document.getElementById("drillInput");
+
+    // ======= State =======
+    let verseText = "";
+    let reference = "";
+    let actualCategory = "All";
+    let hideTimer = null, countdownTimer = null, peekTimer = null, peekCount = 0;
+    let started = false, startTime = 0, finished = false;
+    let totalKeystrokes = 0, errorKeystrokes = 0, prevValue = "";
+    let bestWPM = null, bestAccuracy = null, fastestTime = null, bestFairness = null;
+    const history = [];
+
+    // ======= Theme handling =======
+    const mediaDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    function applyTheme(mode){
+      if(mode === 'auto'){
+        htmlEl.setAttribute('data-theme', mediaDark && mediaDark.matches ? 'dark' : 'light');
+      } else {
+        htmlEl.setAttribute('data-theme', mode);
+      }
+      localStorage.setItem("tof_theme", mode);
+      themeModeEl.value = mode;
+    }
+    mediaDark && mediaDark.addEventListener('change', () => {
+      const saved = localStorage.getItem("tof_theme") || 'auto';
+      if (saved === 'auto') applyTheme('auto');
+    });
+
+    // ======= Utilities =======
+    function showBanner(type, message) {
+      const el = bannerEl;
+      el.textContent = message || "";
+      el.style.display = message ? "block" : "none";
+      el.style.color = (type === "error") ? "var(--err)"
+                    : (type === "warn")  ? "var(--accent)"
+                    : (type === "success") ? "var(--ok)"
+                    : "var(--muted)";
+    }
+    function setLoading(isLoading) {
+      const btns = [newVerseBtn, restartBtn, peekBtn, finishBtn].filter(Boolean);
+      btns.forEach(b => b.disabled = !!isLoading);
+      inputEl.disabled = !!isLoading;
+      if (isLoading) { metaEl.textContent = "Loading verse…"; showBanner("info", "Contacting verse providers…"); }
+      else if (/Contacting verse providers/.test(bannerEl.textContent)) showBanner("info", "");
+    }
+    function withTimeout(ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms); return { signal: ctrl.signal, cancel: () => clearTimeout(t) }; }
+    function clampInt(n, min, max){ n = Math.floor(isFinite(n) ? n : min); return Math.min(max, Math.max(min, n)); }
+    function classifyError(err, res=null, bodyText="") {
+      const detail = (err && err.message) ? err.message : "";
+      if (!res) return { code:"NETWORK", user:"Cannot reach the verse server.", hint:"If using FBV/ESV, start FastAPI (uvicorn server:app --reload --port 8000).", detail };
+      const s = res.status;
+      if (s===401) return { code:"UNAUTHORIZED", user:"The verse service rejected credentials.", hint:"Check API keys in .env / environment.", detail: bodyText };
+      if (s===403) return { code:"FORBIDDEN", user:"This translation requires publisher permission.", hint:"Try KJV/WEB or an allowed version like FBV.", detail: bodyText };
+      if (s===404) return { code:"NOT_FOUND", user:"No verse found for that reference.", hint:"Try a different verse or category.", detail: bodyText };
+      if (s===502 || s===503 || s===504) return { code:"UPSTREAM", user:"Upstream provider unavailable.", hint:"Wait a moment and try again.", detail: bodyText };
+      return { code:"SERVER", user:"The verse server hit an error.", hint:"Try again or switch to KJV/WEB.", detail: bodyText };
+    }
+    const titleCase = s => s.replace(/\b\w/g, c => c.toUpperCase());
+    const currentCategorySelectionLabel = () => (categoryEl.value === "all" ? "All" : titleCase(categoryEl.value));
+    function getRandomRefAndCategory(category) {
+      if (category && category !== "all") {
+        const list = VERSE_CATEGORIES[category] || [];
+        const ref = list[Math.floor(Math.random() * list.length)];
+        return { ref, cat: category };
+      }
+      const ref = ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
+      const cat = REF_TO_CATEGORY[ref] || "all";
+      return { ref, cat };
+    }
+    function classifyLengthByChars(text) {
+      const len = text.trim().length;
+      if (len <= LEN_THRESHOLDS.shortMax) return "short";
+      if (len <= LEN_THRESHOLDS.mediumMax) return "medium";
+      return "long";
+    }
+    function normalizeQuotes(s){ return (s||"").replace(/[‘’‚‛]/g,"'").replace(/[“”„‟]/g,'"'); }
+    function normalize(s){ return s.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim(); }
+    function levenshtein(a,b){
+      const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>new Array(n+1));
+      for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
+      for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c); } }
+      return dp[m][n];
+    }
+    function computeFairnessScore(groundTruth,attempt){
+      const g=normalize(groundTruth), t=normalize(attempt);
+      if(!g.length) return {scorePct:0,distance:0,baseLen:0};
+      const dist=levenshtein(g,t); const score=Math.max(0,1-dist/g.length);
+      return {scorePct:Math.round(score*100),distance:dist,baseLen:g.length};
+    }
+    function setTypingEnabled(on) {
+      inputEl.readOnly = !on;
+      inputEl.placeholder = on ? "Start typing the verse here…" : "Typing disabled while verse is visible (Blind Faith)";
+    }
+    function getPreviewMs() {
+      const n = clampInt(Number(previewSecEl.value || localStorage.getItem("tof_preview_sec") || DEFAULT_PREVIEW_SEC), 1, 30);
+      previewSecEl.value = n; localStorage.setItem("tof_preview_sec", String(n));
+      return n * 1000;
+    }
+    function getPeekMs() {
+      const n = clampInt(Number(peekSecEl.value || localStorage.getItem("tof_peek_sec") || DEFAULT_PEEK_SEC), 1, 10);
+      peekSecEl.value = n; localStorage.setItem("tof_peek_sec", String(n));
+      return n * 1000;
+    }
+    function syncPeekButtonLabel(){ const secs = clampInt(Number(peekSecEl.value || DEFAULT_PEEK_SEC), 1, 10); if (peekBtn) peekBtn.textContent = `Peek Verse (${secs}s)`; }
+
+    // ======= Providers =======
+    async function fetchViaProxy(ref, versionCode) {
+      const base = "http://127.0.0.1:8000";
+      const url = `${base}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
+      const { signal, cancel } = withTimeout(9000);
+      try { const res = await fetch(url, { signal }); const text = await res.text(); if (!res.ok) throw { __http: true, res, text }; return JSON.parse(text); }
+      catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui=c; throw err; }
+      finally { cancel(); }
+    }
+    async function fetchViaBibleApi(ref, versionCode) {
+      const t = (versionCode || "KJV").toLowerCase();
+      const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
+      const { signal, cancel } = withTimeout(9000);
+      try {
+        const res = await fetch(url, { signal }); const text = await res.text();
+        if (!res.ok) throw { __http: true, res, text };
+        const data = JSON.parse(text);
+        const verseText = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || "");
+        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "KJV").toUpperCase(), fallback: true };
+      } catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui=c; throw err; }
+      finally { cancel(); }
+    }
+    async function fetchVerseUnified(ref, versionCode) {
+      try { return await fetchViaProxy(ref, versionCode); }
+      catch (e) {
+        const info = e._ui || {}; const pub = ["KJV","WEB"];
+        if (pub.includes(versionCode)) {
+          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}…`);
+          try { return await fetchViaBibleApi(ref, versionCode); }
+          catch (e2) { const i2 = e2._ui || {}; showBanner("error", `${i2.user || "Failed to fetch verse."} ${i2.hint ? "Hint: "+i2.hint : ""}`); throw e2; }
+        }
+        showBanner("error", `${info.user || "Verse proxy error."} ${info.hint ? "Hint: "+info.hint : ""}`); throw e;
+      }
+    }
+
+    // ======= Flow helpers =======
+    function clearTimers() {
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      if (peekTimer) { clearTimeout(peekTimer); peekTimer = null; }
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    }
+    function resetTypingArea(text, ref) {
+      verseText = text; reference = ref;
+      typedEl.textContent = ""; remainingEl.textContent = verseText; hiddenMaskEl.textContent = "";
+      inputEl.value = ""; inputEl.style.color = "black"; bannerEl.textContent = ""; resultEl.textContent = "—"; copylineEl.textContent = "";
+      peekCount = 0; peekCountEl.textContent = "0";
+      started = false; startTime = 0; finished = false;
+      totalKeystrokes = 0; errorKeystrokes = 0; prevValue = "";
+      updateLiveMetrics(); inputEl.focus(); setTypingEnabled(true);
+    }
+    function setBlindFaithUI(active) {
+      bfControlsEl.style.display = active ? "flex" : "none";
+      previewSecEl.disabled = !active;
+      peekSecEl.disabled = !active;
+      syncPeekButtonLabel();
+    }
+    function startBlindPreviewThenHide() {
+      let total = getPreviewMs();
+      let msLeft = total;
+      showBanner("info", `Blind Faith: Memorise the verse… Hiding in ${(msLeft/1000).toFixed(0)}s`);
+      countdownTimer = setInterval(() => {
+        msLeft -= 1000;
+        if (msLeft <= 0) { clearInterval(countdownTimer); countdownTimer = null; }
+        else { showBanner("info", `Blind Faith: Memorise the verse… Hiding in ${(msLeft/1000).toFixed(0)}s`); }
+      }, 1000);
+      hideTimer = setTimeout(() => { hideVerse(); showBanner("info", "Blind Faith: Type from memory. Use Peek if needed."); hideTimer = null; }, total);
+    }
+    function showVerse() { hiddenMaskEl.textContent = ""; typedEl.textContent = ""; remainingEl.textContent = verseText; if (blindToggleEl.checked) setTypingEnabled(false); }
+    function hideVerse() { typedEl.textContent = ""; remainingEl.textContent = ""; hiddenMaskEl.textContent = "— Verse hidden — type from memory —"; if (blindToggleEl.checked) { setTypingEnabled(true); inputEl.focus(); } }
+    function handlePeek() { if (peekTimer) return; peekCount += 1; peekCountEl.textContent = String(peekCount); showVerse(); const ms = getPeekMs(); peekTimer = setTimeout(() => { hideVerse(); peekTimer = null; }, ms); }
+
+    // ======= Metrics & history =======
+    function getElapsedSeconds(){ return !started?0:(performance.now()-startTime)/1000; }
+    function computeLiveMetrics(currentTyped){
+      const elapsedSec=getElapsedSeconds(), minutes=elapsedSec/60;
+      const vtNorm = normalizeQuotes(verseText);
+      const ctNorm = normalizeQuotes(currentTyped||"");
+      let correctChars=0;
+      for(let i=0;i<ctNorm.length;i++){ if(ctNorm[i]===vtNorm[i]) correctChars++; }
+      const grossWPM=minutes>0?((correctChars/5)/minutes):0;
+      const acc= totalKeystrokes>0? Math.max(0,1-(errorKeystrokes/totalKeystrokes)) : 1;
+      return { wpm: Math.round(grossWPM), accuracy: Math.round(acc*100), timeSec: elapsedSec };
+    }
+    function updateLiveMetrics(){ const { wpm, accuracy, timeSec } = computeLiveMetrics(inputEl.value||""); statusEl.textContent = `WPM: ${wpm} · Accuracy: ${accuracy}% · Time: ${timeSec.toFixed(1)}s`; }
+    function addHistoryRow(e){ const tr=document.createElement("tr"); const cells=[e.timeLocal,e.category,e.reference,e.mode,String(e.peeks),e.seconds.toFixed(2),String(e.wpm),String(e.accuracyPct),(e.fairnessPct!=null?String(e.fairnessPct):"—")]; for(const c of cells){ const td=document.createElement("td"); td.textContent=c; tr.appendChild(td); } historyBody.prepend(tr); }
+    function exportCSV(){ const header=["Time","Category","Reference","Mode","Peeks","Seconds","WPM","AccuracyPct","FairnessPct"]; const rows=[header.join(",")]; for(const e of history){ const row=[`"${e.timeLocal.replace(/"/g,'""')}"`,`"${e.category}"`,`"${e.reference.replace(/"/g,'""')}"`,`"${e.mode}"`,e.peeks,e.seconds.toFixed(2),e.wpm,e.accuracyPct,(e.fairnessPct!=null?e.fairnessPct:"")]; rows.push(row.join(",")); } const blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="type-of-faith-session.csv"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+    function finishAttempt(isBlindFinish=false){
+      if(finished) return; finished=true;
+      const attempt=inputEl.value||""; const elapsedSec=getElapsedSeconds(); const minutes=elapsedSec/60;
+      let correctChars=0; const vtNorm=normalizeQuotes(verseText); const atNorm=normalizeQuotes(attempt);
+      for(let i=0;i<atNorm.length;i++){ if(atNorm[i]===vtNorm[i]) correctChars++; }
+      const grossWPM=minutes>0?Math.round(((correctChars/5)/minutes)):0;
+      const acc= totalKeystrokes>0? Math.max(0,1-(errorKeystrokes/totalKeystrokes)) : 1;
+      const accuracyPct=Math.round(acc*100);
+      let result=`Ref: ${reference} · Time: ${elapsedSec.toFixed(2)}s · WPM: ${grossWPM} · Accuracy: ${accuracyPct}%`;
+      let fairnessPct=null;
+      if(blindToggleEl.checked||isBlindFinish){ const {scorePct}=computeFairnessScore(verseText,attempt); fairnessPct=scorePct; result+=` · Fairness: ${fairnessPct}% · Peeks: ${peekCount}`; if(bestFairness===null||fairnessPct>bestFairness) bestFairness=fairnessPct; }
+      resultEl.textContent=result;
+      if(blindToggleEl.checked){ showVerse(); setTypingEnabled(false); showBanner("info", "Blind Faith: Verse revealed for review. Use Restart or New Verse when ready."); }
+      if(bestWPM===null||grossWPM>bestWPM) bestWPM=grossWPM;
+      if(bestAccuracy===null||accuracyPct>bestAccuracy) bestAccuracy=accuracyPct;
+      if(fastestTime===null||elapsedSec<fastestTime) fastestTime=elapsedSec;
+      bestStatsEl.textContent=`Best WPM: ${bestWPM??"—"} · Best Accuracy: ${bestAccuracy??"—"}% · Fastest Time: ${fastestTime?fastestTime.toFixed(2)+"s":"—"} · Best Fairness (Blind): ${bestFairness??"—"}%`;
+      const entry={ timeLocal:new Date().toLocaleString(), category:titleCase(actualCategory), reference, mode:(blindToggleEl.checked?"Blind":"Normal"), peeks:peekCount, seconds:elapsedSec, wpm:grossWPM, accuracyPct, fairnessPct };
+      history.push(entry); addHistoryRow(entry);
+    }
+
+    // ======= Verse selection =======
+    async function fetchVerseMatchingLength(category, lengthPref, versionCode){
+      if(lengthPref==="any"){
+        const pick=getRandomRefAndCategory(category);
+        const got=await fetchVerseUnified(pick.ref, versionCode);
+        return { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
+      }
+      const MAX_TRIES=8; let last=null;
+      for(let i=0;i<MAX_TRIES;i++){
+        const pick=getRandomRefAndCategory(category);
+        const got=await fetchVerseUnified(pick.ref, versionCode);
+        const cls=classifyLengthByChars(got.text);
+        last={ reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
+        if(cls===lengthPref) return last;
+      }
+      return last;
+    }
+
+    async function loadRandomVerseForSelection(){
+      clearTimers();
+      setLoading(true);
+      const category=categoryEl.value;
+      const lenPref=lengthEl.value;
+      const versionCode=(versionEl.value||"KJV").toUpperCase();
+      metaEl.textContent="Loading verse…"; copylineEl.textContent="";
+      categoryTitleEl.textContent=currentCategorySelectionLabel();
+      try{
+        const got=await fetchVerseMatchingLength(category,lenPref,versionCode);
+        if(!got||!got.text) throw new Error("Empty verse text");
+        showBanner("success","Verse loaded. Happy typing!");
+        resetTypingArea(got.text, got.reference);
+        actualCategory=got.cat||category; categoryTitleEl.textContent=titleCase(actualCategory);
+        const blindActive=blindToggleEl.checked; setBlindFaithUI(blindActive);
+        if(blindActive){ showVerse(); startBlindPreviewThenHide(); } else { setTypingEnabled(true); showVerse(); bannerEl.textContent=""; }
+        const cls=classifyLengthByChars(got.text);
+        metaEl.textContent = `${reference} (${(got.version||versionCode).toUpperCase()}) · ${titleCase(cls)}${got.fallback ? " · (fallback source)" : ""}`;
+        if(got.copyright){ copylineEl.textContent = got.copyright; }
+      }catch(err){
+        const ui = err._ui || {};
+        showBanner("error", `${ui.user || "Could not load verse."} ${ui.hint ? "Hint: " + ui.hint : ""}`);
+        console.error("Verse load failed:", ui.detail || err);
+      } finally { setLoading(false); }
+    }
+
+    function restartSameVerse(){
+      clearTimers();
+      resetTypingArea(verseText, reference);
+      categoryTitleEl.textContent=titleCase(actualCategory);
+      const blindActive=blindToggleEl.checked; setBlindFaithUI(blindActive);
+      if(blindActive){ showVerse(); startBlindPreviewThenHide(); } else { setTypingEnabled(true); showVerse(); }
+    }
+
+    // ======= Learn mode logic =======
+    function highlightFingerFor(char){
+      document.querySelectorAll("#keyboard .row span").forEach(el=>el.classList.remove("highlight"));
+      const k = (char||"").toLowerCase();
+      const f = FINGER_BY_KEY[k];
+      if(!f) return;
+      document.querySelectorAll(`#keyboard [data-finger="${f}"]`).forEach(el=>el.classList.add("highlight"));
+    }
+    function loadLesson(id){
+      const L = LESSONS.find(x=>x.id===id) || LESSONS[0];
+      lessonText.textContent = L.text;
+      drillNameEl.textContent = L.drills[0].name;
+      drillTypedEl.textContent = "";
+      drillRemainEl.textContent = L.drills[0].text;
+      drillInputEl.value = "";
+      drillInputEl.dataset.text = L.drills[0].text;
+      highlightFingerFor(drillRemainEl.textContent.trim()[0]);
+      drillInputEl.focus();
+    }
+
+    // Drill input handling (mini metrics)
+    let drillStart = 0;
+    drillInputEl.addEventListener("input", ()=>{
+      const target = drillInputEl.dataset.text || "";
+      const typed = drillInputEl.value;
+      if (!drillStart && typed.length>0) drillStart = performance.now();
+      let i=0; while(i<typed.length && typed[i]===target[i]) i++;
+      drillTypedEl.textContent = target.slice(0, i);
+      drillRemainEl.textContent = target.slice(i);
+      highlightFingerFor(target[i]);
+      // simple metrics
+      const elapsed = drillStart? (performance.now()-drillStart)/1000 : 0;
+      const minutes = elapsed/60;
+      const correctChars = i;
+      const grossWPM = minutes>0 ? Math.round((correctChars/5)/minutes) : 0;
+      const errors = Math.max(0, typed.length - i);
+      const acc = typed.length ? Math.max(0, (1 - errors/typed.length))*100 : 100;
+      document.getElementById("drillStats").textContent = `WPM: ${grossWPM} · Accuracy: ${Math.round(acc)}% · Errors: ${errors}`;
+    });
+
+    // ======= Buttons & shortcuts =======
+    document.getElementById("exportBtn").addEventListener("click", exportCSV);
+    document.getElementById("newVerseBtn").addEventListener("click", loadRandomVerseForSelection);
+    document.getElementById("restartBtn").addEventListener("click", restartSameVerse);
+    categoryEl.addEventListener("change", loadRandomVerseForSelection);
+    lengthEl.addEventListener("change", loadRandomVerseForSelection);
+    versionEl.addEventListener("change", loadRandomVerseForSelection);
+    blindToggleEl.addEventListener("change", loadRandomVerseForSelection);
+    previewSecEl.addEventListener("change", () => { getPreviewMs(); });
+    peekSecEl.addEventListener("change", () => { getPeekMs(); syncPeekButtonLabel(); });
+    peekBtn && peekBtn.addEventListener("click", handlePeek);
+    finishBtn && finishBtn.addEventListener("click", () => finishAttempt(true));
+    startDrillBtn.addEventListener("click", ()=> loadLesson(lessonSelect.value));
+    document.addEventListener("keydown", (e) => {
+      if (modeEl.value === "learn") return; // shortcuts off while learning
+      if (e.ctrlKey && (e.key === "Enter")) { e.preventDefault(); finishAttempt(true); }
+      else if (e.ctrlKey && (e.key.toLowerCase() === "p")) { e.preventDefault(); handlePeek(); }
+      else if (e.ctrlKey && (e.key.toLowerCase() === "r")) { e.preventDefault(); restartSameVerse(); }
+      else if (e.ctrlKey && (e.key.toLowerCase() === "m")) { e.preventDefault(); loadRandomVerseForSelection(); }
+      else if (e.ctrlKey && (e.key.toLowerCase() === "j")) {
+        e.preventDefault();
+        const modes = ['auto','light','dark'];
+        const cur = localStorage.getItem("tof_theme") || 'auto';
+        const idx = (modes.indexOf(cur)+1) % modes.length;
+        applyTheme(modes[idx]);
+      }
+    });
+
+    // Mode switching
+    function applyMode(){
+      const learn = modeEl.value === "learn";
+      learnPanel.style.display = learn ? "block" : "none";
+      document.getElementById("practicePanels").style.display = learn ? "none" : "grid";
+      document.getElementById("practiceHistory").style.display = learn ? "none" : "block";
+      // Disable racer input when in Learn mode
+      inputEl.readOnly = learn || inputEl.readOnly;
+      // Hide BF controls when not relevant
+      document.getElementById("bfControls").style.display = (!learn && blindToggleEl.checked) ? "flex" : "none";
+      if (learn) { drillInputEl.focus(); }
+      else { inputEl.focus(); }
+    }
+    modeEl.addEventListener("change", applyMode);
+
+    // ======= Init =======
+    (async () => {
+      // Theme init
+      const savedTheme = localStorage.getItem("tof_theme") || 'auto';
+      themeModeEl.value = savedTheme;
+      applyTheme(savedTheme);
+      themeModeEl.addEventListener('change', () => applyTheme(themeModeEl.value));
+
+      // Blind-Faith timers
+      previewSecEl.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SEC;
+      peekSecEl.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SEC;
+      syncPeekButtonLabel();
+
+      // Learn lessons
+      lessonSelect.innerHTML = LESSONS.map(l => `<option value="${l.id}">${l.title}</option>`).join("");
+      loadLesson(lessonSelect.value || LESSONS[0].id);
+
+      // Apply default mode (Practice)
+      applyMode();
+
+      // Practice: set category title and try to load a verse
+      categoryTitleEl.textContent=currentCategorySelectionLabel();
+      try { const res = await fetch("http://127.0.0.1:8000/health", { cache:"no-store" }); if (!res.ok) throw new Error("Proxy offline"); }
+      catch { showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV."); }
+      finally { loadRandomVerseForSelection(); }
+    })();
+  </script>
+</body>
+</html>
