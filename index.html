@@ -57,6 +57,26 @@
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
     th { background: color-mix(in srgb, var(--panel) 60%, var(--border)); }
     @media (min-width: 1000px) { .panels { grid-template-columns: 1fr 1fr; } }
+
+    /* ---------- Avatar panel ---------- */
+    .avatar-panel { margin-bottom: 12px; }
+    .avatar-grid { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .avatar-option {
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      cursor:pointer; padding:6px; border-radius:8px;
+      border:2px solid transparent; transition:border-color 0.2s;
+    }
+    .avatar-option:hover { border-color:var(--accent); }
+    .avatar-option.selected { border-color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, transparent); }
+    .avatar-option img { width:48px; height:48px; border-radius:50%; object-fit:cover; }
+    .avatar-option span { font-size:11px; color:var(--muted); }
+
+    /* ---------- Race track ---------- */
+    .race-track { margin:8px 0; padding:6px 12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
+    .track-lane { position:relative; height:40px; background:color-mix(in srgb, var(--border) 50%, transparent); border-radius:20px; overflow:hidden; }
+    .race-avatar { position:absolute; top:50%; transform:translateY(-50%); left:0; width:36px; height:36px; border-radius:50%; object-fit:cover; z-index:2; transition:left 0.3s ease-out; }
+    .finish-line { position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right:2px solid var(--ok); z-index:1; }
+    .race-pct { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:600; color:var(--muted); z-index:3; pointer-events:none; }
   </style>
 </head>
 <body>
@@ -131,6 +151,11 @@
     <button id="restartBtn" title="Restart this verse (Ctrl+R)">Restart</button>
   </div>
 
+  <div id="avatarPanel" class="card avatar-panel">
+    <strong>Choose Your Character</strong>
+    <div class="avatar-grid" id="avatarGrid"></div>
+  </div>
+
   <h2 id="categoryTitle">All</h2>
 
   <div id="meta"></div>
@@ -147,6 +172,14 @@
     <button id="finishBtn" title="Calculate your fairness score (Ctrl+Enter)">Finish Attempt</button>
     <span>Peeks used: <span id="peekCount">0</span></span>
     <span class="hint right">Shortcuts: Ctrl+P peek · Ctrl+Enter finish · Ctrl+R restart · Ctrl+M new</span>
+  </div>
+
+  <div id="raceTrack" class="race-track">
+    <div class="track-lane">
+      <img id="raceAvatar" class="race-avatar" src="" alt="avatar" />
+      <span id="racePct" class="race-pct">0%</span>
+      <div class="finish-line"></div>
+    </div>
   </div>
 
   <input id="input" placeholder="Start typing the verse here..." autocomplete="off" spellcheck="false" />
@@ -198,6 +231,60 @@
     const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
     const DEFAULT_PREVIEW_SEC = 10;
     const DEFAULT_PEEK_SEC = 5;
+
+    // ======= Avatars =======
+    const AVATARS = [
+      { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
+      { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
+      { id: "elijah", name: "Elijah", src: "assets/avatars/elijah-2d.png" },
+      { id: "jonah", name: "Jonah", src: "assets/avatars/jonah-2d.png" },
+      { id: "noahs-ark", name: "Noah's Ark", src: "assets/avatars/noahs-ark-2d.png" },
+      { id: "burning-bush", name: "Burning Bush", src: "assets/avatars/burning-bush-2d.png" },
+      { id: "ten-commandments", name: "Commandments", src: "assets/avatars/ten-commandments-2d.png" },
+    ];
+    function getSelectedAvatar() {
+      const saved = localStorage.getItem("tof_avatar");
+      return AVATARS.find(a => a.id === saved) || AVATARS[0];
+    }
+    function renderAvatarGrid() {
+      const grid = document.getElementById("avatarGrid");
+      const selected = getSelectedAvatar();
+      grid.innerHTML = "";
+      for (const av of AVATARS) {
+        const div = document.createElement("div");
+        div.className = "avatar-option" + (av.id === selected.id ? " selected" : "");
+        div.innerHTML = `<img src="${av.src}" alt="${av.name}" /><span>${av.name}</span>`;
+        div.addEventListener("click", () => selectAvatar(av.id));
+        grid.appendChild(div);
+      }
+    }
+    function selectAvatar(id) {
+      localStorage.setItem("tof_avatar", id);
+      renderAvatarGrid();
+      const av = getSelectedAvatar();
+      document.getElementById("raceAvatar").src = av.src;
+    }
+    function updateRaceTrack() {
+      const vtNorm = normalizeQuotes(verseText);
+      const ctNorm = normalizeQuotes(inputEl.value || "");
+      if (!vtNorm.length) return;
+      let correctChars = 0;
+      for (let i = 0; i < ctNorm.length; i++) { if (ctNorm[i] === vtNorm[i]) correctChars++; else break; }
+      const progress = correctChars / vtNorm.length;
+      const pct = Math.round(progress * 100);
+      const lane = document.querySelector(".track-lane");
+      const avatar = document.getElementById("raceAvatar");
+      const maxLeft = lane.offsetWidth - avatar.offsetWidth;
+      avatar.style.left = Math.round(progress * maxLeft) + "px";
+      document.getElementById("racePct").textContent = pct + "%";
+    }
+    function resetRaceTrack() {
+      const avatar = document.getElementById("raceAvatar");
+      avatar.style.transition = "none";
+      avatar.style.left = "0";
+      document.getElementById("racePct").textContent = "0%";
+      requestAnimationFrame(() => { avatar.style.transition = "left 0.3s ease-out"; });
+    }
 
     // ======= DOM refs =======
     const categoryEl = document.getElementById("category");
@@ -353,7 +440,7 @@
       peekCount = 0; peekCountEl.textContent = "0";
       started = false; startTime = 0; finished = false;
       totalKeystrokes = 0; errorKeystrokes = 0; prevValue = "";
-      updateLiveMetrics(); inputEl.focus(); setTypingEnabled(true);
+      updateLiveMetrics(); resetRaceTrack(); inputEl.focus(); setTypingEnabled(true);
     }
     function setBlindFaithUI(active) {
       bfControlsEl.style.display = active ? "flex" : "none";
@@ -488,6 +575,7 @@
 
       if (!started && newVal.length > 0) { started = true; startTime = performance.now(); }
       updateLiveMetrics();
+      updateRaceTrack();
 
       const blindActive = blindToggleEl.checked;
       const verseVisible = remainingEl.textContent.length > 0;
@@ -537,6 +625,8 @@
     // ======= Init =======
     (async () => {
       initTheme();
+      renderAvatarGrid();
+      document.getElementById("raceAvatar").src = getSelectedAvatar().src;
 
       previewSecEl.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SEC;
       peekSecEl.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SEC;

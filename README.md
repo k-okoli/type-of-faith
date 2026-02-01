@@ -66,6 +66,8 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
   - Best WPM, best accuracy, fastest time, best fairness (Blind Faith).
   - Session history table with timestamp, verse, category, mode, WPM, accuracy, fairness.
   - CSV export.
+- **Avatar selection**: Choose from 7 biblical character avatars (Moses, David & Goliath, Elijah, Jonah, Noah's Ark, Burning Bush, Ten Commandments). Selection persists across sessions.
+- **Race track progress bar**: A visual lane that shows your avatar moving from left to right as you type correctly, reaching the finish line when the verse is complete.
 - **Keyboard shortcuts**:
   - `Ctrl+Enter` → Finish attempt
   - `Ctrl+P` → Peek (5s)
@@ -95,9 +97,14 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 
 ```
 .
-├─ server.py    # FastAPI proxy for verse fetching
-├─ index.html   # Front-end game UI (all-in-one HTML/CSS/JS)
-└─ README.md    # Project documentation
+├─ server.py          # FastAPI proxy for verse fetching
+├─ index.html         # Practice page — typing game UI
+├─ lessons.html       # Touch-typing lessons with keyboard map
+├─ quiz.html          # Verse identification quiz
+├─ shared/            # Shared JS/CSS modules (nav, theme, data)
+├─ assets/avatars/    # Biblical character avatar PNGs (2D & 3D)
+├─ todo.md            # Project task tracker
+└─ README.md          # Project documentation
 ```
 
 ---
@@ -143,10 +150,13 @@ Open `index.html` and look for these constants:
 
 ## Roadmap ideas
 
-- Backend proxy for **more translations** (NIV/ESV/CSB/NLT, etc.) with caching and rate limiting.  
-- **Verse pools** per category with more curated references and difficulty tagging.  
-- **Multiplayer** lobbies / ghost races.  
-- **User profiles** and analytics (local-first or privacy-friendly backend).  
+- Backend proxy for **more translations** (NIV/ESV/CSB/NLT, etc.) with caching and rate limiting.
+- **Verse pools** per category with more curated references and difficulty tagging.
+- **Race mode page** — AI opponents / ghost replays on the race track.
+- **3D avatar toggle** (3D assets already included in `assets/avatars/`).
+- **Avatar unlocking** through achievements and milestones.
+- **Multiplayer** lobbies / ghost races.
+- **User profiles** and analytics (local-first or privacy-friendly backend).
 - **Audio** cues and simple **animations** for fun feedback.
 
 ---
