@@ -29,6 +29,8 @@
       display:inline-block; min-width:24px; padding:8px 10px; text-align:center;
       border:1px solid var(--border); border-radius:8px; background:var(--panel);
     }
+    #keyboard .key.wide{ min-width:60px; font-size:12px; }
+    #keyboard .key.space{ min-width:220px; font-size:12px; }
     [data-finger="lp"]{ background:#ffe7e7 } [data-finger="lr"]{ background:#ffeeda }
     [data-finger="lm"]{ background:#fff7cc } [data-finger="li"]{ background:#eaffd1 }
     [data-finger="ri"]{ background:#e0f3ff } [data-finger="rm"]{ background:#eae0ff }
@@ -41,6 +43,34 @@
     .stack-center { display:flex; flex-direction:column; align-items:center; }
     .tips { max-width:820px; width:100%; }
     .drill { max-width:820px; width:100%; margin-top:20px; }
+
+    /* Drill navigation */
+    #drillNav { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    #drillNav .drill-label { font-weight:600; white-space:nowrap; }
+    .drill-dots { display:flex; gap:6px; align-items:center; }
+    .drill-dot { width:12px; height:12px; border-radius:50%; border:2px solid var(--accent); background:transparent; cursor:pointer; transition:background .2s; }
+    .drill-dot.done { background:var(--ok); border-color:var(--ok); }
+    .drill-dot.current { background:var(--accent); border-color:var(--accent); }
+    #drillNav button { font-size:13px; padding:4px 10px; }
+
+    /* Lesson complete banner */
+    #lessonCompleteBanner { display:none; text-align:center; margin-top:10px; padding:12px; background:var(--banner-bg); border-radius:8px; }
+    #lessonCompleteBanner .complete-text { font-size:16px; font-weight:700; color:var(--ok); margin-bottom:8px; }
+    #lessonCompleteBanner button { font-size:14px; padding:6px 16px; }
+
+    /* Lesson tracker */
+    #lessonTracker { margin-bottom:12px; }
+    .tracker-toggle { font-size:14px; cursor:pointer; background:none; border:none; color:var(--link); padding:0; text-decoration:underline; }
+    .tracker-grid { display:none; margin-top:10px; }
+    .tracker-grid.open { display:block; }
+    .lesson-row { display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:14px; transition:background .15s; }
+    .lesson-row:hover { background:var(--border); }
+    .lesson-row.active { outline:2px solid var(--accent); }
+    .lesson-row .lr-num { font-weight:700; min-width:24px; text-align:right; }
+    .lesson-row .lr-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lesson-row .lr-drills { color:var(--muted); min-width:40px; text-align:center; }
+    .lesson-row .lr-acc { color:var(--muted); min-width:50px; text-align:center; }
+    .lesson-row .lr-status { min-width:20px; text-align:center; }
   </style>
 </head>
 <body>
@@ -62,6 +92,12 @@
     <div id="lessonText" style="margin-top:8px"></div>
   </div>
 
+  <!-- Lesson progress tracker -->
+  <div id="lessonTracker" class="card" style="margin-bottom:12px">
+    <button class="tracker-toggle" id="trackerToggle">Show Lesson Progress</button>
+    <div class="tracker-grid" id="trackerGrid"></div>
+  </div>
+
   <!-- Keyboard & Drill stacked and centered -->
   <div class="card stack-center">
     <div style="font-weight:700; margin-bottom:8px;">Keyboard & Finger Map</div>
@@ -69,16 +105,23 @@
     <!-- Keyboard -->
     <div id="keyboard" aria-label="Keyboard diagram">
       <div class="krow">
+        <span class="key" data-finger="lp" data-key="1">1</span><span class="key" data-finger="lr" data-key="2">2</span><span class="key" data-finger="lm" data-key="3">3</span><span class="key" data-finger="li" data-key="4">4</span><span class="key" data-finger="li" data-key="5">5</span>
+        <span class="key" data-finger="ri" data-key="6">6</span><span class="key" data-finger="ri" data-key="7">7</span><span class="key" data-finger="rm" data-key="8">8</span><span class="key" data-finger="rr" data-key="9">9</span><span class="key" data-finger="rp" data-key="0">0</span>
+      </div>
+      <div class="krow">
         <span class="key" data-finger="lp" data-key="q">Q</span><span class="key" data-finger="lr" data-key="w">W</span><span class="key" data-finger="lm" data-key="e">E</span><span class="key" data-finger="li" data-key="r">R</span><span class="key" data-finger="li" data-key="t">T</span>
         <span class="key" data-finger="ri" data-key="y">Y</span><span class="key" data-finger="ri" data-key="u">U</span><span class="key" data-finger="rm" data-key="i">I</span><span class="key" data-finger="rr" data-key="o">O</span><span class="key" data-finger="rp" data-key="p">P</span>
       </div>
       <div class="krow">
         <span class="key" data-finger="lp" data-key="a">A</span><span class="key" data-finger="lr" data-key="s">S</span><span class="key" data-finger="lm" data-key="d">D</span><span class="key" data-finger="li" data-key="f">F</span><span class="key" data-finger="li" data-key="g">G</span>
-        <span class="key" data-finger="ri" data-key="h">H</span><span class="key" data-finger="ri" data-key="j">J</span><span class="key" data-finger="rm" data-key="k">K</span><span class="key" data-finger="rr" data-key="l">L</span><span class="key" data-finger="rp" data-key=";">;</span>
+        <span class="key" data-finger="ri" data-key="h">H</span><span class="key" data-finger="ri" data-key="j">J</span><span class="key" data-finger="rm" data-key="k">K</span><span class="key" data-finger="rr" data-key="l">L</span><span class="key" data-finger="rp" data-key=";">;</span><span class="key" data-finger="rp" data-key="'">'</span>
       </div>
       <div class="krow">
-        <span class="key" data-finger="lp" data-key="z">Z</span><span class="key" data-finger="lr" data-key="x">X</span><span class="key" data-finger="lm" data-key="c">C</span><span class="key" data-finger="li" data-key="v">V</span><span class="key" data-finger="li" data-key="b">B</span>
-        <span class="key" data-finger="ri" data-key="n">N</span><span class="key" data-finger="ri" data-key="m">M</span><span class="key" data-finger="rm" data-key=",">,</span><span class="key" data-finger="rr" data-key=".">.</span><span class="key" data-finger="rp" data-key="/">/</span>
+        <span class="key wide" data-finger="lp" data-key="lshift">Shift</span><span class="key" data-finger="lp" data-key="z">Z</span><span class="key" data-finger="lr" data-key="x">X</span><span class="key" data-finger="lm" data-key="c">C</span><span class="key" data-finger="li" data-key="v">V</span><span class="key" data-finger="li" data-key="b">B</span>
+        <span class="key" data-finger="ri" data-key="n">N</span><span class="key" data-finger="ri" data-key="m">M</span><span class="key" data-finger="rm" data-key=",">,</span><span class="key" data-finger="rr" data-key=".">.</span><span class="key" data-finger="rp" data-key="/">/</span><span class="key wide" data-finger="rp" data-key="rshift">Shift</span>
+      </div>
+      <div class="krow">
+        <span class="key space" data-key=" ">Space</span>
       </div>
     </div>
 
@@ -97,25 +140,103 @@
       </div>
       <input id="input" placeholder="Type the drill here..." autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
       <div id="stats" class="muted" style="margin-top:8px">WPM: 0 · Accuracy: 100% · Errors: 0</div>
-      <div id="progress" class="muted" style="margin-top:6px">Progress: —</div>
+      <div id="drillNav"></div>
+      <div id="lessonCompleteBanner">
+        <div class="complete-text">Lesson complete!</div>
+        <button id="nextLessonBtn">Next Lesson</button>
+      </div>
     </div>
   </div>
 
   <script>
     // --- Lessons data ---
     const LESSONS = [
-      { id:"home-row", title:"Home Row Basics",
-        text:"Place index fingers on F and J (small bumps). Keep wrists relaxed; return to home row after each key.",
-        drills:[ { name:"Home Row 1", text:"ffff jjjj f j fj jf jjff jjff" },
-                 { name:"Home Row 2", text:"asdf ;lkj as df ;l kj jkl; aaaa ssss dddd ffff ;;;; llll kkkk jjjj" } ]},
-      { id:"index-strength", title:"Index Finger Strength",
-        text:"Build accuracy with index-finger stretches (R,T,F,G,V,B) and (Y,U,H,J,N,M). Keep shoulders relaxed.",
-        drills:[ { name:"Left Index", text:"rfrf gtgt vbvb rgtv rgtv" },
-                 { name:"Right Index", text:"jyjy huhu nmnm jyhn jyhn" } ]},
-      { id:"punctuation", title:"Punctuation & Symbols",
-        text:"Practice common punctuation. Keep the same posture and return to home row.",
-        drills:[ { name:"Comma & Period", text:"a,a. a,a. j.j, j.j," },
-                 { name:"Semicolon", text:"; ;;; ; ;;; ;;;;" } ]}
+      { id:"home-index", title:"Home Row — Index Fingers (F, J)",
+        text:"Place your index fingers on F and J — feel the small bumps. Keep wrists floating, shoulders relaxed. Only move the finger that types; the others stay on home row.",
+        drills:[
+          { name:"F & J Intro", text:"fff jjj fj jf fjf jfj ffjj jjff" },
+          { name:"F & J Patterns", text:"fj jf ff jj fjfj jfjf fj fj jf jf" },
+          { name:"F & J Speed", text:"fff jjj fjfj jfjf ffjj jjff fjfjfj" }
+        ]},
+      { id:"home-middle-ring", title:"Home Row — Middle & Ring Fingers (D, K, S, L)",
+        text:"Middle fingers rest on D and K; ring fingers on S and L. Strike each key with a quick tap and snap back to home position.",
+        drills:[
+          { name:"D & K", text:"ddd kkk dk kd dkdk kdkd" },
+          { name:"S & L", text:"sss lll sl ls slsl lsls" },
+          { name:"Mixed Drill", text:"sd kl sdk lkj sdkl lkds fdjk" }
+        ]},
+      { id:"home-pinky", title:"Home Row — Pinky Fingers (A, ;)",
+        text:"Pinky fingers cover A and semicolon. Keep them curved and relaxed — pinkies are weaker, so focus on accuracy over speed.",
+        drills:[
+          { name:"A & ;", text:"aaa ;;; a; ;a a;a; ;a;a" },
+          { name:"Full Home Row", text:"asdf ;lkj asdf ;lkj fdsa jkl;" },
+          { name:"Home Row Words", text:"sad lad fall flask; salad; lass ask" }
+        ]},
+      { id:"home-words", title:"Home Row — Full Row Words",
+        text:"Time to type real words using only home-row keys. Maintain a steady rhythm — accuracy first, speed will follow.",
+        drills:[
+          { name:"Short Words", text:"ask all fall flask salad shall dash" },
+          { name:"More Words", text:"glad lads flask lass add all dad sad" },
+          { name:"Phrases", text:"a lad asks a lass; a sad fall; all shall ask dad" }
+        ]},
+      { id:"top-index", title:"Top Row — Index Fingers (R, T, Y, U)",
+        text:"Reach up from F to R and T; from J to Y and U. Keep your wrist still — only your finger moves up and back.",
+        drills:[
+          { name:"Reach Drill", text:"fff rrr ftf rfr ttt yyy juj jyj" },
+          { name:"Top Row Words", text:"true Ruth year fury rust try yet rut" },
+          { name:"Phrases", text:"Ruth truly trusts God; try hard; year after year" }
+        ]},
+      { id:"top-others", title:"Top Row — Middle, Ring, Pinky (E, I, W, O, Q, P)",
+        text:"Extend each finger straight up to the top row and return. E and I are the most common — build a smooth reach for them.",
+        drills:[
+          { name:"Reach Patterns", text:"ded kik sws lol aqa ;p;" },
+          { name:"Top Row Words", text:"wipe quote power poetry queue" },
+          { name:"Phrases", text:"speak wisely; write proper poetry; quiet power" }
+        ]},
+      { id:"bottom-index", title:"Bottom Row — Index Fingers (V, B, N, M)",
+        text:"Reach down from F to V and B; from J to N and M. Curl the finger downward — do not move your whole hand.",
+        drills:[
+          { name:"Reach Drill", text:"fvf fbf jnj jmj vbvb nmnm" },
+          { name:"Bottom Row Words", text:"brave venom born name vine man" },
+          { name:"Phrases", text:"brave men borne vast burdens; name every vine" }
+        ]},
+      { id:"bottom-others", title:"Bottom Row — Middle, Ring, Pinky (C, X, Z, ., ,, /)",
+        text:"These keys are less frequent but still important. Reach down carefully and return to home row after each keystroke.",
+        drills:[
+          { name:"Reach Patterns", text:"dcd sxs aza k,k l.l ;/;" },
+          { name:"Punctuated Words", text:"zeal, grace. exact. zinc, fox/cub" },
+          { name:"Phrases", text:"exercise grace, seek exact justice. love/peace." }
+        ]},
+      { id:"capitals", title:"Capital Letters & Shift Key",
+        text:"Hold the opposite Shift key: to capitalize a left-hand letter, use Right Shift, and vice versa. Keep the non-shifting hand on home row.",
+        drills:[
+          { name:"Proper Nouns", text:"God Lord Jesus Faith Hope Love Grace" },
+          { name:"Short Sentence", text:"In the beginning God created Adam and Eve." },
+          { name:"Bible Figures", text:"Moses led Israel. David fought Goliath. Paul wrote Romans." }
+        ]},
+      { id:"numbers", title:"Numbers & Top Row (1-0)",
+        text:"Numbers live above the letter keys. Reach straight up from home row. Practice each number slowly — accuracy matters more than speed.",
+        drills:[
+          { name:"All Digits", text:"111 222 333 444 555 666 777 888 999 000" },
+          { name:"Bible Numbers", text:"12 tribes, 10 plagues, 40 days, 7 seals, 3 crosses" },
+          { name:"Verse References", text:"Genesis 1:1 John 3:16 Psalm 23:1 Romans 8:28 Isaiah 40:31" }
+        ]},
+      { id:"common-words", title:"Common Words & Flow",
+        text:"These are the most-typed words in English. Build speed by training your fingers to fire common patterns automatically.",
+        drills:[
+          { name:"Frequent Words", text:"the and for that with this from have been will" },
+          { name:"Faith Words", text:"faith hope love grace mercy truth light peace joy" },
+          { name:"Psalm 23 Flow", text:"the Lord is my shepherd I shall not want he leads me" },
+          { name:"John 3:16 Flow", text:"for God so loved the world that he gave his only son" }
+        ]},
+      { id:"bible-verses", title:"Bible Verse Practice",
+        text:"Full verse typing — the ultimate test. Focus on steady rhythm and accuracy. Let the words sink in as you type them.",
+        drills:[
+          { name:"Genesis 1:1", text:"In the beginning God created the heavens and the earth." },
+          { name:"Psalm 23:1", text:"The Lord is my shepherd; I shall not want." },
+          { name:"John 3:16", text:"For God so loved the world, that he gave his only begotten Son." },
+          { name:"Proverbs 3:5", text:"Trust in the Lord with all your heart and lean not on your own understanding." }
+        ]}
     ];
 
     // --- DOM ---
@@ -128,7 +249,11 @@
     const remainEl = document.getElementById("remain");
     const inputEl = document.getElementById("input");
     const statsEl = document.getElementById("stats");
-    const progressEl = document.getElementById("progress");
+    const drillNavEl = document.getElementById("drillNav");
+    const lessonCompleteBanner = document.getElementById("lessonCompleteBanner");
+    const nextLessonBtn = document.getElementById("nextLessonBtn");
+    const trackerToggle = document.getElementById("trackerToggle");
+    const trackerGrid = document.getElementById("trackerGrid");
 
     function showLessonBanner(type,msg){
       bannerEl.textContent = msg||"";
@@ -147,14 +272,31 @@
     }
 
     // --- Drill state ---
-    let curLesson=null, curIdx=0, startTs=0, errs=0;
+    let curLesson=null, curIdx=0, startTs=0, errs=0, autoAdvanceTimer=null;
+
+    // Shift-produced characters: map to base key
+    const SHIFT_MAP = { ':':';', '"':"'", '<':',', '>':'.', '?':'/' };
+    // Keys typed by left hand (use right shift) vs right hand (use left shift)
+    const LEFT_KEYS = new Set('qwertasdfgzxcvb12345'.split(''));
 
     function highlightKeyFor(ch){
       document.querySelectorAll("#keyboard .key").forEach(el=>el.classList.remove("highlight"));
       if (!ch) return;
-      const key = ch.toLowerCase();
-      const el = document.querySelector(`#keyboard .key[data-key="${CSS.escape(key)}"]`);
+
+      const isUpper = ch !== ch.toLowerCase() && ch === ch.toUpperCase();
+      const isShifted = SHIFT_MAP[ch] != null;
+      const baseKey = isShifted ? SHIFT_MAP[ch] : ch.toLowerCase();
+
+      // Highlight the base key
+      const el = document.querySelector(`#keyboard .key[data-key="${CSS.escape(baseKey)}"]`);
       if (el) el.classList.add("highlight");
+
+      // Highlight the correct Shift key for uppercase/shifted chars
+      if (isUpper || isShifted) {
+        const shiftKey = LEFT_KEYS.has(baseKey) ? 'rshift' : 'lshift';
+        const shiftEl = document.querySelector(`#keyboard .key[data-key="${shiftKey}"]`);
+        if (shiftEl) shiftEl.classList.add("highlight");
+      }
     }
 
     function loadLesson(id){
@@ -162,19 +304,119 @@
       lessonText.textContent = curLesson.text;
       const p = loadProgress(curLesson.id);
       curIdx = Math.min(p.idx||0, curLesson.drills.length-1);
-      updateProgressUI(p.bestAcc);
+      lessonCompleteBanner.style.display = "none";
       loadDrill(curIdx);
+      renderLessonTracker();
     }
+
     function loadDrill(idx){
+      if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer=null; }
+      curIdx = idx;
       const d = curLesson.drills[idx];
       typedEl.textContent=""; remainEl.textContent = d.text;
       inputEl.value=""; startTs=0; errs=0;
+      lessonCompleteBanner.style.display = "none";
       highlightKeyFor(d.text.trim()[0]);
+      renderDrillNav();
       inputEl.focus();
     }
-    function updateProgressUI(bestAcc){
+
+    // --- Drill navigation UI ---
+    function renderDrillNav(){
       const total = curLesson.drills.length;
-      progressEl.textContent = `Lesson progress: ${curIdx}/${total} drills completed · Best accuracy: ${bestAcc!=null?bestAcc+"%":"—"}`;
+      const d = curLesson.drills[curIdx];
+      const p = loadProgress(curLesson.id);
+      const completedIdx = p.idx || 0;
+
+      let html = `<span class="drill-label">Drill ${curIdx+1} of ${total} &mdash; ${d.name}</span>`;
+      html += `<div class="drill-dots">`;
+      for(let i=0; i<total; i++){
+        const cls = i < completedIdx ? "done" : i === curIdx ? "current" : "";
+        html += `<span class="drill-dot ${cls}" title="Drill ${i+1}: ${curLesson.drills[i].name}" data-drill="${i}"></span>`;
+      }
+      html += `</div>`;
+      html += `<button id="prevDrillBtn" ${curIdx===0?"disabled":""}>Prev Drill</button>`;
+      html += `<button id="nextDrillBtn" ${curIdx>=total-1?"disabled":""}>Next Drill</button>`;
+
+      // Per-drill best accuracy
+      const bestAcc = p.bestAcc;
+      if(bestAcc != null) html += `<span class="muted" style="margin-left:auto">Best accuracy: ${bestAcc}%</span>`;
+
+      drillNavEl.innerHTML = html;
+
+      // Event listeners
+      drillNavEl.querySelector("#prevDrillBtn").addEventListener("click", ()=> prevDrill());
+      drillNavEl.querySelector("#nextDrillBtn").addEventListener("click", ()=> nextDrill());
+      drillNavEl.querySelectorAll(".drill-dot").forEach(dot=>{
+        dot.addEventListener("click", ()=>{
+          const i = parseInt(dot.dataset.drill);
+          loadDrill(i);
+          showLessonBanner("","");
+        });
+      });
+    }
+
+    function prevDrill(){
+      if(curIdx > 0){ loadDrill(curIdx-1); showLessonBanner("",""); }
+    }
+    function nextDrill(){
+      if(curIdx < curLesson.drills.length-1){ loadDrill(curIdx+1); showLessonBanner("",""); }
+    }
+
+    // --- Next lesson ---
+    function nextLesson(){
+      const curLessonIdx = LESSONS.findIndex(l=>l.id===curLesson.id);
+      if(curLessonIdx < LESSONS.length-1){
+        lessonSelect.value = LESSONS[curLessonIdx+1].id;
+        loadLesson(LESSONS[curLessonIdx+1].id);
+        showLessonBanner("","");
+      } else {
+        showLessonBanner("success","You've completed all lessons!");
+      }
+    }
+    nextLessonBtn.addEventListener("click", nextLesson);
+
+    // --- Lesson tracker ---
+    trackerToggle.addEventListener("click", ()=>{
+      const open = trackerGrid.classList.toggle("open");
+      trackerToggle.textContent = open ? "Hide Lesson Progress" : "Show Lesson Progress";
+    });
+
+    function renderLessonTracker(){
+      let html = "";
+      LESSONS.forEach((L,i)=>{
+        const p = loadProgress(L.id);
+        const completedIdx = p.idx || 0;
+        const total = L.drills.length;
+        const bestAcc = p.bestAcc;
+        const allDone = completedIdx >= total - 1 && bestAcc >= 95;
+        const inProgress = completedIdx > 0 || bestAcc != null;
+        const isActive = curLesson && curLesson.id === L.id;
+
+        let status = "";
+        if(allDone) status = '<span style="color:var(--ok)">&#10003;</span>';
+        else if(inProgress) status = '<span style="color:var(--accent)">&#9702;</span>';
+        else status = '<span style="color:var(--muted)">&middot;</span>';
+
+        const activeCls = isActive ? " active" : "";
+        html += `<div class="lesson-row${activeCls}" data-lesson-id="${L.id}">`;
+        html += `<span class="lr-num">${i+1}</span>`;
+        html += `<span class="lr-title">${L.title}</span>`;
+        html += `<span class="lr-drills">${allDone ? total : completedIdx}/${total}</span>`;
+        html += `<span class="lr-acc">${bestAcc!=null ? bestAcc+"%" : "&mdash;"}</span>`;
+        html += `<span class="lr-status">${status}</span>`;
+        html += `</div>`;
+      });
+      trackerGrid.innerHTML = html;
+
+      trackerGrid.querySelectorAll(".lesson-row").forEach(row=>{
+        row.addEventListener("click", ()=>{
+          const id = row.dataset.lessonId;
+          lessonSelect.value = id;
+          loadLesson(id);
+          showLessonBanner("","");
+        });
+      });
     }
 
     // --- Input handling ---
@@ -198,17 +440,37 @@
 
       // complete drill
       if(i === target.length){
-        showLessonBanner("success","Great! Drill completed. Press Start for next drill or keep practicing.");
         const finalAcc = Math.round(acc);
         const p = loadProgress(curLesson.id);
         const best = Math.max(p.bestAcc||0, finalAcc);
-        if(finalAcc >= 95 && curIdx < (curLesson.drills.length-1)){
+        const isLastDrill = curIdx >= curLesson.drills.length - 1;
+
+        if(finalAcc >= 95 && !isLastDrill){
+          // Passed drill — auto-advance after delay
+          showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy! Advancing to next drill...`);
           curIdx += 1;
           saveProgress(curLesson.id, curIdx, best);
-          updateProgressUI(best);
-        } else {
+          renderDrillNav();
+          renderLessonTracker();
+          autoAdvanceTimer = setTimeout(()=>{ loadDrill(curIdx); showLessonBanner("",""); }, 1500);
+        } else if(finalAcc >= 95 && isLastDrill){
+          // Passed last drill — lesson complete
           saveProgress(curLesson.id, curIdx, best);
-          updateProgressUI(best);
+          showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy!`);
+          renderDrillNav();
+          renderLessonTracker();
+          const curLessonIdx = LESSONS.findIndex(l=>l.id===curLesson.id);
+          if(curLessonIdx < LESSONS.length - 1){
+            lessonCompleteBanner.style.display = "block";
+          } else {
+            showLessonBanner("success","Congratulations! You've completed all lessons!");
+          }
+        } else {
+          // Below 95% — stay on this drill
+          showLessonBanner("info",`Drill complete — ${finalAcc}% accuracy. Aim for 95%+ to advance. Press Start to retry.`);
+          saveProgress(curLesson.id, curIdx, best);
+          renderDrillNav();
+          renderLessonTracker();
         }
       }
     });
@@ -220,8 +482,8 @@
       if(!curLesson) return;
       localStorage.removeItem(`tof_lesson_${curLesson.id}_progress`);
       curIdx = 0;
-      updateProgressUI(null);
       loadDrill(curIdx);
+      renderLessonTracker();
       showLessonBanner("","Progress cleared for this lesson.");
     });
 
