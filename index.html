@@ -5,6 +5,7 @@
   <title>Type of Faith MVP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
   <style>
     /* ---------- Light theme (default) ---------- */
     :root {
@@ -22,12 +23,10 @@
       --banner-bg:#1d2430; --link:#87b3ff;
       --input-border:#2b3240; --btn-border:#3a4252;
     }
-    /* Auto follows system; JS swaps data-theme to 'light' or 'dark' when needed */
 
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
     a { color: var(--link); }
-    h1 { margin: 0 0 8px; color: var(--accent); }
     h2 { margin: 8px 0 16px; font-weight: 600; color: var(--ink); }
     .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
     select, button, label, input[type="number"] { font-size: 16px; }
@@ -61,7 +60,9 @@
   </style>
 </head>
 <body>
-  <h1>Type of Faith MVP</h1>
+  <script src="shared/data.js"></script>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
 
   <div class="controls">
     <label>
@@ -116,34 +117,18 @@
       Blind Faith
     </label>
 
-    <label class="toggle" title="Initial visible time before hiding (1–30s)">
+    <label id="previewLabel" class="toggle" title="Initial visible time before hiding (1-30s)" style="display:none">
       Preview (s):
       <input id="previewSec" type="number" min="1" max="30" step="1" />
     </label>
 
-    <label class="toggle" title="Peek reveal time (1–10s)">
+    <label id="peekLabel" class="toggle" title="Peek reveal time (1-10s)" style="display:none">
       Peek (s):
       <input id="peekSec" type="number" min="1" max="10" step="1" />
     </label>
 
     <button id="newVerseBtn" title="Ctrl+M">New Verse</button>
     <button id="restartBtn" title="Restart this verse (Ctrl+R)">Restart</button>
-
-    <div class="right"></div>
-
-    <!-- Theme control -->
-    <label class="toggle" title="Color theme">
-      Theme:
-      <select id="themeMode">
-        <option value="auto">Auto</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </label>
-
-    <a href="lessons.html"><button title="Learn touch typing">Lessons</button></a>
-    <a href="quiz.html"><button title="Memorise verses">Quiz</button></a>
-    
   </div>
 
   <h2 id="categoryTitle">All</h2>
@@ -164,7 +149,7 @@
     <span class="hint right">Shortcuts: Ctrl+P peek · Ctrl+Enter finish · Ctrl+R restart · Ctrl+M new</span>
   </div>
 
-  <input id="input" placeholder="Start typing the verse here…" autocomplete="off" spellcheck="false" />
+  <input id="input" placeholder="Start typing the verse here..." autocomplete="off" spellcheck="false" />
 
   <div class="panels">
     <div class="card">
@@ -178,7 +163,7 @@
     <div class="card" style="grid-column: 1 / -1;">
       <strong>Best of Session</strong>
       <div id="bestStats" class="stat">
-        Best WPM: — · Best Accuracy: — · Fastest Time: — · Best Fairness (Blind): — 
+        Best WPM: — · Best Accuracy: — · Fastest Time: — · Best Fairness (Blind): —
       </div>
     </div>
   </div>
@@ -213,38 +198,6 @@
     const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
     const DEFAULT_PREVIEW_SEC = 10;
     const DEFAULT_PEEK_SEC = 5;
-    const THEME_KEY = "tof_theme"; // 'auto' | 'light' | 'dark'
-
-    // ======= Categories =======
-    const VERSE_CATEGORIES = {
-      anger: ["Ephesians 4:26","Proverbs 15:1","James 1:19-20","Colossians 3:8"],
-      anxiety: ["Philippians 4:6-7","1 Peter 5:7","Matthew 6:34","Psalm 94:19"],
-      courage: ["Joshua 1:9","Psalm 27:1","2 Timothy 1:7","Deuteronomy 31:6"],
-      depression: ["Psalm 34:17-18","Psalm 42:11","Isaiah 41:10","Matthew 11:28"],
-      doubt: ["James 1:6","Mark 9:24","Matthew 21:21","John 20:27"],
-      faith: ["Hebrews 11:1","Proverbs 3:5-6","Mark 11:24","2 Corinthians 5:7"],
-      fear: ["Isaiah 41:10","2 Timothy 1:7","Psalm 56:3","Deuteronomy 31:6"],
-      forgiveness: ["Ephesians 4:32","Colossians 3:13","Matthew 6:14","Psalm 103:12"],
-      healing: ["Jeremiah 30:17","Isaiah 53:5","James 5:14-15","Psalm 147:3"],
-      hope: ["Jeremiah 29:11","Romans 15:13","Psalm 42:5","Isaiah 40:31"],
-      jealousy: ["Proverbs 14:30","James 3:16","Galatians 5:26","1 Corinthians 3:3"],
-      joy: ["Nehemiah 8:10","Psalm 16:11","Philippians 4:4","John 15:11"],
-      loss: ["Psalm 34:18","Matthew 5:4","Revelation 21:4","1 Thessalonians 4:13-14"],
-      love: ["1 Corinthians 13:4-7","John 13:34","1 John 4:7","Romans 12:10"],
-      patience: ["Galatians 6:9","Romans 12:12","James 5:8","Ecclesiastes 7:8"],
-      peace: ["John 14:27","Philippians 4:7","Isaiah 26:3","Colossians 3:15"],
-      pride: ["Proverbs 16:18","James 4:6","1 Peter 5:5","Proverbs 11:2"],
-      stress: ["Matthew 11:28-30","John 16:33","Psalm 55:22","Proverbs 12:25"],
-      temptation: ["1 Corinthians 10:13","Matthew 26:41","James 1:12-14","Hebrews 2:18"],
-      wisdom: ["James 1:5","Proverbs 1:7","Proverbs 3:13","Proverbs 4:7"]
-    };
-    const ALL_REFERENCES = Object.values(VERSE_CATEGORIES).flat();
-    const REF_TO_CATEGORY = (() => {
-      const map = {};
-      const cats = Object.keys(VERSE_CATEGORIES).sort((a,b)=>a.localeCompare(b));
-      for (const c of cats) for (const r of VERSE_CATEGORIES[c]) if (!map[r]) map[r] = c;
-      return map;
-    })();
 
     // ======= DOM refs =======
     const categoryEl = document.getElementById("category");
@@ -253,6 +206,8 @@
     const blindToggleEl = document.getElementById("blindToggle");
     const previewSecEl = document.getElementById("previewSec");
     const peekSecEl = document.getElementById("peekSec");
+    const previewLabelEl = document.getElementById("previewLabel");
+    const peekLabelEl = document.getElementById("peekLabel");
     const categoryTitleEl = document.getElementById("categoryTitle");
     const newVerseBtn = document.getElementById("newVerseBtn");
     const restartBtn = document.getElementById("restartBtn");
@@ -272,8 +227,6 @@
     const exportBtn = document.getElementById("exportBtn");
     const historyBody = document.getElementById("historyBody");
     const copylineEl = document.getElementById("copyline");
-    const themeModeEl = document.getElementById("themeMode");
-    const htmlEl = document.documentElement;
 
     // ======= State =======
     let verseText = "";
@@ -285,38 +238,12 @@
     let bestWPM = null, bestAccuracy = null, fastestTime = null, bestFairness = null;
     const history = [];
 
-    // ======= Theme handling =======
-    const mediaDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-    function applyTheme(mode){
-      // mode: 'auto'|'light'|'dark'
-      if(mode === 'auto'){
-        htmlEl.setAttribute('data-theme', mediaDark && mediaDark.matches ? 'dark' : 'light');
-      } else {
-        htmlEl.setAttribute('data-theme', mode);
-      }
-      localStorage.setItem(THEME_KEY, mode);
-      themeModeEl.value = mode;
-    }
-    mediaDark && mediaDark.addEventListener('change', () => {
-      const saved = localStorage.getItem(THEME_KEY) || 'auto';
-      if (saved === 'auto') applyTheme('auto');
-    });
-
     // ======= UI helpers =======
-    function showBanner(type, message) {
-      const el = bannerEl;
-      el.textContent = message || "";
-      el.style.display = message ? "block" : "none";
-      el.style.color = (type === "error") ? "var(--err)"
-                    : (type === "warn")  ? "var(--accent)"
-                    : (type === "success") ? "var(--ok)"
-                    : "var(--muted)";
-    }
     function setLoading(isLoading) {
       const btns = [newVerseBtn, restartBtn, peekBtn, finishBtn].filter(Boolean);
       btns.forEach(b => b.disabled = !!isLoading);
       inputEl.disabled = !!isLoading;
-      if (isLoading) { metaEl.textContent = "Loading verse…"; showBanner("info", "Contacting verse providers…"); }
+      if (isLoading) { metaEl.textContent = "Loading verse..."; showBanner("info", "Contacting verse providers..."); }
       else if (/Contacting verse providers/.test(bannerEl.textContent)) showBanner("info", "");
     }
     function withTimeout(ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms); return { signal: ctrl.signal, cancel: () => clearTimeout(t) }; }
@@ -331,7 +258,6 @@
       if (s===502 || s===503 || s===504) return { code:"UPSTREAM", user:"Upstream provider unavailable.", hint:"Wait a moment and try again.", detail: bodyText };
       return { code:"SERVER", user:"The verse server hit an error.", hint:"Try again or switch to KJV/WEB.", detail: bodyText };
     }
-    const titleCase = s => s.replace(/\b\w/g, c => c.toUpperCase());
     const currentCategorySelectionLabel = () => (categoryEl.value === "all" ? "All" : titleCase(categoryEl.value));
     function getRandomRefAndCategory(category) {
       if (category && category !== "all") {
@@ -349,7 +275,7 @@
       if (len <= LEN_THRESHOLDS.mediumMax) return "medium";
       return "long";
     }
-    function normalizeQuotes(s){ return (s||"").replace(/[‘’‚‛]/g,"'").replace(/[“”„‟]/g,'"'); }
+    function normalizeQuotes(s){ return (s||"").replace(/['\u2018\u2019\u201A\u201B]/g,"'").replace(/["\u201C\u201D\u201E\u201F]/g,'"'); }
     function normalize(s){ return s.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim(); }
     function levenshtein(a,b){
       const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>new Array(n+1));
@@ -365,7 +291,7 @@
     }
     function setTypingEnabled(on) {
       inputEl.readOnly = !on;
-      inputEl.placeholder = on ? "Start typing the verse here…" : "Typing disabled while verse is visible (Blind Faith)";
+      inputEl.placeholder = on ? "Start typing the verse here..." : "Typing disabled while verse is visible (Blind Faith)";
     }
     function getPreviewMs() {
       const n = clampInt(Number(previewSecEl.value || localStorage.getItem("tof_preview_sec") || DEFAULT_PREVIEW_SEC), 1, 30);
@@ -406,7 +332,7 @@
       catch (e) {
         const info = e._ui || {}; const pub = ["KJV","WEB"];
         if (pub.includes(versionCode)) {
-          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}…`);
+          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}...`);
           try { return await fetchViaBibleApi(ref, versionCode); }
           catch (e2) { const i2 = e2._ui || {}; showBanner("error", `${i2.user || "Failed to fetch verse."} ${i2.hint ? "Hint: "+i2.hint : ""}`); throw e2; }
         }
@@ -431,18 +357,18 @@
     }
     function setBlindFaithUI(active) {
       bfControlsEl.style.display = active ? "flex" : "none";
-      previewSecEl.disabled = !active;
-      peekSecEl.disabled = !active;
+      previewLabelEl.style.display = active ? "inline-flex" : "none";
+      peekLabelEl.style.display = active ? "inline-flex" : "none";
       syncPeekButtonLabel();
     }
     function startBlindPreviewThenHide() {
       let total = getPreviewMs();
       let msLeft = total;
-      showBanner("info", `Blind Faith: Memorise the verse… Hiding in ${(msLeft/1000).toFixed(0)}s`);
+      showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${(msLeft/1000).toFixed(0)}s`);
       countdownTimer = setInterval(() => {
         msLeft -= 1000;
         if (msLeft <= 0) { clearInterval(countdownTimer); countdownTimer = null; }
-        else { showBanner("info", `Blind Faith: Memorise the verse… Hiding in ${(msLeft/1000).toFixed(0)}s`); }
+        else { showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${(msLeft/1000).toFixed(0)}s`); }
       }, 1000);
       hideTimer = setTimeout(() => { hideVerse(); showBanner("info", "Blind Faith: Type from memory. Use Peek if needed."); hideTimer = null; }, total);
     }
@@ -510,7 +436,7 @@
       const category=categoryEl.value;
       const lenPref=lengthEl.value;
       const versionCode=(versionEl.value||"KJV").toUpperCase();
-      metaEl.textContent="Loading verse…"; copylineEl.textContent="";
+      metaEl.textContent="Loading verse..."; copylineEl.textContent="";
       categoryTitleEl.textContent=currentCategorySelectionLabel();
       try{
         const got=await fetchVerseMatchingLength(category,lenPref,versionCode);
@@ -545,7 +471,6 @@
       const newNorm = normalizeQuotes(newVal);
       const prevNorm = normalizeQuotes(prevValue);
 
-      // Block input while verse visible in Blind Faith
       if (blindToggleEl.checked && remainingEl.textContent.length > 0) {
         setTypingEnabled(false);
         inputEl.value = prevValue;
@@ -586,7 +511,10 @@
     categoryEl.addEventListener("change", loadRandomVerseForSelection);
     lengthEl.addEventListener("change", loadRandomVerseForSelection);
     versionEl.addEventListener("change", loadRandomVerseForSelection);
-    blindToggleEl.addEventListener("change", loadRandomVerseForSelection);
+    blindToggleEl.addEventListener("change", () => {
+      setBlindFaithUI(blindToggleEl.checked);
+      loadRandomVerseForSelection();
+    });
     previewSecEl.addEventListener("change", () => { getPreviewMs(); });
     peekSecEl.addEventListener("change", () => { getPeekMs(); syncPeekButtonLabel(); });
     peekBtn && peekBtn.addEventListener("click", handlePeek);
@@ -597,7 +525,7 @@
       else if (e.ctrlKey && (e.key.toLowerCase() === "p")) { e.preventDefault(); handlePeek(); }
       else if (e.ctrlKey && (e.key.toLowerCase() === "r")) { e.preventDefault(); restartSameVerse(); }
       else if (e.ctrlKey && (e.key.toLowerCase() === "m")) { e.preventDefault(); loadRandomVerseForSelection(); }
-      else if (e.ctrlKey && (e.key.toLowerCase() === "j")) { // Ctrl+J cycles theme
+      else if (e.ctrlKey && (e.key.toLowerCase() === "j")) {
         e.preventDefault();
         const modes = ['auto','light','dark'];
         const cur = localStorage.getItem(THEME_KEY) || 'auto';
@@ -608,20 +536,15 @@
 
     // ======= Init =======
     (async () => {
-      // Theme init
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'auto';
-      themeModeEl.value = savedTheme;
-      applyTheme(savedTheme);
-      themeModeEl.addEventListener('change', () => applyTheme(themeModeEl.value));
+      initTheme();
 
-      // seed defaults / persisted values
       previewSecEl.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SEC;
       peekSecEl.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SEC;
       syncPeekButtonLabel();
+      setBlindFaithUI(blindToggleEl.checked);
 
       categoryTitleEl.textContent=currentCategorySelectionLabel();
 
-      // Proxy check
       try { const res = await fetch("http://127.0.0.1:8000/health", { cache:"no-store" }); if (!res.ok) throw new Error("Proxy offline"); }
       catch { showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV."); }
       finally { loadRandomVerseForSelection(); }

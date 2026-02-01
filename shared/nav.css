@@ -1,0 +1,50 @@
+/* shared/nav.css — Navigation bar styles */
+.tof-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  margin: -24px -24px 24px -24px; /* counteract body margin */
+  flex-wrap: wrap;
+}
+.tof-nav .tof-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--accent);
+  text-decoration: none;
+  margin-right: 8px;
+}
+.tof-nav .tof-links {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tof-nav .tof-links a {
+  text-decoration: none;
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  border: 1px solid transparent;
+}
+.tof-nav .tof-links a:hover {
+  background: var(--border);
+}
+.tof-nav .tof-links a.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.tof-nav .tof-spacer {
+  flex: 1;
+}
+.tof-nav .tof-theme-select {
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink);
+}

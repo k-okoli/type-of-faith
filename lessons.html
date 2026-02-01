@@ -5,19 +5,17 @@
   <title>Type of Faith — Lessons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
   <style>
     /* Light theme */
     :root { --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8; --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
             --panel:#151922; --border:#2a2f3a; --banner-bg:#1d2430; --link:#87b3ff; --input-border:#2b3240; --btn-border:#3a4252; }
-    /* To switch to light by default, swap the two blocks above/below */
     :root[data-theme="light"] { --bg:#faf8f5; --ink:#111; --muted:#555; --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
             --panel:#fff; --border:#eee; --banner-bg:#fff7e6; --link:#1a56db; --input-border:#ddd; --btn-border:#ccc; }
 
     *{ box-sizing:border-box }
     body{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); margin:24px; }
     a{ color:var(--link) }
-    header{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
-    h1{ margin:0; color:var(--accent) }
     .spacer{ flex:1 }
     select,button,input[type="number"]{ font-size:16px; padding:8px 10px; }
     button{ cursor:pointer; border:1px solid var(--btn-border); background:var(--panel); color:var(--ink); border-radius:6px; }
@@ -46,18 +44,8 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1>Lessons — Type of Faith</h1>
-    <div class="spacer"></div>
-    <label>Theme:
-      <select id="themeMode">
-        <option value="auto">Auto</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </label>
-    <a href="index.html"><button title="Back to Practice">Back to Practice</button></a>
-  </header>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
 
   <div id="banner"></div>
 
@@ -81,16 +69,16 @@
     <!-- Keyboard -->
     <div id="keyboard" aria-label="Keyboard diagram">
       <div class="krow">
-        <span class="key" data-finger="lp">Q</span><span class="key" data-finger="lr">W</span><span class="key" data-finger="lm">E</span><span class="key" data-finger="li">R</span><span class="key" data-finger="li">T</span>
-        <span class="key" data-finger="ri">Y</span><span class="key" data-finger="ri">U</span><span class="key" data-finger="rm">I</span><span class="key" data-finger="rr">O</span><span class="key" data-finger="rp">P</span>
+        <span class="key" data-finger="lp" data-key="q">Q</span><span class="key" data-finger="lr" data-key="w">W</span><span class="key" data-finger="lm" data-key="e">E</span><span class="key" data-finger="li" data-key="r">R</span><span class="key" data-finger="li" data-key="t">T</span>
+        <span class="key" data-finger="ri" data-key="y">Y</span><span class="key" data-finger="ri" data-key="u">U</span><span class="key" data-finger="rm" data-key="i">I</span><span class="key" data-finger="rr" data-key="o">O</span><span class="key" data-finger="rp" data-key="p">P</span>
       </div>
       <div class="krow">
-        <span class="key" data-finger="lp">A</span><span class="key" data-finger="lr">S</span><span class="key" data-finger="lm">D</span><span class="key" data-finger="li">F</span><span class="key" data-finger="li">G</span>
-        <span class="key" data-finger="ri">H</span><span class="key" data-finger="ri">J</span><span class="key" data-finger="rm">K</span><span class="key" data-finger="rr">L</span><span class="key" data-finger="rp">;</span>
+        <span class="key" data-finger="lp" data-key="a">A</span><span class="key" data-finger="lr" data-key="s">S</span><span class="key" data-finger="lm" data-key="d">D</span><span class="key" data-finger="li" data-key="f">F</span><span class="key" data-finger="li" data-key="g">G</span>
+        <span class="key" data-finger="ri" data-key="h">H</span><span class="key" data-finger="ri" data-key="j">J</span><span class="key" data-finger="rm" data-key="k">K</span><span class="key" data-finger="rr" data-key="l">L</span><span class="key" data-finger="rp" data-key=";">;</span>
       </div>
       <div class="krow">
-        <span class="key" data-finger="lp">Z</span><span class="key" data-finger="lr">X</span><span class="key" data-finger="lm">C</span><span class="key" data-finger="li">V</span><span class="key" data-finger="li">B</span>
-        <span class="key" data-finger="ri">N</span><span class="key" data-finger="ri">M</span><span class="key" data-finger="rm">,</span><span class="key" data-finger="rr">.</span><span class="key" data-finger="rp">/</span>
+        <span class="key" data-finger="lp" data-key="z">Z</span><span class="key" data-finger="lr" data-key="x">X</span><span class="key" data-finger="lm" data-key="c">C</span><span class="key" data-finger="li" data-key="v">V</span><span class="key" data-finger="li" data-key="b">B</span>
+        <span class="key" data-finger="ri" data-key="n">N</span><span class="key" data-finger="ri" data-key="m">M</span><span class="key" data-finger="rm" data-key=",">,</span><span class="key" data-finger="rr" data-key=".">.</span><span class="key" data-finger="rp" data-key="/">/</span>
       </div>
     </div>
 
@@ -107,28 +95,13 @@
       <div style="font-size:20px; margin-top:8px;">
         <span id="typed" style="color:var(--ok)"></span><span id="remain" style="color:var(--muted)"></span>
       </div>
-      <input id="input" placeholder="Type the drill here…" autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
+      <input id="input" placeholder="Type the drill here..." autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
       <div id="stats" class="muted" style="margin-top:8px">WPM: 0 · Accuracy: 100% · Errors: 0</div>
       <div id="progress" class="muted" style="margin-top:6px">Progress: —</div>
     </div>
   </div>
 
   <script>
-    // --- Theme ---
-    const htmlEl = document.documentElement;
-    const themeModeEl = document.getElementById("themeMode");
-    const mediaDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-    function applyTheme(mode){
-      if(mode==='auto'){ htmlEl.setAttribute('data-theme', mediaDark&&mediaDark.matches? 'dark':'light'); }
-      else { htmlEl.setAttribute('data-theme', mode); }
-      localStorage.setItem("tof_theme", mode); themeModeEl.value = mode;
-    }
-    mediaDark && mediaDark.addEventListener('change', ()=>{ const saved = localStorage.getItem("tof_theme")||'auto'; if(saved==='auto') applyTheme('auto'); });
-    (function initTheme(){
-      const saved = localStorage.getItem("tof_theme")||'auto'; themeModeEl.value = saved; applyTheme(saved);
-      themeModeEl.addEventListener("change", ()=>applyTheme(themeModeEl.value));
-    })();
-
     // --- Lessons data ---
     const LESSONS = [
       { id:"home-row", title:"Home Row Basics",
@@ -145,13 +118,6 @@
                  { name:"Semicolon", text:"; ;;; ; ;;; ;;;;" } ]}
     ];
 
-    const FINGER_BY_KEY = {
-      q:"lp", a:"lp", z:"lp",  w:"lr", s:"lr", x:"lr",  e:"lm", d:"lm", c:"lm",
-      r:"li", f:"li", v:"li", t:"li", g:"li", b:"li",
-      y:"ri", h:"ri", n:"ri", u:"ri", j:"ri", m:"ri",
-      i:"rm", k:"rm", ",":"rm",  o:"rr", l:"rr", ".":"rr",  p:"rp", ";":"rp", "/":"rp"
-    };
-
     // --- DOM ---
     const bannerEl = document.getElementById("banner");
     const lessonSelect = document.getElementById("lessonSelect");
@@ -164,7 +130,7 @@
     const statsEl = document.getElementById("stats");
     const progressEl = document.getElementById("progress");
 
-    function showBanner(type,msg){
+    function showLessonBanner(type,msg){
       bannerEl.textContent = msg||"";
       bannerEl.style.display = msg? "block":"none";
       bannerEl.style.color = (type==="error")? "var(--err)" : (type==="success")? "var(--ok)" : "var(--accent)";
@@ -182,11 +148,15 @@
 
     // --- Drill state ---
     let curLesson=null, curIdx=0, startTs=0, errs=0;
-    function highlightFingerFor(ch){
+
+    function highlightKeyFor(ch){
       document.querySelectorAll("#keyboard .key").forEach(el=>el.classList.remove("highlight"));
-      const f = FINGER_BY_KEY[(ch||"").toLowerCase()]; if(!f) return;
-      document.querySelectorAll(`#keyboard .key[data-finger="${f}"]`).forEach(el=>el.classList.add("highlight"));
+      if (!ch) return;
+      const key = ch.toLowerCase();
+      const el = document.querySelector(`#keyboard .key[data-key="${CSS.escape(key)}"]`);
+      if (el) el.classList.add("highlight");
     }
+
     function loadLesson(id){
       curLesson = LESSONS.find(x=>x.id===id) || LESSONS[0];
       lessonText.textContent = curLesson.text;
@@ -199,7 +169,7 @@
       const d = curLesson.drills[idx];
       typedEl.textContent=""; remainEl.textContent = d.text;
       inputEl.value=""; startTs=0; errs=0;
-      highlightFingerFor(d.text.trim()[0]);
+      highlightKeyFor(d.text.trim()[0]);
       inputEl.focus();
     }
     function updateProgressUI(bestAcc){
@@ -217,7 +187,7 @@
       let i=0; while(i<typed.length && typed[i]===target[i]) i++;
       typedEl.textContent = target.slice(0,i);
       remainEl.textContent = target.slice(i);
-      highlightFingerFor(target[i]);
+      highlightKeyFor(target[i]);
 
       // metrics
       const elapsed = startTs? (performance.now()-startTs)/1000 : 0;
@@ -228,12 +198,12 @@
 
       // complete drill
       if(i === target.length){
-        showBanner("success","Great! Drill completed. Press Start for next drill or keep practicing.");
+        showLessonBanner("success","Great! Drill completed. Press Start for next drill or keep practicing.");
         const finalAcc = Math.round(acc);
         const p = loadProgress(curLesson.id);
         const best = Math.max(p.bestAcc||0, finalAcc);
         if(finalAcc >= 95 && curIdx < (curLesson.drills.length-1)){
-          curIdx += 1; // unlock next
+          curIdx += 1;
           saveProgress(curLesson.id, curIdx, best);
           updateProgressUI(best);
         } else {
@@ -245,30 +215,18 @@
 
     // --- Controls ---
     lessonSelect.addEventListener("change", ()=> loadLesson(lessonSelect.value));
-    startBtn.addEventListener("click", ()=> { loadDrill(curIdx); showBanner("", ""); });
+    startBtn.addEventListener("click", ()=> { loadDrill(curIdx); showLessonBanner("", ""); });
     resetBtn.addEventListener("click", ()=> {
       if(!curLesson) return;
       localStorage.removeItem(`tof_lesson_${curLesson.id}_progress`);
       curIdx = 0;
       updateProgressUI(null);
       loadDrill(curIdx);
-      showBanner("","Progress cleared for this lesson.");
+      showLessonBanner("","Progress cleared for this lesson.");
     });
 
     // --- Init ---
-    // Theme auto
-    (()=>{
-      const mediaDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-      function applyTheme(mode){
-        if(mode==='auto'){ htmlEl.setAttribute('data-theme', mediaDark&&mediaDark.matches? 'dark':'light'); }
-        else { htmlEl.setAttribute('data-theme', mode); }
-        localStorage.setItem("tof_theme", mode); themeModeEl.value = mode;
-      }
-      mediaDark && mediaDark.addEventListener('change', ()=>{ const saved = localStorage.getItem("tof_theme")||'auto'; if(saved==='auto') applyTheme('auto'); });
-      const saved = localStorage.getItem("tof_theme")||'auto'; themeModeEl.value = saved; applyTheme(saved);
-      themeModeEl.addEventListener("change", ()=>applyTheme(themeModeEl.value));
-    })();
-
+    initTheme();
     populateLessons();
     loadLesson(lessonSelect.value || LESSONS[0].id);
   </script>
