@@ -78,6 +78,64 @@
     .lesson-row .lr-acc { color:var(--muted); min-width:50px; text-align:center; }
     .lesson-row .lr-status { min-width:20px; text-align:center; }
 
+    /* Skin tone selector */
+    .skin-selector { display:flex; gap:6px; align-items:center; margin:12px 0; }
+    .skin-selector label { font-size:14px; color:var(--muted); }
+    .skin-btn {
+      width:28px; height:28px; border-radius:50%; border:2px solid transparent;
+      cursor:pointer; transition:border-color .2s, transform .15s;
+    }
+    .skin-btn:hover { transform:scale(1.1); }
+    .skin-btn.selected { border-color:var(--accent); }
+    .skin-btn[data-tone="light"] { background:#FFDBAC; }
+    .skin-btn[data-tone="medium-light"] { background:#F1C27D; }
+    .skin-btn[data-tone="medium"] { background:#E0AC69; }
+    .skin-btn[data-tone="medium-dark"] { background:#C68642; }
+    .skin-btn[data-tone="dark"] { background:#8D5524; }
+
+    /* Hand diagrams */
+    .hands-container {
+      display:flex; justify-content:center; gap:40px; margin:16px 0;
+      --hand-color:#F1C27D;
+    }
+    .hand {
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .hand-label { font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .fingers {
+      display:flex; gap:4px; align-items:flex-end;
+    }
+    .finger {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+    }
+    .finger-tip {
+      width:20px; height:28px; border-radius:10px 10px 6px 6px;
+      background:var(--hand-color); border:1px solid rgba(0,0,0,0.15);
+      transition:background .15s, transform .15s, box-shadow .15s;
+    }
+    .finger.pinky .finger-tip { height:22px; width:16px; }
+    .finger.ring .finger-tip { height:30px; width:18px; }
+    .finger.middle .finger-tip { height:34px; width:20px; }
+    .finger.index .finger-tip { height:30px; width:19px; }
+    .finger.thumb .finger-tip { height:22px; width:22px; border-radius:50%; margin-top:8px; }
+    .finger.active .finger-tip {
+      background:var(--accent);
+      transform:translateY(-4px);
+      box-shadow:0 4px 8px rgba(0,0,0,0.2);
+    }
+    .finger-key {
+      font-size:9px; color:var(--muted); margin-top:2px;
+      opacity:0; transition:opacity .15s;
+    }
+    .finger.active .finger-key { opacity:1; color:var(--accent); font-weight:600; }
+    .palm {
+      width:90px; height:30px; background:var(--hand-color);
+      border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.15);
+      border-top:none; margin-top:-2px;
+    }
+    .hand.right .fingers { flex-direction:row-reverse; }
+    .hand.right .thumb { order:-1; }
+
     /* Race track */
     .race-track { margin:12px 0; padding:6px 12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
     .track-lane { position:relative; height:40px; background:color-mix(in srgb, var(--border) 50%, transparent); border-radius:20px; overflow:hidden; }
@@ -135,6 +193,42 @@
       </div>
       <div class="krow">
         <span class="key space" data-key=" ">Space</span>
+      </div>
+    </div>
+
+    <!-- Skin tone selector -->
+    <div class="skin-selector">
+      <label>Skin tone:</label>
+      <button class="skin-btn" data-tone="light" title="Light"></button>
+      <button class="skin-btn" data-tone="medium-light" title="Medium-Light"></button>
+      <button class="skin-btn selected" data-tone="medium" title="Medium"></button>
+      <button class="skin-btn" data-tone="medium-dark" title="Medium-Dark"></button>
+      <button class="skin-btn" data-tone="dark" title="Dark"></button>
+    </div>
+
+    <!-- Hand diagrams -->
+    <div class="hands-container" id="handsContainer">
+      <div class="hand left">
+        <div class="hand-label">Left Hand</div>
+        <div class="fingers">
+          <div class="finger pinky" data-finger="lp"><div class="finger-tip"></div><span class="finger-key">A</span></div>
+          <div class="finger ring" data-finger="lr"><div class="finger-tip"></div><span class="finger-key">S</span></div>
+          <div class="finger middle" data-finger="lm"><div class="finger-tip"></div><span class="finger-key">D</span></div>
+          <div class="finger index" data-finger="li"><div class="finger-tip"></div><span class="finger-key">F</span></div>
+          <div class="finger thumb"><div class="finger-tip"></div><span class="finger-key"></span></div>
+        </div>
+        <div class="palm"></div>
+      </div>
+      <div class="hand right">
+        <div class="hand-label">Right Hand</div>
+        <div class="fingers">
+          <div class="finger thumb"><div class="finger-tip"></div><span class="finger-key"></span></div>
+          <div class="finger index" data-finger="ri"><div class="finger-tip"></div><span class="finger-key">J</span></div>
+          <div class="finger middle" data-finger="rm"><div class="finger-tip"></div><span class="finger-key">K</span></div>
+          <div class="finger ring" data-finger="rr"><div class="finger-tip"></div><span class="finger-key">L</span></div>
+          <div class="finger pinky" data-finger="rp"><div class="finger-tip"></div><span class="finger-key">;</span></div>
+        </div>
+        <div class="palm"></div>
       </div>
     </div>
 
@@ -293,11 +387,37 @@
     const trackerGrid = document.getElementById("trackerGrid");
     const raceAvatar = document.getElementById("raceAvatar");
     const racePct = document.getElementById("racePct");
+    const handsContainer = document.getElementById("handsContainer");
 
     function showLessonBanner(type,msg){
       bannerEl.textContent = msg||"";
       bannerEl.style.display = msg? "block":"none";
       bannerEl.style.color = (type==="error")? "var(--err)" : (type==="success")? "var(--ok)" : "var(--accent)";
+    }
+
+    // --- Skin tone handling ---
+    const SKIN_TONES = {
+      'light': '#FFDBAC',
+      'medium-light': '#F1C27D',
+      'medium': '#E0AC69',
+      'medium-dark': '#C68642',
+      'dark': '#8D5524'
+    };
+
+    function setSkinTone(tone) {
+      localStorage.setItem('tof_skin_tone', tone);
+      handsContainer.style.setProperty('--hand-color', SKIN_TONES[tone]);
+      document.querySelectorAll('.skin-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.tone === tone);
+      });
+    }
+
+    function initSkinTone() {
+      const saved = localStorage.getItem('tof_skin_tone') || 'medium';
+      setSkinTone(saved);
+      document.querySelectorAll('.skin-btn').forEach(btn => {
+        btn.addEventListener('click', () => setSkinTone(btn.dataset.tone));
+      });
     }
 
     // --- Race track ---
@@ -339,6 +459,8 @@
 
     function highlightKeyFor(ch){
       document.querySelectorAll("#keyboard .key").forEach(el=>el.classList.remove("highlight"));
+      document.querySelectorAll(".finger").forEach(el=>el.classList.remove("active"));
+
       if (!ch) return;
 
       const isUpper = ch !== ch.toLowerCase() && ch === ch.toUpperCase();
@@ -346,14 +468,33 @@
       const baseKey = isShifted ? SHIFT_MAP[ch] : ch.toLowerCase();
 
       // Highlight the base key
-      const el = document.querySelector(`#keyboard .key[data-key="${CSS.escape(baseKey)}"]`);
-      if (el) el.classList.add("highlight");
+      const keyEl = document.querySelector(`#keyboard .key[data-key="${CSS.escape(baseKey)}"]`);
+      if (keyEl) {
+        keyEl.classList.add("highlight");
 
-      // Highlight the correct Shift key for uppercase/shifted chars
+        // Highlight the corresponding finger
+        const fingerType = keyEl.dataset.finger;
+        if (fingerType) {
+          const fingerEl = document.querySelector(`.finger[data-finger="${fingerType}"]`);
+          if (fingerEl) {
+            fingerEl.classList.add("active");
+            // Update the key label on the finger
+            const keyLabel = fingerEl.querySelector('.finger-key');
+            if (keyLabel) keyLabel.textContent = ch.toUpperCase();
+          }
+        }
+      }
+
+      // Highlight the correct Shift key and pinky for uppercase/shifted chars
       if (isUpper || isShifted) {
         const shiftKey = LEFT_KEYS.has(baseKey) ? 'rshift' : 'lshift';
         const shiftEl = document.querySelector(`#keyboard .key[data-key="${shiftKey}"]`);
         if (shiftEl) shiftEl.classList.add("highlight");
+
+        // Highlight the pinky that presses shift
+        const shiftFinger = LEFT_KEYS.has(baseKey) ? 'rp' : 'lp';
+        const shiftFingerEl = document.querySelector(`.finger[data-finger="${shiftFinger}"]`);
+        if (shiftFingerEl) shiftFingerEl.classList.add("active");
       }
     }
 
@@ -584,6 +725,7 @@
 
     // --- Init ---
     initTheme();
+    initSkinTone();
     raceAvatar.src = getSelectedAvatar().src;
     populateLessons();
     loadLesson(lessonSelect.value || LESSONS[0].id);

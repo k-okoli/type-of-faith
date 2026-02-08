@@ -1,6 +1,6 @@
 # TODO List
 
-## MVP Main Page (index.html)
+## MVP Main Page (practice.html)
 - [x] Verse fetching with multiple providers (KJV, WEB, FBV, ESV)
 - [x] Category and verse length filters
 - [x] Blind faith mode with configurable preview/peek timers
@@ -21,7 +21,7 @@
 - [x] Full keyboard map with numbers, shift, space, apostrophe
 - [x] Seamless navigation between lessons and drills
 - [x] Only highlight the key being pressed on keyboard map
-- [ ] Finger placement on the map (hand emoji with different skin tones?)
+- [x] Finger placement on the map (hand emoji with different skin tones?)
 - [x] Accuracy stat not the same as it is in the Practice page
 
 ## Quiz Page (quiz.html)
