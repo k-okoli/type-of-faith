@@ -63,12 +63,60 @@
     .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
     .stat{ font-variant-numeric: tabular-nums; }
     .muted{ color:var(--muted) }
+
+    /* Mode tabs */
+    .mode-tabs{ display:flex; gap:0; margin-bottom:12px; }
+    .mode-tab{
+      flex:1; padding:10px 16px; text-align:center; cursor:pointer;
+      border:1px solid var(--opt-border); background:var(--btn);
+      font-weight:600; transition:background .15s, color .15s;
+    }
+    .mode-tab:first-child{ border-radius:8px 0 0 8px; }
+    .mode-tab:last-child{ border-radius:0 8px 8px 0; border-left:none; }
+    .mode-tab.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+    .mode-tab:not(.active):hover{ background:var(--border); }
+
+    /* Study mode */
+    #studyPanel{ display:none; }
+    #studyPanel.show{ display:block; }
+    #quizPanel{ display:block; }
+    #quizPanel.hide{ display:none; }
+
+    .verse-list{ display:flex; flex-direction:column; gap:8px; max-height:500px; overflow-y:auto; }
+    .verse-item{
+      padding:12px; border:1px solid var(--border); border-radius:8px;
+      background:var(--panel); cursor:pointer; transition:background .15s;
+    }
+    .verse-item:hover{ background:var(--border); }
+    .verse-item.expanded{ background:var(--banner-ok-bg); }
+    .verse-ref{ font-weight:600; color:var(--accent); }
+    .verse-text{ margin-top:8px; font-size:15px; line-height:1.5; color:var(--ink); display:none; }
+    .verse-item.expanded .verse-text{ display:block; }
+    .verse-loading{ color:var(--muted); font-style:italic; }
+    .study-hint{ color:var(--muted); font-size:14px; margin-bottom:12px; }
+
+    /* Streak indicator */
+    .streak-bar { display:flex; gap:4px; align-items:center; margin-top:12px; }
+    .streak-dot {
+      width:20px; height:20px; border-radius:50%;
+      border:2px solid var(--border); background:var(--panel);
+      transition: background .3s, border-color .3s;
+    }
+    .streak-dot.filled { background:var(--ok); border-color:var(--ok); }
+    .streak-dot.current { border-color:var(--accent); box-shadow:0 0 6px var(--accent); }
+    .streak-label { font-size:13px; color:var(--muted); margin-left:8px; }
   </style>
 </head>
 <body>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="quizTab">Quiz Mode</div>
+    <div class="mode-tab" id="studyTab">Study Mode</div>
+  </div>
 
   <div class="controls">
     <label>Category:
@@ -82,14 +130,23 @@
         <option value="ESV">ESV (Crossway via proxy)</option>
       </select>
     </label>
-    <button id="newBtn">New Question</button>
-    <button id="revealBtn">Reveal Answer</button>
+    <span id="quizControls">
+      <button id="newBtn">New Question</button>
+      <button id="revealBtn">Reveal Answer</button>
+    </span>
     <div class="right stat muted" id="score">Score: 0 / 0 · Streak: 0</div>
   </div>
 
   <div id="banner"></div>
 
-  <div class="card">
+  <!-- Study Panel -->
+  <div id="studyPanel" class="card">
+    <div class="study-hint">Click a verse reference to load and view its text. Study these before taking the quiz!</div>
+    <div class="verse-list" id="verseList"></div>
+  </div>
+
+  <!-- Quiz Panel -->
+  <div id="quizPanel" class="card">
     <div id="categoryTitle">All</div>
     <div id="verseBox"></div>
     <div id="meta"></div>
@@ -98,6 +155,15 @@
 
     <div class="row" style="margin-top:14px">
       <div id="feedback" class="stat">—</div>
+    </div>
+
+    <div class="streak-bar" id="streakBar">
+      <span class="streak-dot" data-idx="0"></span>
+      <span class="streak-dot" data-idx="1"></span>
+      <span class="streak-dot" data-idx="2"></span>
+      <span class="streak-dot" data-idx="3"></span>
+      <span class="streak-dot" data-idx="4"></span>
+      <span class="streak-label">Streak: <span id="streakNum">0</span></span>
     </div>
   </div>
 
@@ -125,14 +191,33 @@ const metaEl     = document.getElementById('meta');
 const feedbackEl = document.getElementById('feedback');
 const scoreEl    = document.getElementById('score');
 const catTitleEl = document.getElementById('categoryTitle');
+const quizTab    = document.getElementById('quizTab');
+const studyTab   = document.getElementById('studyTab');
+const quizPanel  = document.getElementById('quizPanel');
+const studyPanel = document.getElementById('studyPanel');
+const verseList  = document.getElementById('verseList');
+const quizControls = document.getElementById('quizControls');
 
 /* ---------- State ---------- */
 let correctRef = null;
 let allowAnswer = false;
 let score = 0, total = 0, streak = 0;
+let currentMode = 'quiz';
+let loadedVerses = {}; // Cache for study mode
 
 /* ---------- Helpers ---------- */
 function setScore(){ scoreEl.textContent = `Score: ${score} / ${total} · Streak: ${streak}`; }
+
+function updateStreakBar(){
+  const dots = document.querySelectorAll('.streak-dot');
+  const streakNum = document.getElementById('streakNum');
+  streakNum.textContent = streak;
+  dots.forEach((dot, idx) => {
+    dot.classList.remove('filled', 'current');
+    if(idx < streak) dot.classList.add('filled');
+    if(idx === streak && streak < 5) dot.classList.add('current');
+  });
+}
 function setCategoryTitle(){ const v = categoryEl.value; catTitleEl.textContent = v==='all' ? 'All' : titleCase(v); }
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function sampleDistinct(pool, k, avoidSet){
@@ -234,7 +319,87 @@ function checkAnswer(btn, ref){
     btn.classList.add('wrong');
   }
   setScore();
+  updateStreakBar();
   metaEl.style.visibility = 'visible';
+}
+
+/* ---------- Mode switching ---------- */
+function setMode(mode){
+  currentMode = mode;
+  if(mode === 'quiz'){
+    quizTab.classList.add('active');
+    studyTab.classList.remove('active');
+    quizPanel.classList.remove('hide');
+    studyPanel.classList.remove('show');
+    quizControls.style.display = '';
+    scoreEl.style.display = '';
+  } else {
+    studyTab.classList.add('active');
+    quizTab.classList.remove('active');
+    quizPanel.classList.add('hide');
+    studyPanel.classList.add('show');
+    quizControls.style.display = 'none';
+    scoreEl.style.display = 'none';
+    renderStudyList();
+  }
+  showQuizBanner('','');
+}
+
+/* ---------- Study mode ---------- */
+function renderStudyList(){
+  const cat = categoryEl.value;
+  const verses = (cat === 'all') ? ALL_REFS : (VERSE_CATEGORIES[cat] || []);
+
+  if(!verses.length){
+    verseList.innerHTML = '<div class="muted">No verses in this category.</div>';
+    return;
+  }
+
+  verseList.innerHTML = verses.map(ref => {
+    const cached = loadedVerses[ref];
+    const textContent = cached
+      ? `<div class="verse-text">${cached}</div>`
+      : '<div class="verse-text verse-loading">Click to load verse...</div>';
+    return `<div class="verse-item" data-ref="${ref}">
+      <div class="verse-ref">${ref}</div>
+      ${textContent}
+    </div>`;
+  }).join('');
+
+  // Add click handlers
+  verseList.querySelectorAll('.verse-item').forEach(item => {
+    item.addEventListener('click', () => toggleVerseItem(item));
+  });
+}
+
+async function toggleVerseItem(item){
+  const ref = item.dataset.ref;
+  const wasExpanded = item.classList.contains('expanded');
+
+  // Collapse all others
+  verseList.querySelectorAll('.verse-item').forEach(el => el.classList.remove('expanded'));
+
+  if(wasExpanded) return; // Just collapse
+
+  item.classList.add('expanded');
+
+  // Load verse if not cached
+  if(!loadedVerses[ref]){
+    const textEl = item.querySelector('.verse-text');
+    textEl.textContent = 'Loading...';
+    textEl.classList.add('verse-loading');
+
+    try {
+      const ver = (versionEl.value || 'KJV').toUpperCase();
+      const data = await getVerse(ref, ver);
+      loadedVerses[ref] = data.text;
+      textEl.textContent = data.text;
+      textEl.classList.remove('verse-loading');
+    } catch(e) {
+      textEl.textContent = 'Failed to load verse. Try again.';
+      textEl.classList.remove('verse-loading');
+    }
+  }
 }
 
 /* ---------- Init ---------- */
@@ -242,7 +407,12 @@ function checkAnswer(btn, ref){
   initTheme();
 
   categoryEl.innerHTML = CAT_NAMES.map(c => `<option value="${c}">${c==='all'?'All':titleCase(c)}</option>`).join('');
-  setScore(); setCategoryTitle();
+  setScore(); setCategoryTitle(); updateStreakBar();
+
+  // Mode tab listeners
+  quizTab.addEventListener('click', () => setMode('quiz'));
+  studyTab.addEventListener('click', () => setMode('study'));
+
   newBtn.addEventListener('click', newQuestion);
   revealBtn.addEventListener('click', ()=>{
     if (!correctRef) return;
@@ -253,8 +423,15 @@ function checkAnswer(btn, ref){
     metaEl.style.visibility='visible';
     allowAnswer=false;
   });
-  categoryEl.addEventListener('change', newQuestion);
-  versionEl.addEventListener('change', newQuestion);
+  categoryEl.addEventListener('change', () => {
+    if(currentMode === 'quiz') newQuestion();
+    else renderStudyList();
+  });
+  versionEl.addEventListener('change', () => {
+    loadedVerses = {}; // Clear cache when version changes
+    if(currentMode === 'quiz') newQuestion();
+    else renderStudyList();
+  });
   newQuestion();
 })();
 </script>

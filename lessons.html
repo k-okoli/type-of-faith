@@ -36,6 +36,12 @@
     [data-finger="ri"]{ background:#e0f3ff } [data-finger="rm"]{ background:#eae0ff }
     [data-finger="rr"]{ background:#f5e0ff } [data-finger="rp"]{ background:#fbe0ef }
     .highlight{ outline:2px solid var(--accent) }
+    #incorrect { color:#fff; background:var(--err); border-radius:2px; padding:0 1px; }
+    #input.error-state {
+      background: color-mix(in srgb, var(--err) 10%, var(--panel));
+      border-color: var(--err);
+      box-shadow: 0 2px 0 var(--err);
+    }
     .muted{ color:var(--muted) }
     .row{ display:flex; gap:10px; align-items:center }
 
@@ -71,6 +77,13 @@
     .lesson-row .lr-drills { color:var(--muted); min-width:40px; text-align:center; }
     .lesson-row .lr-acc { color:var(--muted); min-width:50px; text-align:center; }
     .lesson-row .lr-status { min-width:20px; text-align:center; }
+
+    /* Race track */
+    .race-track { margin:12px 0; padding:6px 12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
+    .track-lane { position:relative; height:40px; background:color-mix(in srgb, var(--border) 50%, transparent); border-radius:20px; overflow:hidden; }
+    .race-avatar { position:absolute; top:50%; transform:translateY(-50%); left:0; width:36px; height:36px; border-radius:50%; object-fit:cover; z-index:2; transition:left 0.3s ease-out; }
+    .finish-line { position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right:2px solid var(--ok); z-index:1; }
+    .race-pct { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:600; color:var(--muted); z-index:3; pointer-events:none; }
   </style>
 </head>
 <body>
@@ -136,7 +149,14 @@
     <div class="card drill" aria-label="Typing drill">
       <div><strong>Drill</strong> <span class="muted" style="margin-left:12px">Goal: 95%+ accuracy</span></div>
       <div style="font-size:20px; margin-top:8px;">
-        <span id="typed" style="color:var(--ok)"></span><span id="remain" style="color:var(--muted)"></span>
+        <span id="typed" style="color:var(--ok)"></span><span id="incorrect"></span><span id="remain" style="color:var(--muted)"></span>
+      </div>
+      <div class="race-track">
+        <div class="track-lane">
+          <img id="raceAvatar" class="race-avatar" src="" alt="avatar" />
+          <span id="racePct" class="race-pct">0%</span>
+          <div class="finish-line"></div>
+        </div>
       </div>
       <input id="input" placeholder="Type the drill here..." autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
       <div id="stats" class="muted" style="margin-top:8px">WPM: 0 · Accuracy: 100% · Errors: 0</div>
@@ -149,6 +169,22 @@
   </div>
 
   <script>
+    // --- Avatars ---
+    const AVATARS = [
+      { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
+      { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
+      { id: "elijah", name: "Elijah", src: "assets/avatars/elijah-2d.png" },
+      { id: "jonah", name: "Jonah", src: "assets/avatars/jonah-2d.png" },
+      { id: "noahs-ark", name: "Noah's Ark", src: "assets/avatars/noahs-ark-2d.png" },
+      { id: "burning-bush", name: "Burning Bush", src: "assets/avatars/burning-bush-2d.png" },
+      { id: "ten-commandments", name: "Commandments", src: "assets/avatars/ten-commandments-2d.png" },
+    ];
+
+    function getSelectedAvatar() {
+      const saved = localStorage.getItem("tof_avatar");
+      return AVATARS.find(a => a.id === saved) || AVATARS[0];
+    }
+
     // --- Lessons data ---
     const LESSONS = [
       { id:"home-index", title:"Home Row — Index Fingers (F, J)",
@@ -246,6 +282,7 @@
     const startBtn = document.getElementById("startBtn");
     const resetBtn = document.getElementById("resetBtn");
     const typedEl = document.getElementById("typed");
+    const incorrectEl = document.getElementById("incorrect");
     const remainEl = document.getElementById("remain");
     const inputEl = document.getElementById("input");
     const statsEl = document.getElementById("stats");
@@ -254,11 +291,31 @@
     const nextLessonBtn = document.getElementById("nextLessonBtn");
     const trackerToggle = document.getElementById("trackerToggle");
     const trackerGrid = document.getElementById("trackerGrid");
+    const raceAvatar = document.getElementById("raceAvatar");
+    const racePct = document.getElementById("racePct");
 
     function showLessonBanner(type,msg){
       bannerEl.textContent = msg||"";
       bannerEl.style.display = msg? "block":"none";
       bannerEl.style.color = (type==="error")? "var(--err)" : (type==="success")? "var(--ok)" : "var(--accent)";
+    }
+
+    // --- Race track ---
+    function updateRaceTrack(correctChars, totalChars) {
+      if (!totalChars) return;
+      const progress = correctChars / totalChars;
+      const pct = Math.round(progress * 100);
+      const trackLane = document.querySelector(".track-lane");
+      const maxLeft = trackLane.offsetWidth - raceAvatar.offsetWidth;
+      raceAvatar.style.left = Math.round(progress * maxLeft) + "px";
+      racePct.textContent = pct + "%";
+    }
+
+    function resetRaceTrack() {
+      raceAvatar.style.transition = "none";
+      raceAvatar.style.left = "0";
+      racePct.textContent = "0%";
+      requestAnimationFrame(() => { raceAvatar.style.transition = "left 0.3s ease-out"; });
     }
 
     // --- Progress storage ---
@@ -272,7 +329,8 @@
     }
 
     // --- Drill state ---
-    let curLesson=null, curIdx=0, startTs=0, errs=0, autoAdvanceTimer=null;
+    let curLesson=null, curIdx=0, startTs=0, autoAdvanceTimer=null;
+    let totalKeystrokes=0, errorKeystrokes=0, previousInputValue="";
 
     // Shift-produced characters: map to base key
     const SHIFT_MAP = { ':':';', '"':"'", '<':',', '>':'.', '?':'/' };
@@ -313,10 +371,13 @@
       if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer=null; }
       curIdx = idx;
       const d = curLesson.drills[idx];
-      typedEl.textContent=""; remainEl.textContent = d.text;
-      inputEl.value=""; startTs=0; errs=0;
+      typedEl.textContent=""; incorrectEl.textContent=""; remainEl.textContent = d.text;
+      inputEl.value=""; inputEl.classList.remove("error-state"); startTs=0;
+      totalKeystrokes=0; errorKeystrokes=0; previousInputValue="";
       lessonCompleteBanner.style.display = "none";
       highlightKeyFor(d.text.trim()[0]);
+      statsEl.textContent = "WPM: 0 · Accuracy: 100% · Errors: 0";
+      resetRaceTrack();
       renderDrillNav();
       inputEl.focus();
     }
@@ -426,21 +487,55 @@
       const typed = inputEl.value;
       if(!startTs && typed.length>0) startTs = performance.now();
 
-      let i=0; while(i<typed.length && typed[i]===target[i]) i++;
-      typedEl.textContent = target.slice(0,i);
-      remainEl.textContent = target.slice(i);
-      highlightKeyFor(target[i]);
+      // Track keystrokes for accuracy (same as practice page)
+      if (typed.length > previousInputValue.length) {
+        const addedChars = typed.slice(previousInputValue.length);
+        for (let j = 0; j < addedChars.length; j++) {
+          const charIndex = previousInputValue.length + j;
+          totalKeystrokes++;
+          if (addedChars[j] !== target[charIndex]) {
+            errorKeystrokes++;
+          }
+        }
+      }
+      previousInputValue = typed;
 
-      // metrics
+      // Find consecutive correct characters for display
+      let correctCount = 0;
+      while(correctCount < typed.length && typed[correctCount] === target[correctCount]) correctCount++;
+
+      const hasError = correctCount < typed.length;
+      const errorCount = typed.length - correctCount;
+
+      // Update display: correct (green) + incorrect (red) + remaining (muted)
+      typedEl.textContent = target.slice(0, correctCount);
+      incorrectEl.textContent = target.slice(correctCount, correctCount + errorCount);
+      remainEl.textContent = target.slice(correctCount + errorCount);
+
+      // Update input error state
+      if (hasError) {
+        inputEl.classList.add("error-state");
+      } else {
+        inputEl.classList.remove("error-state");
+      }
+
+      highlightKeyFor(target[correctCount]);
+      updateRaceTrack(correctCount, target.length);
+
+      // Use correctCount for metrics (replacing 'i')
+      const i = correctCount;
+
+      // metrics (accuracy now matches practice page)
       const elapsed = startTs? (performance.now()-startTs)/1000 : 0;
       const minutes = elapsed/60;
       const grossWPM = minutes>0 ? Math.round(((i)/5)/minutes) : 0;
-      const acc = typed.length ? Math.max(0, (1 - Math.max(0, typed.length - i)/typed.length))*100 : 100;
-      statsEl.textContent = `WPM: ${grossWPM} · Accuracy: ${Math.round(acc)}% · Errors: ${Math.max(0, typed.length - i)}`;
+      const accuracy = totalKeystrokes > 0 ? Math.max(0, 1 - (errorKeystrokes / totalKeystrokes)) : 1;
+      const accuracyPercent = Math.round(accuracy * 100);
+      statsEl.textContent = `WPM: ${grossWPM} · Accuracy: ${accuracyPercent}% · Errors: ${errorKeystrokes}`;
 
       // complete drill
       if(i === target.length){
-        const finalAcc = Math.round(acc);
+        const finalAcc = accuracyPercent;
         const p = loadProgress(curLesson.id);
         const best = Math.max(p.bestAcc||0, finalAcc);
         const isLastDrill = curIdx >= curLesson.drills.length - 1;
@@ -489,6 +584,7 @@
 
     // --- Init ---
     initTheme();
+    raceAvatar.src = getSelectedAvatar().src;
     populateLessons();
     loadLesson(lessonSelect.value || LESSONS[0].id);
   </script>

@@ -22,11 +22,11 @@
 - [x] Seamless navigation between lessons and drills
 - [x] Only highlight the key being pressed on keyboard map
 - [ ] Finger placement on the map (hand emoji with different skin tones?)
-- [ ] Accuracy stat not the same as it is in the Practice page
+- [x] Accuracy stat not the same as it is in the Practice page
 
 ## Quiz Page (quiz.html)
 - [x] Game mode where verse text pops up and you have to select the correct verse location
-- [ ] Enhance experience — allow users to browse verses before attempting quiz
+- [x] Enhance experience — allow users to browse verses before attempting quiz
 
 ## Shared / Infrastructure
 - [x] Extracted shared modules (nav, theme, data)
@@ -39,7 +39,7 @@
 - [x] Race mode page — AI opponents / ghost replays
 - [ ] 3D avatar toggle (assets ready in assets/avatars/)
 - [ ] Avatar unlocking through achievements
-- [ ] Add race track to lessons.html and quiz.html
+- [x] Add race track to lessons.html and quiz.html
 
 ## Future Features
 - [ ] Multiplayer mode / lobbies / ghost races

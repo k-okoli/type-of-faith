@@ -1,7 +1,7 @@
 # Type of Faith — MVP
 
 A browser-based typing game that helps users practice touch-typing **while learning Scripture**.  
-It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a front-end game (`index.html`) to provide the interactive typing experience.
+It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a front-end game (`practice.html`) to provide the interactive typing experience.
 
 ---
 
@@ -34,9 +34,9 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 
 ### Run the frontend (game UI)
 
-- Simply open `index.html` in a browser.  
+- Simply open `practice.html` in a browser.  
   If your browser blocks `file://` fetch requests, run a tiny static server:
-  - Python: `python -m http.server 8080` → http://localhost:8080/index.html
+  - Python: `python -m http.server 8080` → http://localhost:8080/practice.html
   - VS Code: Live Server extension
 
 ---
@@ -91,7 +91,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 - Provides `/verse` endpoint:  
   `GET /verse?ref=John%203:16&version=FBV`
 
-### Frontend (`index.html`)
+### Frontend (`practice.html`)
 - Unified fetch: tries FastAPI proxy first; falls back to bible-api.com for KJV/WEB if proxy not running.
 - Implements typing UI, Blind Faith mode, scoring, stats, and CSV export.
 
@@ -102,7 +102,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 ```
 .
 ├─ server.py          # FastAPI proxy for verse fetching
-├─ index.html         # Practice page — typing game UI
+├─ practice.html      # Practice page — typing game UI
 ├─ lessons.html       # Touch-typing lessons with keyboard map
 ├─ quiz.html          # Verse identification quiz
 ├─ race.html          # Race mode — compete against AI opponents
@@ -116,7 +116,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 
 ## Configuration (edit in code)
 
-Open `index.html` and look for these constants:
+Open `practice.html` and look for these constants:
 - **Timers**  
   - `BLIND_PREVIEW_MS = 10000` (initial 10s preview)  
   - `BLIND_PEEK_MS = 5000` (5s peek)
@@ -141,7 +141,7 @@ Open `index.html` and look for these constants:
   }
   ```
 - Restart the server.
-- Add the version to the `<select>` dropdown in `index.html`.
+- Add the version to the `<select>` dropdown in `practice.html`.
 
 ---
 
@@ -149,7 +149,7 @@ Open `index.html` and look for these constants:
 
 - **FBV/other api.bible versions return 500**: ensure `$env:API_BIBLE_KEY` is set and valid.
 - **CORS errors**: make sure `server.py` has CORS enabled (already included).
-- **Nothing loads**: run index.html from a local server (`http://localhost:8080`) instead of double-clicking.
+- **Nothing loads**: run practice.html from a local server (`http://localhost:8080`) instead of double-clicking.
 
 ---
 

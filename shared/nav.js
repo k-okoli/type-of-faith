@@ -1,7 +1,7 @@
 // shared/nav.js — Injects a consistent navigation bar at the top of <body>
 (function injectNav() {
   const pages = [
-    { label: "Practice", href: "index.html" },
+    { label: "Practice", href: "practice.html" },
     { label: "Lessons",  href: "lessons.html" },
     { label: "Quiz",     href: "quiz.html" },
     { label: "Race",     href: "race.html" }
