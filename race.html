@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <title>Race Mode — Type of Faith</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%81%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
+  <style>
+    /* ---------- Light theme (default) ---------- */
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555;
+      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
+      --panel:#fff; --border:#eee;
+      --banner-bg:#fff7e6; --link:#1a56db;
+      --input-border:#ddd; --btn-border:#ccc;
+    }
+    /* ---------- Dark theme overrides ---------- */
+    :root[data-theme="dark"] {
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
+      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a;
+      --banner-bg:#1d2430; --link:#87b3ff;
+      --input-border:#2b3240; --btn-border:#3a4252;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+    a { color: var(--link); }
+    h2 { margin: 8px 0 16px; font-weight: 600; color: var(--ink); }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    select, button, label { font-size: 16px; }
+    select, button { padding: 8px 10px; }
+    button { cursor: pointer; border: 1px solid var(--btn-border); background: var(--panel); color: var(--ink); border-radius: 6px; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+    #banner { font-size: 14px; color: var(--accent); margin: 6px 0 10px; padding: 6px 8px; border-radius: 6px; background: var(--banner-bg); display:none; }
+    #verse { font-size: 20px; line-height: 1.6; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 3.5em; }
+    #typed { color: var(--ok); }
+    #incorrect { color: #fff; background: var(--err); border-radius: 2px; padding: 0 1px; }
+    #remaining { color: var(--muted); }
+    #input.error-state {
+      background: color-mix(in srgb, var(--err) 10%, var(--panel));
+      border-color: var(--err);
+      box-shadow: 0 2px 0 var(--err);
+    }
+    #input { width: 100%; font-size: 20px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--panel); color: var(--ink); margin-bottom: 12px; }
+    .copyline { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+
+    /* ---------- Race arena ---------- */
+    .race-arena { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; padding: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+    .race-lane { display: flex; align-items: center; gap: 8px; }
+    .lane-label { width: 90px; font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .track-lane { position: relative; flex: 1; height: 40px; background: color-mix(in srgb, var(--border) 50%, transparent); border-radius: 20px; overflow: hidden; }
+    .race-avatar { position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; z-index: 2; transition: left 0.15s ease-out; }
+    .finish-line { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right: 2px solid var(--ok); z-index: 1; }
+    .race-pct { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--muted); z-index: 3; pointer-events: none; }
+
+    /* ---------- Results panel ---------- */
+    .results-panel { display: none; margin-top: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .results-panel.show { display: block; }
+    .results-panel h3 { margin: 0 0 12px; color: var(--ink); }
+    .results-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .results-table th, .results-table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+    .results-table th { background: color-mix(in srgb, var(--panel) 60%, var(--border)); }
+    .results-table .avatar-cell { display: flex; align-items: center; gap: 8px; }
+    .results-table .avatar-cell img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .results-table .place-1 { color: #ffd700; font-weight: bold; }
+    .results-table .place-2 { color: #c0c0c0; font-weight: bold; }
+    .results-table .place-3 { color: #cd7f32; font-weight: bold; }
+    .results-table .place-4 { color: var(--muted); }
+
+    /* ---------- Live metrics ---------- */
+    .panels { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .stat { font-variant-numeric: tabular-nums; }
+    #status { font-size: 14px; color: var(--muted); }
+    @media (max-width: 600px) { .panels { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <script src="shared/data.js"></script>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
+
+  <h2>Race Mode</h2>
+
+  <div class="controls">
+    <label>
+      Category:
+      <select id="category">
+        <option value="all">All</option>
+      </select>
+    </label>
+
+    <label>
+      Verse length:
+      <select id="length">
+        <option value="any">Any</option>
+        <option value="short">Short</option>
+        <option value="medium">Medium</option>
+        <option value="long">Long</option>
+      </select>
+    </label>
+
+    <label>
+      Version:
+      <select id="version">
+        <option value="KJV">KJV</option>
+        <option value="WEB">WEB</option>
+        <option value="FBV">FBV</option>
+        <option value="ESV">ESV</option>
+      </select>
+    </label>
+
+    <label>
+      AI Mode:
+      <select id="aiMode">
+        <option value="fixed">Fixed</option>
+        <option value="personality">Personality</option>
+        <option value="adaptive">Adaptive</option>
+      </select>
+    </label>
+
+    <label>
+      Opponents:
+      <select id="opponents">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+      </select>
+    </label>
+
+    <button id="startBtn">Start Race</button>
+    <button id="newVerseBtn">New Verse</button>
+  </div>
+
+  <div id="meta"></div>
+  <div id="banner"></div>
+
+  <div id="verse">
+    <span id="typed"></span><span id="incorrect"></span><span id="remaining"></span>
+  </div>
+
+  <div class="copyline" id="copyline"></div>
+
+  <div class="race-arena" id="raceArena"></div>
+
+  <input id="input" placeholder="Type the verse here..." autocomplete="off" spellcheck="false" disabled />
+
+  <div class="results-panel" id="resultsPanel">
+    <h3>Race Results</h3>
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Place</th>
+          <th>Racer</th>
+          <th>Time</th>
+          <th>WPM</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panels">
+    <div class="card">
+      <strong>Live Metrics</strong>
+      <div id="status" class="stat">WPM: 0 | Accuracy: 100% | Time: 0.0s</div>
+    </div>
+    <div class="card">
+      <strong>Your Stats</strong>
+      <div id="playerStats" class="stat">Races: 0 | Avg WPM: --</div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Constants =======
+    const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
+
+    const AVATARS = [
+      { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
+      { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
+      { id: "elijah", name: "Elijah", src: "assets/avatars/elijah-2d.png" },
+      { id: "jonah", name: "Jonah", src: "assets/avatars/jonah-2d.png" },
+      { id: "noahs-ark", name: "Noah's Ark", src: "assets/avatars/noahs-ark-2d.png" },
+      { id: "burning-bush", name: "Burning Bush", src: "assets/avatars/burning-bush-2d.png" },
+      { id: "ten-commandments", name: "Commandments", src: "assets/avatars/ten-commandments-2d.png" },
+    ];
+
+    const AI_FIXED_SPEEDS = [20, 40, 60];
+
+    const AI_PERSONALITY = [
+      { id: "moses", base: 30, variance: 0.3 },
+      { id: "david", base: 45, variance: 0.35 },
+      { id: "elijah", base: 50, variance: 0.25 },
+      { id: "jonah", base: 35, variance: 0.4 },
+      { id: "noahs-ark", base: 25, variance: 0.2 },
+      { id: "burning-bush", base: 55, variance: 0.3 },
+      { id: "ten-commandments", base: 40, variance: 0.15 },
+    ];
+
+    const AI_ADAPTIVE_OFFSETS = [-5, 0, +8];
+
+    // ======= DOM refs =======
+    const categoryEl = document.getElementById("category");
+    const lengthEl = document.getElementById("length");
+    const versionEl = document.getElementById("version");
+    const aiModeEl = document.getElementById("aiMode");
+    const opponentsEl = document.getElementById("opponents");
+    const startBtn = document.getElementById("startBtn");
+    const newVerseBtn = document.getElementById("newVerseBtn");
+    const metaEl = document.getElementById("meta");
+    const bannerEl = document.getElementById("banner");
+    const typedEl = document.getElementById("typed");
+    const incorrectEl = document.getElementById("incorrect");
+    const remainingEl = document.getElementById("remaining");
+    const copylineEl = document.getElementById("copyline");
+    const raceArenaEl = document.getElementById("raceArena");
+    const inputEl = document.getElementById("input");
+    const resultsPanel = document.getElementById("resultsPanel");
+    const resultsBody = document.getElementById("resultsBody");
+    const statusEl = document.getElementById("status");
+    const playerStatsEl = document.getElementById("playerStats");
+
+    // ======= State =======
+    let verseText = "";
+    let reference = "";
+    let raceActive = false;
+    let raceStartTime = 0;
+    let aiInterval = null;
+    let countdownInterval = null;
+    let player = null;
+    let aiRacers = [];
+    let finishOrder = [];
+    let started = false;
+    let totalKeystrokes = 0;
+    let errorKeystrokes = 0;
+    let prevValue = "";
+
+    // Race history for adaptive mode
+    let raceHistory = JSON.parse(localStorage.getItem("tof_race_history") || "[]");
+
+    // ======= Utility functions =======
+    function normalizeQuotes(s) {
+      return (s || "").replace(/['\u2018\u2019\u201A\u201B]/g, "'").replace(/["\u201C\u201D\u201E\u201F]/g, '"');
+    }
+
+    function classifyLengthByChars(text) {
+      const len = text.trim().length;
+      if (len <= LEN_THRESHOLDS.shortMax) return "short";
+      if (len <= LEN_THRESHOLDS.mediumMax) return "medium";
+      return "long";
+    }
+
+    function getRandomRefAndCategory(category) {
+      if (category && category !== "all") {
+        const list = VERSE_CATEGORIES[category] || [];
+        const ref = list[Math.floor(Math.random() * list.length)];
+        return { ref, cat: category };
+      }
+      const ref = ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
+      const cat = REF_TO_CATEGORY[ref] || "all";
+      return { ref, cat };
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getSelectedAvatar() {
+      const saved = localStorage.getItem("tof_avatar");
+      return AVATARS.find(a => a.id === saved) || AVATARS[0];
+    }
+
+    function getPlayerAvgWPM() {
+      if (raceHistory.length === 0) return 35;
+      const sum = raceHistory.reduce((acc, r) => acc + r.wpm, 0);
+      return Math.round(sum / raceHistory.length);
+    }
+
+    function saveRaceResult(wpm, mode) {
+      raceHistory.push({ wpm, mode, date: new Date().toISOString() });
+      if (raceHistory.length > 10) raceHistory = raceHistory.slice(-10);
+      localStorage.setItem("tof_race_history", JSON.stringify(raceHistory));
+      updatePlayerStats();
+    }
+
+    function updatePlayerStats() {
+      const count = raceHistory.length;
+      const avg = count > 0 ? Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / count) : "--";
+      playerStatsEl.textContent = `Races: ${count} | Avg WPM: ${avg}`;
+    }
+
+    // ======= Category dropdown population =======
+    function populateCategoryDropdown() {
+      const cats = Object.keys(VERSE_CATEGORIES).sort();
+      for (const cat of cats) {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = titleCase(cat);
+        categoryEl.appendChild(opt);
+      }
+    }
+
+    // ======= Providers =======
+    function withTimeout(ms) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      return { signal: ctrl.signal, cancel: () => clearTimeout(t) };
+    }
+
+    function classifyError(err, res = null, bodyText = "") {
+      const detail = (err && err.message) ? err.message : "";
+      if (!res) return { code: "NETWORK", user: "Cannot reach the verse server.", hint: "If using FBV/ESV, start FastAPI.", detail };
+      const s = res.status;
+      if (s === 401) return { code: "UNAUTHORIZED", user: "The verse service rejected credentials.", hint: "Check API keys.", detail: bodyText };
+      if (s === 403) return { code: "FORBIDDEN", user: "This translation requires publisher permission.", hint: "Try KJV/WEB.", detail: bodyText };
+      if (s === 404) return { code: "NOT_FOUND", user: "No verse found for that reference.", hint: "Try a different verse.", detail: bodyText };
+      if (s === 502 || s === 503 || s === 504) return { code: "UPSTREAM", user: "Upstream provider unavailable.", hint: "Wait and try again.", detail: bodyText };
+      return { code: "SERVER", user: "The verse server hit an error.", hint: "Try again or switch to KJV/WEB.", detail: bodyText };
+    }
+
+    async function fetchViaProxy(ref, versionCode) {
+      const base = "http://127.0.0.1:8000";
+      const url = `${base}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
+      const { signal, cancel } = withTimeout(9000);
+      try {
+        const res = await fetch(url, { signal });
+        const text = await res.text();
+        if (!res.ok) throw { __http: true, res, text };
+        return JSON.parse(text);
+      } catch (e) {
+        const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e);
+        const err = new Error(c.user);
+        err._ui = c;
+        throw err;
+      } finally {
+        cancel();
+      }
+    }
+
+    async function fetchViaBibleApi(ref, versionCode) {
+      const t = (versionCode || "KJV").toLowerCase();
+      const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
+      const { signal, cancel } = withTimeout(9000);
+      try {
+        const res = await fetch(url, { signal });
+        const text = await res.text();
+        if (!res.ok) throw { __http: true, res, text };
+        const data = JSON.parse(text);
+        const verseText = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || "");
+        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "KJV").toUpperCase(), fallback: true };
+      } catch (e) {
+        const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e);
+        const err = new Error(c.user);
+        err._ui = c;
+        throw err;
+      } finally {
+        cancel();
+      }
+    }
+
+    async function fetchVerseUnified(ref, versionCode) {
+      try {
+        return await fetchViaProxy(ref, versionCode);
+      } catch (e) {
+        const info = e._ui || {};
+        const pub = ["KJV", "WEB"];
+        if (pub.includes(versionCode)) {
+          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}...`);
+          try {
+            return await fetchViaBibleApi(ref, versionCode);
+          } catch (e2) {
+            const i2 = e2._ui || {};
+            showBanner("error", `${i2.user || "Failed to fetch verse."} ${i2.hint ? "Hint: " + i2.hint : ""}`);
+            throw e2;
+          }
+        }
+        showBanner("error", `${info.user || "Verse proxy error."} ${info.hint ? "Hint: " + info.hint : ""}`);
+        throw e;
+      }
+    }
+
+    async function fetchVerseMatchingLength(category, lengthPref, versionCode) {
+      if (lengthPref === "any") {
+        const pick = getRandomRefAndCategory(category);
+        const got = await fetchVerseUnified(pick.ref, versionCode);
+        return { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
+      }
+      const MAX_TRIES = 8;
+      let last = null;
+      for (let i = 0; i < MAX_TRIES; i++) {
+        const pick = getRandomRefAndCategory(category);
+        const got = await fetchVerseUnified(pick.ref, versionCode);
+        const cls = classifyLengthByChars(got.text);
+        last = { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
+        if (cls === lengthPref) return last;
+      }
+      return last;
+    }
+
+    // ======= Race lane rendering =======
+    function createLaneHTML(label, avatarSrc, id) {
+      return `
+        <div class="race-lane" id="lane-${id}">
+          <span class="lane-label">${label}</span>
+          <div class="track-lane">
+            <img class="race-avatar" id="avatar-${id}" src="${avatarSrc}" alt="${label}" />
+            <span class="race-pct" id="pct-${id}">0%</span>
+            <div class="finish-line"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRaceArena() {
+      const playerAvatar = getSelectedAvatar();
+      player = {
+        id: "player",
+        name: "You",
+        avatar: playerAvatar,
+        progress: 0,
+        finished: false,
+        finishTime: null,
+        wpm: 0
+      };
+
+      const numOpponents = parseInt(opponentsEl.value, 10);
+      const availableAvatars = AVATARS.filter(a => a.id !== playerAvatar.id);
+      const shuffled = shuffleArray(availableAvatars).slice(0, numOpponents);
+
+      aiRacers = shuffled.map((av, i) => {
+        const personality = AI_PERSONALITY.find(p => p.id === av.id) || { base: 40, variance: 0.25 };
+        return {
+          id: `ai-${i}`,
+          name: av.name,
+          avatar: av,
+          progress: 0,
+          finished: false,
+          finishTime: null,
+          wpm: 0,
+          personality,
+          assignedWPM: 0
+        };
+      });
+
+      // Assign AI speeds based on mode
+      const mode = aiModeEl.value;
+      const shuffledSpeeds = shuffleArray(AI_FIXED_SPEEDS);
+      const playerAvg = getPlayerAvgWPM();
+
+      aiRacers.forEach((ai, i) => {
+        if (mode === "fixed") {
+          ai.assignedWPM = shuffledSpeeds[i % shuffledSpeeds.length];
+        } else if (mode === "personality") {
+          ai.assignedWPM = ai.personality.base;
+        } else if (mode === "adaptive") {
+          const offset = AI_ADAPTIVE_OFFSETS[i % AI_ADAPTIVE_OFFSETS.length];
+          ai.assignedWPM = Math.max(10, playerAvg + offset);
+        }
+      });
+
+      // Build arena HTML
+      let html = createLaneHTML("You", playerAvatar.src, "player");
+      for (const ai of aiRacers) {
+        html += createLaneHTML(ai.name, ai.avatar.src, ai.id);
+      }
+      raceArenaEl.innerHTML = html;
+    }
+
+    function updateLanePosition(id, progress, totalChars) {
+      const lane = document.querySelector(`#lane-${id} .track-lane`);
+      const avatar = document.getElementById(`avatar-${id}`);
+      const pctEl = document.getElementById(`pct-${id}`);
+      if (!lane || !avatar || !pctEl) return;
+
+      const ratio = Math.min(1, progress / totalChars);
+      const pct = Math.round(ratio * 100);
+      const maxLeft = lane.offsetWidth - avatar.offsetWidth;
+      avatar.style.left = Math.round(ratio * maxLeft) + "px";
+      pctEl.textContent = pct + "%";
+    }
+
+    // ======= Race flow =======
+    function resetRace() {
+      raceActive = false;
+      finishOrder = [];
+      started = false;
+      totalKeystrokes = 0;
+      errorKeystrokes = 0;
+      prevValue = "";
+      inputEl.value = "";
+      inputEl.disabled = true;
+      inputEl.classList.remove("error-state");
+      incorrectEl.textContent = "";
+      resultsPanel.classList.remove("show");
+      if (aiInterval) {
+        clearInterval(aiInterval);
+        aiInterval = null;
+      }
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    async function loadVerse() {
+      resetRace();
+      const category = categoryEl.value;
+      const lenPref = lengthEl.value;
+      const versionCode = versionEl.value.toUpperCase();
+      metaEl.textContent = "Loading verse...";
+      copylineEl.textContent = "";
+      showBanner("info", "Contacting verse providers...");
+
+      try {
+        const got = await fetchVerseMatchingLength(category, lenPref, versionCode);
+        if (!got || !got.text) throw new Error("Empty verse text");
+        verseText = got.text;
+        reference = got.reference;
+        typedEl.textContent = "";
+        remainingEl.textContent = verseText;
+        const cls = classifyLengthByChars(got.text);
+        metaEl.textContent = `${reference} (${(got.version || versionCode).toUpperCase()}) | ${titleCase(cls)}${got.fallback ? " | (fallback source)" : ""}`;
+        if (got.copyright) copylineEl.textContent = got.copyright;
+        showBanner("success", "Verse loaded. Click 'Start Race' when ready!");
+        renderRaceArena();
+      } catch (err) {
+        const ui = err._ui || {};
+        showBanner("error", `${ui.user || "Could not load verse."} ${ui.hint ? "Hint: " + ui.hint : ""}`);
+        console.error("Verse load failed:", ui.detail || err);
+      }
+    }
+
+    function startCountdown() {
+      let count = 3;
+      showBanner("info", `${count}...`);
+      countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          showBanner("info", `${count}...`);
+        } else if (count === 0) {
+          showBanner("success", "GO!");
+        } else {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          startRace();
+        }
+      }, 1000);
+    }
+
+    function startRace() {
+      raceActive = true;
+      raceStartTime = performance.now();
+      inputEl.disabled = false;
+      inputEl.focus();
+      showBanner("info", "Race in progress...");
+
+      // Start AI simulation (50ms tick)
+      const totalChars = verseText.length;
+      aiInterval = setInterval(() => {
+        if (!raceActive) return;
+        const elapsed = (performance.now() - raceStartTime) / 1000;
+        const mode = aiModeEl.value;
+
+        for (const ai of aiRacers) {
+          if (ai.finished) continue;
+
+          let wpm;
+          if (mode === "fixed") {
+            wpm = ai.assignedWPM;
+          } else if (mode === "personality") {
+            const variance = ai.personality.variance;
+            const factor = 1 + (Math.random() * 2 - 1) * variance;
+            wpm = ai.personality.base * factor;
+          } else if (mode === "adaptive") {
+            wpm = ai.assignedWPM;
+          }
+
+          // chars per tick: (wpm * 5 chars/word) / 60 seconds / 20 ticks per second
+          const charsPerTick = (wpm * 5) / 1200;
+          ai.progress += charsPerTick;
+
+          if (ai.progress >= totalChars) {
+            ai.progress = totalChars;
+            ai.finished = true;
+            ai.finishTime = elapsed;
+            ai.wpm = Math.round((totalChars / 5) / (elapsed / 60));
+            finishOrder.push(ai);
+          }
+
+          updateLanePosition(ai.id, ai.progress, totalChars);
+        }
+      }, 50);
+    }
+
+    function endRace(playerTime, playerWPM) {
+      raceActive = false;
+      if (aiInterval) {
+        clearInterval(aiInterval);
+        aiInterval = null;
+      }
+
+      player.finished = true;
+      player.finishTime = playerTime;
+      player.wpm = playerWPM;
+
+      // Calculate stats for unfinished AI based on their progress
+      for (const ai of aiRacers) {
+        if (!ai.finished) {
+          ai.finishTime = Infinity;
+          const minutes = playerTime / 60;
+          ai.wpm = minutes > 0 ? Math.round((ai.progress / 5) / minutes) : 0;
+          ai.finalProgress = ai.progress;
+        }
+      }
+
+      // Add player to finish order at correct position
+      const allRacers = [player, ...aiRacers];
+      allRacers.sort((a, b) => a.finishTime - b.finishTime);
+
+      // Save race result
+      saveRaceResult(playerWPM, aiModeEl.value);
+
+      // Show results
+      showResults(allRacers);
+      showBanner("success", "Race complete!");
+    }
+
+    function showResults(sortedRacers) {
+      resultsBody.innerHTML = "";
+      const totalChars = verseText.length;
+      sortedRacers.forEach((racer, i) => {
+        const place = i + 1;
+        const placeClass = place === 1 ? "place-1" : place === 2 ? "place-2" : place === 3 ? "place-3" : "place-4";
+        const placeText = place === 1 ? "1st" : place === 2 ? "2nd" : place === 3 ? "3rd" : "4th";
+
+        let timeText;
+        if (racer.finishTime === Infinity) {
+          const pct = Math.round((racer.progress / totalChars) * 100);
+          timeText = `DNF (${pct}%)`;
+        } else {
+          timeText = racer.finishTime.toFixed(2) + "s";
+        }
+        const wpmText = racer.wpm || 0;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="${placeClass}">${placeText}</td>
+          <td>
+            <div class="avatar-cell">
+              <img src="${racer.avatar.src}" alt="${racer.name}" />
+              ${racer.name}${racer.id === "player" ? " (You)" : ""}
+            </div>
+          </td>
+          <td>${timeText}</td>
+          <td>${wpmText}</td>
+        `;
+        resultsBody.appendChild(tr);
+      });
+      resultsPanel.classList.add("show");
+    }
+
+    // ======= Input handling =======
+    function updateLiveMetrics() {
+      const elapsedSec = started ? (performance.now() - raceStartTime) / 1000 : 0;
+      const minutes = elapsedSec / 60;
+      const vtNorm = normalizeQuotes(verseText);
+      const ctNorm = normalizeQuotes(inputEl.value || "");
+      let correctChars = 0;
+      for (let i = 0; i < ctNorm.length; i++) {
+        if (ctNorm[i] === vtNorm[i]) correctChars++;
+      }
+      const grossWPM = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
+      const acc = totalKeystrokes > 0 ? Math.max(0, 1 - (errorKeystrokes / totalKeystrokes)) : 1;
+      statusEl.textContent = `WPM: ${grossWPM} | Accuracy: ${Math.round(acc * 100)}% | Time: ${elapsedSec.toFixed(1)}s`;
+    }
+
+    inputEl.addEventListener("input", () => {
+      if (!raceActive) return;
+
+      const newVal = inputEl.value;
+      const vtNorm = normalizeQuotes(verseText);
+      const newNorm = normalizeQuotes(newVal);
+      const prevNorm = normalizeQuotes(prevValue);
+
+      // Track keystrokes for accuracy
+      if (newVal.length > prevValue.length) {
+        const added = newNorm.slice(prevNorm.length);
+        for (let i = 0; i < added.length; i++) {
+          const idx = prevNorm.length + i;
+          const ch = added[i];
+          totalKeystrokes++;
+          if (ch !== vtNorm[idx]) errorKeystrokes++;
+        }
+      }
+      prevValue = newVal;
+
+      if (!started && newVal.length > 0) {
+        started = true;
+      }
+
+      // Find first error position
+      let correctCount = 0;
+      for (let i = 0; i < newNorm.length; i++) {
+        if (newNorm[i] === vtNorm[i]) correctCount++;
+        else break;
+      }
+      const hasError = correctCount < newVal.length;
+      const errorCount = newVal.length - correctCount;
+
+      // Update verse display: correct (green) + incorrect (red) + remaining (muted)
+      typedEl.textContent = verseText.substring(0, correctCount);
+      incorrectEl.textContent = verseText.substring(correctCount, correctCount + errorCount);
+      remainingEl.textContent = verseText.substring(correctCount + errorCount);
+
+      // Update input error state
+      if (hasError) {
+        inputEl.classList.add("error-state");
+      } else {
+        inputEl.classList.remove("error-state");
+      }
+
+      // Update player lane (only moves forward on correct chars)
+      player.progress = correctCount;
+      updateLanePosition("player", correctCount, verseText.length);
+
+      // Check for completion
+      if (newVal.length === verseText.length && !hasError) {
+        const elapsedSec = (performance.now() - raceStartTime) / 1000;
+        const wpm = Math.round((verseText.length / 5) / (elapsedSec / 60));
+        inputEl.disabled = true;
+        endRace(elapsedSec, wpm);
+      }
+
+      updateLiveMetrics();
+    });
+
+    // ======= Button handlers =======
+    startBtn.addEventListener("click", () => {
+      if (!verseText) {
+        showBanner("warn", "Load a verse first!");
+        return;
+      }
+      if (raceActive) return;
+      resetRace();
+      renderRaceArena();
+      typedEl.textContent = "";
+      incorrectEl.textContent = "";
+      remainingEl.textContent = verseText;
+      startCountdown();
+    });
+
+    newVerseBtn.addEventListener("click", loadVerse);
+    categoryEl.addEventListener("change", loadVerse);
+    lengthEl.addEventListener("change", loadVerse);
+    versionEl.addEventListener("change", loadVerse);
+
+    // ======= Keyboard shortcuts =======
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        loadVerse();
+      } else if (e.ctrlKey && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        const modes = ["auto", "light", "dark"];
+        const cur = localStorage.getItem(THEME_KEY) || "auto";
+        const idx = (modes.indexOf(cur) + 1) % modes.length;
+        applyTheme(modes[idx]);
+      }
+    });
+
+    // ======= Init =======
+    (async () => {
+      initTheme();
+      populateCategoryDropdown();
+      updatePlayerStats();
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
+        if (!res.ok) throw new Error("Proxy offline");
+      } catch {
+        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider.");
+      } finally {
+        loadVerse();
+      }
+    })();
+  </script>
+</body>
+</html>

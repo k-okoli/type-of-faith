@@ -68,6 +68,10 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
   - CSV export.
 - **Avatar selection**: Choose from 7 biblical character avatars (Moses, David & Goliath, Elijah, Jonah, Noah's Ark, Burning Bush, Ten Commandments). Selection persists across sessions.
 - **Race track progress bar**: A visual lane that shows your avatar moving from left to right as you type correctly, reaching the finish line when the verse is complete.
+- **Race mode**: Compete against 1-3 AI opponents with different AI modes:
+  - **Fixed**: AI racers type at constant speeds (20, 40, or 60 WPM)
+  - **Personality**: Each biblical character has unique typing traits with speed fluctuations
+  - **Adaptive**: AI speeds adjust based on your recent race performance
 - **Keyboard shortcuts**:
   - `Ctrl+Enter` → Finish attempt
   - `Ctrl+P` → Peek (5s)
@@ -101,6 +105,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 ├─ index.html         # Practice page — typing game UI
 ├─ lessons.html       # Touch-typing lessons with keyboard map
 ├─ quiz.html          # Verse identification quiz
+├─ race.html          # Race mode — compete against AI opponents
 ├─ shared/            # Shared JS/CSS modules (nav, theme, data)
 ├─ assets/avatars/    # Biblical character avatar PNGs (2D & 3D)
 ├─ todo.md            # Project task tracker

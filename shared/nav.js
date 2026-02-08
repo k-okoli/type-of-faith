@@ -3,7 +3,8 @@
   const pages = [
     { label: "Practice", href: "index.html" },
     { label: "Lessons",  href: "lessons.html" },
-    { label: "Quiz",     href: "quiz.html" }
+    { label: "Quiz",     href: "quiz.html" },
+    { label: "Race",     href: "race.html" }
   ];
 
   const currentPage = location.pathname.split("/").pop() || "index.html";

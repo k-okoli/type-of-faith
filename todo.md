@@ -22,6 +22,7 @@
 - [x] Seamless navigation between lessons and drills
 - [x] Only highlight the key being pressed on keyboard map
 - [ ] Finger placement on the map (hand emoji with different skin tones?)
+- [ ] Accuracy stat not the same as it is in the Practice page
 
 ## Quiz Page (quiz.html)
 - [x] Game mode where verse text pops up and you have to select the correct verse location
@@ -35,7 +36,7 @@
 - [ ] Write unit tests
 
 ## Race Track / Avatars
-- [ ] Race mode page — AI opponents / ghost replays
+- [x] Race mode page — AI opponents / ghost replays
 - [ ] 3D avatar toggle (assets ready in assets/avatars/)
 - [ ] Avatar unlocking through achievements
 - [ ] Add race track to lessons.html and quiz.html

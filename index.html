@@ -7,76 +7,310 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <style>
-    /* ---------- Light theme (default) ---------- */
+    /* ========== Light theme (default) ========== */
     :root {
-      --bg:#faf8f5; --ink:#111; --muted:#555;
-      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
-      --panel:#fff; --border:#eee;
-      --banner-bg:#fff7e6; --link:#1a56db;
-      --input-border:#ddd; --btn-border:#ccc;
-    }
-    /* ---------- Dark theme overrides ---------- */
-    :root[data-theme="dark"] {
-      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
-      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
-      --panel:#151922; --border:#2a2f3a;
-      --banner-bg:#1d2430; --link:#87b3ff;
-      --input-border:#2b3240; --btn-border:#3a4252;
+      --bg: #faf8f5;
+      --ink: #111;
+      --muted: #555;
+      --ok: #0a7a0a;
+      --err: #b00020;
+      --accent: #8b6b3b;
+      --panel: #fff;
+      --border: #eee;
+      --banner-bg: #fff7e6;
+      --link: #1a56db;
+      --input-border: #ddd;
+      --btn-border: #ccc;
     }
 
+    /* ========== Dark theme overrides ========== */
+    :root[data-theme="dark"] {
+      --bg: #0f1115;
+      --ink: #e6e6e6;
+      --muted: #a8a8a8;
+      --ok: #6ee7a0;
+      --err: #ff6b81;
+      --accent: #d7c3a0;
+      --panel: #151922;
+      --border: #2a2f3a;
+      --banner-bg: #1d2430;
+      --link: #87b3ff;
+      --input-border: #2b3240;
+      --btn-border: #3a4252;
+    }
+
+    /* ========== Base styles ========== */
     * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      margin: 24px;
+    }
+
     a { color: var(--link); }
-    h2 { margin: 8px 0 16px; font-weight: 600; color: var(--ink); }
-    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+
+    h2 {
+      margin: 8px 0 16px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ========== Controls ========== */
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
     select, button, label, input[type="number"] { font-size: 16px; }
     select, button, input[type="number"] { padding: 8px 10px; }
-    input[type="number"] { width: 80px; background: var(--panel); color: var(--ink); border: 1px solid var(--input-border); border-radius: 6px; }
-    button { cursor: pointer; border: 1px solid var(--btn-border); background: var(--panel); color: var(--ink); border-radius: 6px; }
+
+    input[type="number"] {
+      width: 80px;
+      background: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--btn-border);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 6px;
+    }
+
     button:active { transform: translateY(1px); }
-    .toggle { display: inline-flex; gap: 8px; align-items: center; }
-    #meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-    #banner { font-size: 14px; color: var(--accent); margin: 6px 0 10px; padding: 6px 8px; border-radius: 6px; background: var(--banner-bg); display:none; }
-    #verse { font-size: 20px; line-height: 1.6; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 3.5em; }
+
+    .toggle {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* ========== Verse display ========== */
+    #meta {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    #banner {
+      font-size: 14px;
+      color: var(--accent);
+      margin: 6px 0 10px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--banner-bg);
+      display: none;
+    }
+
+    #verse {
+      font-size: 20px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 3.5em;
+    }
+
     #typed { color: var(--ok); }
+
+    #incorrect {
+      color: #fff;
+      background: var(--err);
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
     #remaining { color: var(--muted); }
-    #hiddenMask { color: var(--muted); font-style: italic; }
-    #input { width: 100%; font-size: 20px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--panel); color: var(--ink); }
-    .bf-controls { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+
+    #hiddenMask {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .copyline {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 6px 0 8px;
+    }
+
+    /* ========== Input field ========== */
+    #input {
+      width: 100%;
+      font-size: 20px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      background: var(--panel);
+      color: var(--ink);
+      margin: 12px 0;
+    }
+
+    #input.error-state {
+      background: color-mix(in srgb, var(--err) 10%, var(--panel));
+      border-color: var(--err);
+      box-shadow: 0 2px 0 var(--err);
+    }
+
+    /* ========== Blind Faith controls ========== */
+    .bf-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+    }
+
     .right { margin-left: auto; }
-    .panels { display: grid; gap: 12px; grid-template-columns: 1fr; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .hint { font-size: 12px; color: var(--muted); }
+
+    /* ========== Stats panels ========== */
+    .panels {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
     .stat { font-variant-numeric: tabular-nums; }
+
     #status { font-size: 14px; color: var(--muted); }
     #result { font-size: 16px; }
     #bestStats { font-size: 14px; }
     #peekCount { font-weight: 600; }
-    .hint { font-size: 12px; color: var(--muted); }
-    .copyline { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
-    th { background: color-mix(in srgb, var(--panel) 60%, var(--border)); }
-    @media (min-width: 1000px) { .panels { grid-template-columns: 1fr 1fr; } }
 
-    /* ---------- Avatar panel ---------- */
-    .avatar-panel { margin-bottom: 12px; }
-    .avatar-grid { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
-    .avatar-option {
-      display:flex; flex-direction:column; align-items:center; gap:4px;
-      cursor:pointer; padding:6px; border-radius:8px;
-      border:2px solid transparent; transition:border-color 0.2s;
+    /* ========== History table ========== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
     }
-    .avatar-option:hover { border-color:var(--accent); }
-    .avatar-option.selected { border-color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, transparent); }
-    .avatar-option img { width:48px; height:48px; border-radius:50%; object-fit:cover; }
-    .avatar-option span { font-size:11px; color:var(--muted); }
 
-    /* ---------- Race track ---------- */
-    .race-track { margin:8px 0; padding:6px 12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
-    .track-lane { position:relative; height:40px; background:color-mix(in srgb, var(--border) 50%, transparent); border-radius:20px; overflow:hidden; }
-    .race-avatar { position:absolute; top:50%; transform:translateY(-50%); left:0; width:36px; height:36px; border-radius:50%; object-fit:cover; z-index:2; transition:left 0.3s ease-out; }
-    .finish-line { position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right:2px solid var(--ok); z-index:1; }
-    .race-pct { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:600; color:var(--muted); z-index:3; pointer-events:none; }
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th { background: color-mix(in srgb, var(--panel) 60%, var(--border)); }
+
+    @media (min-width: 1000px) {
+      .panels { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ========== Avatar panel ========== */
+    .avatar-panel { margin-bottom: 12px; }
+
+    .avatar-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .avatar-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .avatar-option:hover { border-color: var(--accent); }
+
+    .avatar-option.selected {
+      border-color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 10%, transparent);
+    }
+
+    .avatar-option img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .avatar-option span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ========== Race track ========== */
+    .race-track {
+      margin: 8px 0;
+      padding: 6px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .track-lane {
+      position: relative;
+      height: 40px;
+      background: color-mix(in srgb, var(--border) 50%, transparent);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .race-avatar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 2;
+      transition: left 0.3s ease-out;
+    }
+
+    .finish-line {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--ink) 0px,
+        var(--ink) 4px,
+        var(--panel) 4px,
+        var(--panel) 8px
+      );
+      border-right: 2px solid var(--ok);
+      z-index: 1;
+    }
+
+    .race-pct {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      z-index: 3;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -162,7 +396,7 @@
   <div id="banner"></div>
 
   <div id="verse">
-    <span id="typed"></span><span id="remaining"></span><span id="hiddenMask"></span>
+    <span id="typed"></span><span id="incorrect"></span><span id="remaining"></span><span id="hiddenMask"></span>
   </div>
 
   <div class="copyline" id="copyline"></div>
@@ -227,12 +461,16 @@
   </div>
 
   <script>
-    // ======= Config / defaults =======
-    const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
-    const DEFAULT_PREVIEW_SEC = 10;
-    const DEFAULT_PEEK_SEC = 5;
+    // ========================================
+    // Configuration
+    // ========================================
+    const LENGTH_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
+    const DEFAULT_PREVIEW_SECONDS = 10;
+    const DEFAULT_PEEK_SECONDS = 5;
 
-    // ======= Avatars =======
+    // ========================================
+    // Avatar definitions
+    // ========================================
     const AVATARS = [
       { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
       { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
@@ -242,402 +480,1007 @@
       { id: "burning-bush", name: "Burning Bush", src: "assets/avatars/burning-bush-2d.png" },
       { id: "ten-commandments", name: "Commandments", src: "assets/avatars/ten-commandments-2d.png" },
     ];
+
+    // ========================================
+    // DOM Element References
+    // ========================================
+    const elements = {
+      category: document.getElementById("category"),
+      length: document.getElementById("length"),
+      version: document.getElementById("version"),
+      blindToggle: document.getElementById("blindToggle"),
+      previewSeconds: document.getElementById("previewSec"),
+      peekSeconds: document.getElementById("peekSec"),
+      previewLabel: document.getElementById("previewLabel"),
+      peekLabel: document.getElementById("peekLabel"),
+      categoryTitle: document.getElementById("categoryTitle"),
+      newVerseButton: document.getElementById("newVerseBtn"),
+      restartButton: document.getElementById("restartBtn"),
+      meta: document.getElementById("meta"),
+      banner: document.getElementById("banner"),
+      typed: document.getElementById("typed"),
+      incorrect: document.getElementById("incorrect"),
+      remaining: document.getElementById("remaining"),
+      hiddenMask: document.getElementById("hiddenMask"),
+      input: document.getElementById("input"),
+      blindFaithControls: document.getElementById("bfControls"),
+      peekButton: document.getElementById("peekBtn"),
+      finishButton: document.getElementById("finishBtn"),
+      peekCount: document.getElementById("peekCount"),
+      status: document.getElementById("status"),
+      result: document.getElementById("result"),
+      bestStats: document.getElementById("bestStats"),
+      exportButton: document.getElementById("exportBtn"),
+      historyBody: document.getElementById("historyBody"),
+      copyline: document.getElementById("copyline"),
+      avatarGrid: document.getElementById("avatarGrid"),
+      raceAvatar: document.getElementById("raceAvatar"),
+      racePct: document.getElementById("racePct"),
+    };
+
+    // ========================================
+    // Application State
+    // ========================================
+    let state = {
+      verseText: "",
+      reference: "",
+      actualCategory: "All",
+      hideTimer: null,
+      countdownTimer: null,
+      peekTimer: null,
+      peekCount: 0,
+      started: false,
+      startTime: 0,
+      finished: false,
+      totalKeystrokes: 0,
+      errorKeystrokes: 0,
+      previousInputValue: "",
+      bestWPM: null,
+      bestAccuracy: null,
+      fastestTime: null,
+      bestFairness: null,
+      history: [],
+    };
+
+    // ========================================
+    // Avatar Functions
+    // ========================================
     function getSelectedAvatar() {
-      const saved = localStorage.getItem("tof_avatar");
-      return AVATARS.find(a => a.id === saved) || AVATARS[0];
+      const savedAvatarId = localStorage.getItem("tof_avatar");
+      return AVATARS.find(avatar => avatar.id === savedAvatarId) || AVATARS[0];
     }
+
     function renderAvatarGrid() {
-      const grid = document.getElementById("avatarGrid");
-      const selected = getSelectedAvatar();
-      grid.innerHTML = "";
-      for (const av of AVATARS) {
+      const selectedAvatar = getSelectedAvatar();
+      elements.avatarGrid.innerHTML = "";
+
+      for (const avatar of AVATARS) {
         const div = document.createElement("div");
-        div.className = "avatar-option" + (av.id === selected.id ? " selected" : "");
-        div.innerHTML = `<img src="${av.src}" alt="${av.name}" /><span>${av.name}</span>`;
-        div.addEventListener("click", () => selectAvatar(av.id));
-        grid.appendChild(div);
+        const isSelected = avatar.id === selectedAvatar.id;
+        div.className = "avatar-option" + (isSelected ? " selected" : "");
+        div.innerHTML = `<img src="${avatar.src}" alt="${avatar.name}" /><span>${avatar.name}</span>`;
+        div.addEventListener("click", () => selectAvatar(avatar.id));
+        elements.avatarGrid.appendChild(div);
       }
     }
-    function selectAvatar(id) {
-      localStorage.setItem("tof_avatar", id);
+
+    function selectAvatar(avatarId) {
+      localStorage.setItem("tof_avatar", avatarId);
       renderAvatarGrid();
-      const av = getSelectedAvatar();
-      document.getElementById("raceAvatar").src = av.src;
+      elements.raceAvatar.src = getSelectedAvatar().src;
     }
+
+    // ========================================
+    // Race Track Functions
+    // ========================================
     function updateRaceTrack() {
-      const vtNorm = normalizeQuotes(verseText);
-      const ctNorm = normalizeQuotes(inputEl.value || "");
-      if (!vtNorm.length) return;
-      let correctChars = 0;
-      for (let i = 0; i < ctNorm.length; i++) { if (ctNorm[i] === vtNorm[i]) correctChars++; else break; }
-      const progress = correctChars / vtNorm.length;
-      const pct = Math.round(progress * 100);
-      const lane = document.querySelector(".track-lane");
-      const avatar = document.getElementById("raceAvatar");
-      const maxLeft = lane.offsetWidth - avatar.offsetWidth;
-      avatar.style.left = Math.round(progress * maxLeft) + "px";
-      document.getElementById("racePct").textContent = pct + "%";
-    }
-    function resetRaceTrack() {
-      const avatar = document.getElementById("raceAvatar");
-      avatar.style.transition = "none";
-      avatar.style.left = "0";
-      document.getElementById("racePct").textContent = "0%";
-      requestAnimationFrame(() => { avatar.style.transition = "left 0.3s ease-out"; });
-    }
+      const verseNormalized = normalizeQuotes(state.verseText);
+      const typedNormalized = normalizeQuotes(elements.input.value || "");
 
-    // ======= DOM refs =======
-    const categoryEl = document.getElementById("category");
-    const lengthEl = document.getElementById("length");
-    const versionEl = document.getElementById("version");
-    const blindToggleEl = document.getElementById("blindToggle");
-    const previewSecEl = document.getElementById("previewSec");
-    const peekSecEl = document.getElementById("peekSec");
-    const previewLabelEl = document.getElementById("previewLabel");
-    const peekLabelEl = document.getElementById("peekLabel");
-    const categoryTitleEl = document.getElementById("categoryTitle");
-    const newVerseBtn = document.getElementById("newVerseBtn");
-    const restartBtn = document.getElementById("restartBtn");
-    const metaEl = document.getElementById("meta");
-    const bannerEl = document.getElementById("banner");
-    const typedEl = document.getElementById("typed");
-    const remainingEl = document.getElementById("remaining");
-    const hiddenMaskEl = document.getElementById("hiddenMask");
-    const inputEl = document.getElementById("input");
-    const bfControlsEl = document.getElementById("bfControls");
-    const peekBtn = document.getElementById("peekBtn");
-    const finishBtn = document.getElementById("finishBtn");
-    const peekCountEl = document.getElementById("peekCount");
-    const statusEl = document.getElementById("status");
-    const resultEl = document.getElementById("result");
-    const bestStatsEl = document.getElementById("bestStats");
-    const exportBtn = document.getElementById("exportBtn");
-    const historyBody = document.getElementById("historyBody");
-    const copylineEl = document.getElementById("copyline");
+      if (!verseNormalized.length) return;
 
-    // ======= State =======
-    let verseText = "";
-    let reference = "";
-    let actualCategory = "All";
-    let hideTimer = null, countdownTimer = null, peekTimer = null, peekCount = 0;
-    let started = false, startTime = 0, finished = false;
-    let totalKeystrokes = 0, errorKeystrokes = 0, prevValue = "";
-    let bestWPM = null, bestAccuracy = null, fastestTime = null, bestFairness = null;
-    const history = [];
-
-    // ======= UI helpers =======
-    function setLoading(isLoading) {
-      const btns = [newVerseBtn, restartBtn, peekBtn, finishBtn].filter(Boolean);
-      btns.forEach(b => b.disabled = !!isLoading);
-      inputEl.disabled = !!isLoading;
-      if (isLoading) { metaEl.textContent = "Loading verse..."; showBanner("info", "Contacting verse providers..."); }
-      else if (/Contacting verse providers/.test(bannerEl.textContent)) showBanner("info", "");
-    }
-    function withTimeout(ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms); return { signal: ctrl.signal, cancel: () => clearTimeout(t) }; }
-    function clampInt(n, min, max){ n = Math.floor(isFinite(n) ? n : min); return Math.min(max, Math.max(min, n)); }
-    function classifyError(err, res=null, bodyText="") {
-      const detail = (err && err.message) ? err.message : "";
-      if (!res) return { code:"NETWORK", user:"Cannot reach the verse server.", hint:"If using FBV/ESV, start FastAPI (uvicorn server:app --reload --port 8000).", detail };
-      const s = res.status;
-      if (s===401) return { code:"UNAUTHORIZED", user:"The verse service rejected credentials.", hint:"Check API keys in .env / environment.", detail: bodyText };
-      if (s===403) return { code:"FORBIDDEN", user:"This translation requires publisher permission.", hint:"Try KJV/WEB or an allowed version like FBV.", detail: bodyText };
-      if (s===404) return { code:"NOT_FOUND", user:"No verse found for that reference.", hint:"Try a different verse or category.", detail: bodyText };
-      if (s===502 || s===503 || s===504) return { code:"UPSTREAM", user:"Upstream provider unavailable.", hint:"Wait a moment and try again.", detail: bodyText };
-      return { code:"SERVER", user:"The verse server hit an error.", hint:"Try again or switch to KJV/WEB.", detail: bodyText };
-    }
-    const currentCategorySelectionLabel = () => (categoryEl.value === "all" ? "All" : titleCase(categoryEl.value));
-    function getRandomRefAndCategory(category) {
-      if (category && category !== "all") {
-        const list = VERSE_CATEGORIES[category] || [];
-        const ref = list[Math.floor(Math.random() * list.length)];
-        return { ref, cat: category };
+      let correctCharCount = 0;
+      for (let i = 0; i < typedNormalized.length; i++) {
+        if (typedNormalized[i] === verseNormalized[i]) {
+          correctCharCount++;
+        } else {
+          break;
+        }
       }
-      const ref = ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
-      const cat = REF_TO_CATEGORY[ref] || "all";
-      return { ref, cat };
+
+      const progress = correctCharCount / verseNormalized.length;
+      const percentComplete = Math.round(progress * 100);
+
+      const trackLane = document.querySelector(".track-lane");
+      const maxLeftPosition = trackLane.offsetWidth - elements.raceAvatar.offsetWidth;
+
+      elements.raceAvatar.style.left = Math.round(progress * maxLeftPosition) + "px";
+      elements.racePct.textContent = percentComplete + "%";
     }
-    function classifyLengthByChars(text) {
-      const len = text.trim().length;
-      if (len <= LEN_THRESHOLDS.shortMax) return "short";
-      if (len <= LEN_THRESHOLDS.mediumMax) return "medium";
+
+    function resetRaceTrack() {
+      elements.raceAvatar.style.transition = "none";
+      elements.raceAvatar.style.left = "0";
+      elements.racePct.textContent = "0%";
+      requestAnimationFrame(() => {
+        elements.raceAvatar.style.transition = "left 0.3s ease-out";
+      });
+    }
+
+    // ========================================
+    // Utility Functions
+    // ========================================
+    function normalizeQuotes(text) {
+      return (text || "")
+        .replace(/['\u2018\u2019\u201A\u201B]/g, "'")
+        .replace(/["\u201C\u201D\u201E\u201F]/g, '"');
+    }
+
+    function normalizeForComparison(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function clampInteger(value, min, max) {
+      const parsed = Math.floor(isFinite(value) ? value : min);
+      return Math.min(max, Math.max(min, parsed));
+    }
+
+    function classifyVerseLength(text) {
+      const length = text.trim().length;
+      if (length <= LENGTH_THRESHOLDS.shortMax) return "short";
+      if (length <= LENGTH_THRESHOLDS.mediumMax) return "medium";
       return "long";
     }
-    function normalizeQuotes(s){ return (s||"").replace(/['\u2018\u2019\u201A\u201B]/g,"'").replace(/["\u201C\u201D\u201E\u201F]/g,'"'); }
-    function normalize(s){ return s.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim(); }
-    function levenshtein(a,b){
-      const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>new Array(n+1));
-      for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
-      for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c); } }
-      return dp[m][n];
-    }
-    function computeFairnessScore(groundTruth,attempt){
-      const g=normalize(groundTruth), t=normalize(attempt);
-      if(!g.length) return {scorePct:0,distance:0,baseLen:0};
-      const dist=levenshtein(g,t); const score=Math.max(0,1-dist/g.length);
-      return {scorePct:Math.round(score*100),distance:dist,baseLen:g.length};
-    }
-    function setTypingEnabled(on) {
-      inputEl.readOnly = !on;
-      inputEl.placeholder = on ? "Start typing the verse here..." : "Typing disabled while verse is visible (Blind Faith)";
-    }
-    function getPreviewMs() {
-      const n = clampInt(Number(previewSecEl.value || localStorage.getItem("tof_preview_sec") || DEFAULT_PREVIEW_SEC), 1, 30);
-      previewSecEl.value = n; localStorage.setItem("tof_preview_sec", String(n));
-      return n * 1000;
-    }
-    function getPeekMs() {
-      const n = clampInt(Number(peekSecEl.value || localStorage.getItem("tof_peek_sec") || DEFAULT_PEEK_SEC), 1, 10);
-      peekSecEl.value = n; localStorage.setItem("tof_peek_sec", String(n));
-      return n * 1000;
-    }
-    function syncPeekButtonLabel(){ const secs = clampInt(Number(peekSecEl.value || DEFAULT_PEEK_SEC), 1, 10); if (peekBtn) peekBtn.textContent = `Peek Verse (${secs}s)`; }
 
-    // ======= Providers =======
-    async function fetchViaProxy(ref, versionCode) {
-      const base = "http://127.0.0.1:8000";
-      const url = `${base}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
-      const { signal, cancel } = withTimeout(9000);
-      try { const res = await fetch(url, { signal }); const text = await res.text(); if (!res.ok) throw { __http: true, res, text }; return JSON.parse(text); }
-      catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui=c; throw err; }
-      finally { cancel(); }
+    function getCurrentCategoryLabel() {
+      return elements.category.value === "all" ? "All" : titleCase(elements.category.value);
     }
-    async function fetchViaBibleApi(ref, versionCode) {
-      const t = (versionCode || "KJV").toLowerCase();
-      const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
-      const { signal, cancel } = withTimeout(9000);
-      try {
-        const res = await fetch(url, { signal }); const text = await res.text();
-        if (!res.ok) throw { __http: true, res, text };
-        const data = JSON.parse(text);
-        const verseText = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || "");
-        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "KJV").toUpperCase(), fallback: true };
-      } catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui=c; throw err; }
-      finally { cancel(); }
+
+    function getRandomVerseReference(category) {
+      if (category && category !== "all") {
+        const verseList = VERSE_CATEGORIES[category] || [];
+        const reference = verseList[Math.floor(Math.random() * verseList.length)];
+        return { reference, category };
+      }
+
+      const reference = ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
+      const foundCategory = REF_TO_CATEGORY[reference] || "all";
+      return { reference, category: foundCategory };
     }
-    async function fetchVerseUnified(ref, versionCode) {
-      try { return await fetchViaProxy(ref, versionCode); }
-      catch (e) {
-        const info = e._ui || {}; const pub = ["KJV","WEB"];
-        if (pub.includes(versionCode)) {
-          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}...`);
-          try { return await fetchViaBibleApi(ref, versionCode); }
-          catch (e2) { const i2 = e2._ui || {}; showBanner("error", `${i2.user || "Failed to fetch verse."} ${i2.hint ? "Hint: "+i2.hint : ""}`); throw e2; }
+
+    // ========================================
+    // Levenshtein Distance (for Blind Faith scoring)
+    // ========================================
+    function levenshteinDistance(stringA, stringB) {
+      const lengthA = stringA.length;
+      const lengthB = stringB.length;
+
+      const matrix = Array.from({ length: lengthA + 1 }, () => new Array(lengthB + 1));
+
+      for (let i = 0; i <= lengthA; i++) matrix[i][0] = i;
+      for (let j = 0; j <= lengthB; j++) matrix[0][j] = j;
+
+      for (let i = 1; i <= lengthA; i++) {
+        for (let j = 1; j <= lengthB; j++) {
+          const cost = stringA[i - 1] === stringB[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
         }
-        showBanner("error", `${info.user || "Verse proxy error."} ${info.hint ? "Hint: "+info.hint : ""}`); throw e;
+      }
+
+      return matrix[lengthA][lengthB];
+    }
+
+    function computeFairnessScore(groundTruth, attempt) {
+      const normalizedTruth = normalizeForComparison(groundTruth);
+      const normalizedAttempt = normalizeForComparison(attempt);
+
+      if (!normalizedTruth.length) {
+        return { scorePercent: 0, distance: 0, baseLength: 0 };
+      }
+
+      const distance = levenshteinDistance(normalizedTruth, normalizedAttempt);
+      const score = Math.max(0, 1 - distance / normalizedTruth.length);
+
+      return {
+        scorePercent: Math.round(score * 100),
+        distance,
+        baseLength: normalizedTruth.length
+      };
+    }
+
+    // ========================================
+    // HTTP Request Utilities
+    // ========================================
+    function createTimeoutController(timeoutMs) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      return {
+        signal: controller.signal,
+        cancel: () => clearTimeout(timeoutId)
+      };
+    }
+
+    function classifyHttpError(error, response = null, bodyText = "") {
+      const detail = (error && error.message) ? error.message : "";
+
+      if (!response) {
+        return {
+          code: "NETWORK",
+          userMessage: "Cannot reach the verse server.",
+          hint: "If using FBV/ESV, start FastAPI (uvicorn server:app --reload --port 8000).",
+          detail
+        };
+      }
+
+      const status = response.status;
+
+      if (status === 401) {
+        return {
+          code: "UNAUTHORIZED",
+          userMessage: "The verse service rejected credentials.",
+          hint: "Check API keys in .env / environment.",
+          detail: bodyText
+        };
+      }
+
+      if (status === 403) {
+        return {
+          code: "FORBIDDEN",
+          userMessage: "This translation requires publisher permission.",
+          hint: "Try KJV/WEB or an allowed version like FBV.",
+          detail: bodyText
+        };
+      }
+
+      if (status === 404) {
+        return {
+          code: "NOT_FOUND",
+          userMessage: "No verse found for that reference.",
+          hint: "Try a different verse or category.",
+          detail: bodyText
+        };
+      }
+
+      if (status === 502 || status === 503 || status === 504) {
+        return {
+          code: "UPSTREAM",
+          userMessage: "Upstream provider unavailable.",
+          hint: "Wait a moment and try again.",
+          detail: bodyText
+        };
+      }
+
+      return {
+        code: "SERVER",
+        userMessage: "The verse server hit an error.",
+        hint: "Try again or switch to KJV/WEB.",
+        detail: bodyText
+      };
+    }
+
+    // ========================================
+    // Verse Fetching
+    // ========================================
+    async function fetchViaProxy(reference, versionCode) {
+      const baseUrl = "http://127.0.0.1:8000";
+      const url = `${baseUrl}/verse?ref=${encodeURIComponent(reference)}&version=${encodeURIComponent(versionCode)}`;
+      const { signal, cancel } = createTimeoutController(9000);
+
+      try {
+        const response = await fetch(url, { signal });
+        const text = await response.text();
+
+        if (!response.ok) {
+          throw { isHttpError: true, response, text };
+        }
+
+        return JSON.parse(text);
+      } catch (error) {
+        const classified = error.isHttpError
+          ? classifyHttpError(null, error.response, error.text)
+          : classifyHttpError(error);
+        const wrappedError = new Error(classified.userMessage);
+        wrappedError.uiInfo = classified;
+        throw wrappedError;
+      } finally {
+        cancel();
       }
     }
 
-    // ======= Flow helpers =======
-    function clearTimers() {
-      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-      if (peekTimer) { clearTimeout(peekTimer); peekTimer = null; }
-      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    async function fetchViaBibleApi(reference, versionCode) {
+      const translation = (versionCode || "KJV").toLowerCase();
+      const url = `https://bible-api.com/${encodeURIComponent(reference)}?translation=${encodeURIComponent(translation)}`;
+      const { signal, cancel } = createTimeoutController(9000);
+
+      try {
+        const response = await fetch(url, { signal });
+        const text = await response.text();
+
+        if (!response.ok) {
+          throw { isHttpError: true, response, text };
+        }
+
+        const data = JSON.parse(text);
+        const verseText = Array.isArray(data.verses) && data.verses.length
+          ? data.verses.map(verse => verse.text.trim()).join(" ")
+          : (data.text || "");
+
+        return {
+          reference: data.reference || reference,
+          text: verseText.replace(/\s+/g, " ").trim(),
+          version: (versionCode || "KJV").toUpperCase(),
+          fallback: true
+        };
+      } catch (error) {
+        const classified = error.isHttpError
+          ? classifyHttpError(null, error.response, error.text)
+          : classifyHttpError(error);
+        const wrappedError = new Error(classified.userMessage);
+        wrappedError.uiInfo = classified;
+        throw wrappedError;
+      } finally {
+        cancel();
+      }
     }
-    function resetTypingArea(text, ref) {
-      verseText = text; reference = ref;
-      typedEl.textContent = ""; remainingEl.textContent = verseText; hiddenMaskEl.textContent = "";
-      inputEl.value = ""; inputEl.style.color = "black"; bannerEl.textContent = ""; resultEl.textContent = "—"; copylineEl.textContent = "";
-      peekCount = 0; peekCountEl.textContent = "0";
-      started = false; startTime = 0; finished = false;
-      totalKeystrokes = 0; errorKeystrokes = 0; prevValue = "";
-      updateLiveMetrics(); resetRaceTrack(); inputEl.focus(); setTypingEnabled(true);
+
+    async function fetchVerseUnified(reference, versionCode) {
+      try {
+        return await fetchViaProxy(reference, versionCode);
+      } catch (error) {
+        const errorInfo = error.uiInfo || {};
+        const publicVersions = ["KJV", "WEB"];
+
+        if (publicVersions.includes(versionCode)) {
+          showBanner("warn", `${errorInfo.userMessage || "Proxy unavailable."} Falling back to public provider for ${versionCode}...`);
+
+          try {
+            return await fetchViaBibleApi(reference, versionCode);
+          } catch (fallbackError) {
+            const fallbackInfo = fallbackError.uiInfo || {};
+            showBanner("error", `${fallbackInfo.userMessage || "Failed to fetch verse."} ${fallbackInfo.hint ? "Hint: " + fallbackInfo.hint : ""}`);
+            throw fallbackError;
+          }
+        }
+
+        showBanner("error", `${errorInfo.userMessage || "Verse proxy error."} ${errorInfo.hint ? "Hint: " + errorInfo.hint : ""}`);
+        throw error;
+      }
     }
-    function setBlindFaithUI(active) {
-      bfControlsEl.style.display = active ? "flex" : "none";
-      previewLabelEl.style.display = active ? "inline-flex" : "none";
-      peekLabelEl.style.display = active ? "inline-flex" : "none";
+
+    async function fetchVerseMatchingLength(category, lengthPreference, versionCode) {
+      if (lengthPreference === "any") {
+        const pick = getRandomVerseReference(category);
+        const result = await fetchVerseUnified(pick.reference, versionCode);
+        return {
+          reference: result.reference,
+          text: result.text,
+          category: REF_TO_CATEGORY[pick.reference] || category,
+          copyright: result.copyright,
+          version: result.version
+        };
+      }
+
+      const MAX_ATTEMPTS = 8;
+      let lastResult = null;
+
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const pick = getRandomVerseReference(category);
+        const result = await fetchVerseUnified(pick.reference, versionCode);
+        const actualLength = classifyVerseLength(result.text);
+
+        lastResult = {
+          reference: result.reference,
+          text: result.text,
+          category: REF_TO_CATEGORY[pick.reference] || category,
+          copyright: result.copyright,
+          version: result.version
+        };
+
+        if (actualLength === lengthPreference) {
+          return lastResult;
+        }
+      }
+
+      return lastResult;
+    }
+
+    // ========================================
+    // UI State Management
+    // ========================================
+    function setLoadingState(isLoading) {
+      const buttons = [elements.newVerseButton, elements.restartButton, elements.peekButton, elements.finishButton].filter(Boolean);
+      buttons.forEach(button => button.disabled = isLoading);
+      elements.input.disabled = isLoading;
+
+      if (isLoading) {
+        elements.meta.textContent = "Loading verse...";
+        showBanner("info", "Contacting verse providers...");
+      } else if (/Contacting verse providers/.test(elements.banner.textContent)) {
+        showBanner("info", "");
+      }
+    }
+
+    function setTypingEnabled(enabled) {
+      elements.input.readOnly = !enabled;
+      elements.input.placeholder = enabled
+        ? "Start typing the verse here..."
+        : "Typing disabled while verse is visible (Blind Faith)";
+    }
+
+    function setBlindFaithUIVisible(visible) {
+      elements.blindFaithControls.style.display = visible ? "flex" : "none";
+      elements.previewLabel.style.display = visible ? "inline-flex" : "none";
+      elements.peekLabel.style.display = visible ? "inline-flex" : "none";
       syncPeekButtonLabel();
     }
-    function startBlindPreviewThenHide() {
-      let total = getPreviewMs();
-      let msLeft = total;
-      showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${(msLeft/1000).toFixed(0)}s`);
-      countdownTimer = setInterval(() => {
-        msLeft -= 1000;
-        if (msLeft <= 0) { clearInterval(countdownTimer); countdownTimer = null; }
-        else { showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${(msLeft/1000).toFixed(0)}s`); }
-      }, 1000);
-      hideTimer = setTimeout(() => { hideVerse(); showBanner("info", "Blind Faith: Type from memory. Use Peek if needed."); hideTimer = null; }, total);
-    }
-    function showVerse() { hiddenMaskEl.textContent = ""; typedEl.textContent = ""; remainingEl.textContent = verseText; if (blindToggleEl.checked) setTypingEnabled(false); }
-    function hideVerse() { typedEl.textContent = ""; remainingEl.textContent = ""; hiddenMaskEl.textContent = "— Verse hidden — type from memory —"; if (blindToggleEl.checked) { setTypingEnabled(true); inputEl.focus(); } }
-    function handlePeek() { if (peekTimer) return; peekCount += 1; peekCountEl.textContent = String(peekCount); showVerse(); const ms = getPeekMs(); peekTimer = setTimeout(() => { hideVerse(); peekTimer = null; }, ms); }
 
-    // ======= Metrics & history =======
-    function getElapsedSeconds(){ return !started?0:(performance.now()-startTime)/1000; }
-    function computeLiveMetrics(currentTyped){
-      const elapsedSec=getElapsedSeconds(), minutes=elapsedSec/60;
-      const vtNorm = normalizeQuotes(verseText);
-      const ctNorm = normalizeQuotes(currentTyped||"");
-      let correctChars=0;
-      for(let i=0;i<ctNorm.length;i++){ if(ctNorm[i]===vtNorm[i]) correctChars++; }
-      const grossWPM=minutes>0?((correctChars/5)/minutes):0;
-      const acc= totalKeystrokes>0? Math.max(0,1-(errorKeystrokes/totalKeystrokes)) : 1;
-      return { wpm: Math.round(grossWPM), accuracy: Math.round(acc*100), timeSec: elapsedSec };
-    }
-    function updateLiveMetrics(){ const { wpm, accuracy, timeSec } = computeLiveMetrics(inputEl.value||""); statusEl.textContent = `WPM: ${wpm} · Accuracy: ${accuracy}% · Time: ${timeSec.toFixed(1)}s`; }
-    function addHistoryRow(e){ const tr=document.createElement("tr"); const cells=[e.timeLocal,e.category,e.reference,e.mode,String(e.peeks),e.seconds.toFixed(2),String(e.wpm),String(e.accuracyPct),(e.fairnessPct!=null?String(e.fairnessPct):"—")]; for(const c of cells){ const td=document.createElement("td"); td.textContent=c; tr.appendChild(td); } historyBody.prepend(tr); }
-    function exportCSV(){ const header=["Time","Category","Reference","Mode","Peeks","Seconds","WPM","AccuracyPct","FairnessPct"]; const rows=[header.join(",")]; for(const e of history){ const row=[`"${e.timeLocal.replace(/"/g,'""')}"`,`"${e.category}"`,`"${e.reference.replace(/"/g,'""')}"`,`"${e.mode}"`,e.peeks,e.seconds.toFixed(2),e.wpm,e.accuracyPct,(e.fairnessPct!=null?e.fairnessPct:"")]; rows.push(row.join(",")); } const blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="type-of-faith-session.csv"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
-    function finishAttempt(isBlindFinish=false){
-      if(finished) return; finished=true;
-      const attempt=inputEl.value||""; const elapsedSec=getElapsedSeconds(); const minutes=elapsedSec/60;
-      let correctChars=0; const vtNorm=normalizeQuotes(verseText); const atNorm=normalizeQuotes(attempt);
-      for(let i=0;i<atNorm.length;i++){ if(atNorm[i]===vtNorm[i]) correctChars++; }
-      const grossWPM=minutes>0?Math.round(((correctChars/5)/minutes)):0;
-      const acc= totalKeystrokes>0? Math.max(0,1-(errorKeystrokes/totalKeystrokes)) : 1;
-      const accuracyPct=Math.round(acc*100);
-      let result=`Ref: ${reference} · Time: ${elapsedSec.toFixed(2)}s · WPM: ${grossWPM} · Accuracy: ${accuracyPct}%`;
-      let fairnessPct=null;
-      if(blindToggleEl.checked||isBlindFinish){ const {scorePct}=computeFairnessScore(verseText,attempt); fairnessPct=scorePct; result+=` · Fairness: ${fairnessPct}% · Peeks: ${peekCount}`; if(bestFairness===null||fairnessPct>bestFairness) bestFairness=fairnessPct; }
-      resultEl.textContent=result;
-      if(blindToggleEl.checked){ showVerse(); setTypingEnabled(false); showBanner("info", "Blind Faith: Verse revealed for review. Use Restart or New Verse when ready."); }
-      if(bestWPM===null||grossWPM>bestWPM) bestWPM=grossWPM;
-      if(bestAccuracy===null||accuracyPct>bestAccuracy) bestAccuracy=accuracyPct;
-      if(fastestTime===null||elapsedSec<fastestTime) fastestTime=elapsedSec;
-      bestStatsEl.textContent=`Best WPM: ${bestWPM??"—"} · Best Accuracy: ${bestAccuracy??"—"}% · Fastest Time: ${fastestTime?fastestTime.toFixed(2)+"s":"—"} · Best Fairness (Blind): ${bestFairness??"—"}%`;
-      const entry={ timeLocal:new Date().toLocaleString(), category:titleCase(actualCategory), reference, mode:(blindToggleEl.checked?"Blind":"Normal"), peeks:peekCount, seconds:elapsedSec, wpm:grossWPM, accuracyPct, fairnessPct };
-      history.push(entry); addHistoryRow(entry);
-    }
-
-    // ======= Verse selection =======
-    async function fetchVerseMatchingLength(category, lengthPref, versionCode){
-      if(lengthPref==="any"){
-        const pick=getRandomRefAndCategory(category);
-        const got=await fetchVerseUnified(pick.ref, versionCode);
-        return { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
+    function syncPeekButtonLabel() {
+      const seconds = clampInteger(Number(elements.peekSeconds.value || DEFAULT_PEEK_SECONDS), 1, 10);
+      if (elements.peekButton) {
+        elements.peekButton.textContent = `Peek Verse (${seconds}s)`;
       }
-      const MAX_TRIES=8; let last=null;
-      for(let i=0;i<MAX_TRIES;i++){
-        const pick=getRandomRefAndCategory(category);
-        const got=await fetchVerseUnified(pick.ref, versionCode);
-        const cls=classifyLengthByChars(got.text);
-        last={ reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
-        if(cls===lengthPref) return last;
+    }
+
+    // ========================================
+    // Timer Utilities
+    // ========================================
+    function getPreviewMilliseconds() {
+      const seconds = clampInteger(
+        Number(elements.previewSeconds.value || localStorage.getItem("tof_preview_sec") || DEFAULT_PREVIEW_SECONDS),
+        1,
+        30
+      );
+      elements.previewSeconds.value = seconds;
+      localStorage.setItem("tof_preview_sec", String(seconds));
+      return seconds * 1000;
+    }
+
+    function getPeekMilliseconds() {
+      const seconds = clampInteger(
+        Number(elements.peekSeconds.value || localStorage.getItem("tof_peek_sec") || DEFAULT_PEEK_SECONDS),
+        1,
+        10
+      );
+      elements.peekSeconds.value = seconds;
+      localStorage.setItem("tof_peek_sec", String(seconds));
+      return seconds * 1000;
+    }
+
+    function clearAllTimers() {
+      if (state.hideTimer) {
+        clearTimeout(state.hideTimer);
+        state.hideTimer = null;
       }
-      return last;
+      if (state.peekTimer) {
+        clearTimeout(state.peekTimer);
+        state.peekTimer = null;
+      }
+      if (state.countdownTimer) {
+        clearInterval(state.countdownTimer);
+        state.countdownTimer = null;
+      }
     }
 
-    async function loadRandomVerseForSelection(){
-      clearTimers();
-      setLoading(true);
-      const category=categoryEl.value;
-      const lenPref=lengthEl.value;
-      const versionCode=(versionEl.value||"KJV").toUpperCase();
-      metaEl.textContent="Loading verse..."; copylineEl.textContent="";
-      categoryTitleEl.textContent=currentCategorySelectionLabel();
-      try{
-        const got=await fetchVerseMatchingLength(category,lenPref,versionCode);
-        if(!got||!got.text) throw new Error("Empty verse text");
-        showBanner("success","Verse loaded. Happy typing!");
-        resetTypingArea(got.text, got.reference);
-        actualCategory=got.cat||category; categoryTitleEl.textContent=titleCase(actualCategory);
-        const blindActive=blindToggleEl.checked; setBlindFaithUI(blindActive);
-        if(blindActive){ showVerse(); startBlindPreviewThenHide(); } else { setTypingEnabled(true); showVerse(); bannerEl.textContent=""; }
-        const cls=classifyLengthByChars(got.text);
-        metaEl.textContent = `${reference} (${(got.version||versionCode).toUpperCase()}) · ${titleCase(cls)}${got.fallback ? " · (fallback source)" : ""}`;
-        if(got.copyright){ copylineEl.textContent = got.copyright; }
-      }catch(err){
-        const ui = err._ui || {};
-        showBanner("error", `${ui.user || "Could not load verse."} ${ui.hint ? "Hint: " + ui.hint : ""}`);
-        console.error("Verse load failed:", ui.detail || err);
-      } finally { setLoading(false); }
-    }
+    // ========================================
+    // Verse Display Functions
+    // ========================================
+    function showVerse() {
+      elements.hiddenMask.textContent = "";
+      elements.typed.textContent = "";
+      elements.incorrect.textContent = "";
+      elements.remaining.textContent = state.verseText;
 
-    function restartSameVerse(){
-      clearTimers();
-      resetTypingArea(verseText, reference);
-      categoryTitleEl.textContent=titleCase(actualCategory);
-      const blindActive=blindToggleEl.checked; setBlindFaithUI(blindActive);
-      if(blindActive){ showVerse(); startBlindPreviewThenHide(); } else { setTypingEnabled(true); showVerse(); }
-    }
-
-    // ======= Input handling =======
-    inputEl.addEventListener("input", () => {
-      const newVal = inputEl.value;
-      const vtNorm = normalizeQuotes(verseText);
-      const newNorm = normalizeQuotes(newVal);
-      const prevNorm = normalizeQuotes(prevValue);
-
-      if (blindToggleEl.checked && remainingEl.textContent.length > 0) {
+      if (elements.blindToggle.checked) {
         setTypingEnabled(false);
-        inputEl.value = prevValue;
+      }
+    }
+
+    function hideVerse() {
+      elements.typed.textContent = "";
+      elements.incorrect.textContent = "";
+      elements.remaining.textContent = "";
+      elements.hiddenMask.textContent = "— Verse hidden — type from memory —";
+
+      if (elements.blindToggle.checked) {
+        setTypingEnabled(true);
+        elements.input.focus();
+      }
+    }
+
+    function resetTypingArea(verseText, reference) {
+      state.verseText = verseText;
+      state.reference = reference;
+
+      elements.typed.textContent = "";
+      elements.incorrect.textContent = "";
+      elements.remaining.textContent = state.verseText;
+      elements.hiddenMask.textContent = "";
+
+      elements.input.value = "";
+      elements.input.classList.remove("error-state");
+      elements.banner.textContent = "";
+      elements.result.textContent = "—";
+      elements.copyline.textContent = "";
+
+      state.peekCount = 0;
+      elements.peekCount.textContent = "0";
+
+      state.started = false;
+      state.startTime = 0;
+      state.finished = false;
+      state.totalKeystrokes = 0;
+      state.errorKeystrokes = 0;
+      state.previousInputValue = "";
+
+      updateLiveMetrics();
+      resetRaceTrack();
+      setTypingEnabled(true);
+    }
+
+    // ========================================
+    // Blind Faith Mode
+    // ========================================
+    function startBlindPreviewCountdown() {
+      const totalMs = getPreviewMilliseconds();
+      let remainingMs = totalMs;
+
+      showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${Math.round(remainingMs / 1000)}s`);
+
+      state.countdownTimer = setInterval(() => {
+        remainingMs -= 1000;
+
+        if (remainingMs <= 0) {
+          clearInterval(state.countdownTimer);
+          state.countdownTimer = null;
+        } else {
+          showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${Math.round(remainingMs / 1000)}s`);
+        }
+      }, 1000);
+
+      state.hideTimer = setTimeout(() => {
+        hideVerse();
+        showBanner("info", "Blind Faith: Type from memory. Use Peek if needed.");
+        state.hideTimer = null;
+      }, totalMs);
+    }
+
+    function handlePeek() {
+      if (state.peekTimer) return;
+
+      state.peekCount += 1;
+      elements.peekCount.textContent = String(state.peekCount);
+
+      showVerse();
+
+      const peekDuration = getPeekMilliseconds();
+      state.peekTimer = setTimeout(() => {
+        hideVerse();
+        state.peekTimer = null;
+      }, peekDuration);
+    }
+
+    // ========================================
+    // Metrics Calculation
+    // ========================================
+    function getElapsedSeconds() {
+      if (!state.started) return 0;
+      return (performance.now() - state.startTime) / 1000;
+    }
+
+    function computeLiveMetrics(currentTypedText) {
+      const elapsedSeconds = getElapsedSeconds();
+      const elapsedMinutes = elapsedSeconds / 60;
+
+      const verseNormalized = normalizeQuotes(state.verseText);
+      const typedNormalized = normalizeQuotes(currentTypedText || "");
+
+      let correctCharCount = 0;
+      for (let i = 0; i < typedNormalized.length; i++) {
+        if (typedNormalized[i] === verseNormalized[i]) {
+          correctCharCount++;
+        }
+      }
+
+      const wordsPerMinute = elapsedMinutes > 0 ? (correctCharCount / 5) / elapsedMinutes : 0;
+      const accuracy = state.totalKeystrokes > 0
+        ? Math.max(0, 1 - (state.errorKeystrokes / state.totalKeystrokes))
+        : 1;
+
+      return {
+        wpm: Math.round(wordsPerMinute),
+        accuracyPercent: Math.round(accuracy * 100),
+        timeSeconds: elapsedSeconds
+      };
+    }
+
+    function updateLiveMetrics() {
+      const metrics = computeLiveMetrics(elements.input.value || "");
+      elements.status.textContent = `WPM: ${metrics.wpm} · Accuracy: ${metrics.accuracyPercent}% · Time: ${metrics.timeSeconds.toFixed(1)}s`;
+    }
+
+    // ========================================
+    // History & Results
+    // ========================================
+    function addHistoryRow(entry) {
+      const row = document.createElement("tr");
+      const cells = [
+        entry.timeLocal,
+        entry.category,
+        entry.reference,
+        entry.mode,
+        String(entry.peekCount),
+        entry.seconds.toFixed(2),
+        String(entry.wpm),
+        String(entry.accuracyPercent),
+        entry.fairnessPercent != null ? String(entry.fairnessPercent) : "—"
+      ];
+
+      for (const cellText of cells) {
+        const cell = document.createElement("td");
+        cell.textContent = cellText;
+        row.appendChild(cell);
+      }
+
+      elements.historyBody.prepend(row);
+    }
+
+    function exportHistoryToCSV() {
+      const headers = ["Time", "Category", "Reference", "Mode", "Peeks", "Seconds", "WPM", "AccuracyPct", "FairnessPct"];
+      const rows = [headers.join(",")];
+
+      for (const entry of state.history) {
+        const row = [
+          `"${entry.timeLocal.replace(/"/g, '""')}"`,
+          `"${entry.category}"`,
+          `"${entry.reference.replace(/"/g, '""')}"`,
+          `"${entry.mode}"`,
+          entry.peekCount,
+          entry.seconds.toFixed(2),
+          entry.wpm,
+          entry.accuracyPercent,
+          entry.fairnessPercent != null ? entry.fairnessPercent : ""
+        ];
+        rows.push(row.join(","));
+      }
+
+      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "type-of-faith-session.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+    }
+
+    function finishAttempt(isBlindFinish = false) {
+      if (state.finished) return;
+      state.finished = true;
+
+      const attempt = elements.input.value || "";
+      const elapsedSeconds = getElapsedSeconds();
+      const elapsedMinutes = elapsedSeconds / 60;
+
+      const verseNormalized = normalizeQuotes(state.verseText);
+      const attemptNormalized = normalizeQuotes(attempt);
+
+      let correctCharCount = 0;
+      for (let i = 0; i < attemptNormalized.length; i++) {
+        if (attemptNormalized[i] === verseNormalized[i]) {
+          correctCharCount++;
+        }
+      }
+
+      const wordsPerMinute = elapsedMinutes > 0 ? Math.round((correctCharCount / 5) / elapsedMinutes) : 0;
+      const accuracy = state.totalKeystrokes > 0
+        ? Math.max(0, 1 - (state.errorKeystrokes / state.totalKeystrokes))
+        : 1;
+      const accuracyPercent = Math.round(accuracy * 100);
+
+      let resultText = `Ref: ${state.reference} · Time: ${elapsedSeconds.toFixed(2)}s · WPM: ${wordsPerMinute} · Accuracy: ${accuracyPercent}%`;
+      let fairnessPercent = null;
+
+      if (elements.blindToggle.checked || isBlindFinish) {
+        const fairnessResult = computeFairnessScore(state.verseText, attempt);
+        fairnessPercent = fairnessResult.scorePercent;
+        resultText += ` · Fairness: ${fairnessPercent}% · Peeks: ${state.peekCount}`;
+
+        if (state.bestFairness === null || fairnessPercent > state.bestFairness) {
+          state.bestFairness = fairnessPercent;
+        }
+      }
+
+      elements.result.textContent = resultText;
+
+      if (elements.blindToggle.checked) {
+        showVerse();
+        setTypingEnabled(false);
+        showBanner("info", "Blind Faith: Verse revealed for review. Use Restart or New Verse when ready.");
+      }
+
+      // Update best stats
+      if (state.bestWPM === null || wordsPerMinute > state.bestWPM) {
+        state.bestWPM = wordsPerMinute;
+      }
+      if (state.bestAccuracy === null || accuracyPercent > state.bestAccuracy) {
+        state.bestAccuracy = accuracyPercent;
+      }
+      if (state.fastestTime === null || elapsedSeconds < state.fastestTime) {
+        state.fastestTime = elapsedSeconds;
+      }
+
+      elements.bestStats.textContent = `Best WPM: ${state.bestWPM ?? "—"} · Best Accuracy: ${state.bestAccuracy ?? "—"}% · Fastest Time: ${state.fastestTime ? state.fastestTime.toFixed(2) + "s" : "—"} · Best Fairness (Blind): ${state.bestFairness ?? "—"}%`;
+
+      // Add to history
+      const historyEntry = {
+        timeLocal: new Date().toLocaleString(),
+        category: titleCase(state.actualCategory),
+        reference: state.reference,
+        mode: elements.blindToggle.checked ? "Blind" : "Normal",
+        peekCount: state.peekCount,
+        seconds: elapsedSeconds,
+        wpm: wordsPerMinute,
+        accuracyPercent,
+        fairnessPercent
+      };
+
+      state.history.push(historyEntry);
+      addHistoryRow(historyEntry);
+    }
+
+    // ========================================
+    // Main Verse Loading
+    // ========================================
+    async function loadRandomVerse() {
+      clearAllTimers();
+      setLoadingState(true);
+
+      const category = elements.category.value;
+      const lengthPreference = elements.length.value;
+      const versionCode = (elements.version.value || "KJV").toUpperCase();
+
+      elements.meta.textContent = "Loading verse...";
+      elements.copyline.textContent = "";
+      elements.categoryTitle.textContent = getCurrentCategoryLabel();
+
+      try {
+        const result = await fetchVerseMatchingLength(category, lengthPreference, versionCode);
+
+        if (!result || !result.text) {
+          throw new Error("Empty verse text");
+        }
+
+        showBanner("success", "Verse loaded. Happy typing!");
+        resetTypingArea(result.text, result.reference);
+
+        state.actualCategory = result.category || category;
+        elements.categoryTitle.textContent = titleCase(state.actualCategory);
+
+        const isBlindMode = elements.blindToggle.checked;
+        setBlindFaithUIVisible(isBlindMode);
+
+        if (isBlindMode) {
+          showVerse();
+          startBlindPreviewCountdown();
+        } else {
+          setTypingEnabled(true);
+          showVerse();
+          elements.banner.style.display = "none";
+        }
+
+        const lengthClass = classifyVerseLength(result.text);
+        const fallbackNote = result.fallback ? " · (fallback source)" : "";
+        elements.meta.textContent = `${state.reference} (${(result.version || versionCode).toUpperCase()}) · ${titleCase(lengthClass)}${fallbackNote}`;
+
+        if (result.copyright) {
+          elements.copyline.textContent = result.copyright;
+        }
+      } catch (error) {
+        const errorInfo = error.uiInfo || {};
+        showBanner("error", `${errorInfo.userMessage || "Could not load verse."} ${errorInfo.hint ? "Hint: " + errorInfo.hint : ""}`);
+        console.error("Verse load failed:", errorInfo.detail || error);
+      } finally {
+        setLoadingState(false);
+
+        // Focus input after loading completes (when not in blind mode)
+        if (!elements.blindToggle.checked) {
+          elements.input.focus();
+        }
+      }
+    }
+
+    function restartCurrentVerse() {
+      clearAllTimers();
+      resetTypingArea(state.verseText, state.reference);
+      elements.categoryTitle.textContent = titleCase(state.actualCategory);
+
+      const isBlindMode = elements.blindToggle.checked;
+      setBlindFaithUIVisible(isBlindMode);
+
+      if (isBlindMode) {
+        showVerse();
+        startBlindPreviewCountdown();
+      } else {
+        setTypingEnabled(true);
+        showVerse();
+        elements.input.focus();
+      }
+    }
+
+    // ========================================
+    // Input Handling
+    // ========================================
+    elements.input.addEventListener("input", () => {
+      const currentValue = elements.input.value;
+      const verseNormalized = normalizeQuotes(state.verseText);
+      const currentNormalized = normalizeQuotes(currentValue);
+      const previousNormalized = normalizeQuotes(state.previousInputValue);
+
+      // Block typing if blind mode and verse is still visible
+      if (elements.blindToggle.checked && elements.remaining.textContent.length > 0) {
+        setTypingEnabled(false);
+        elements.input.value = state.previousInputValue;
         return;
       }
 
-      if (newVal.length > prevValue.length) {
-        const added = newNorm.slice(prevNorm.length);
-        for (let i = 0; i < added.length; i++) {
-          const idx = prevNorm.length + i; const ch = added[i];
-          totalKeystrokes++; if (ch !== vtNorm[idx]) errorKeystrokes++;
+      // Track keystrokes for accuracy calculation
+      if (currentValue.length > state.previousInputValue.length) {
+        const addedChars = currentNormalized.slice(previousNormalized.length);
+
+        for (let i = 0; i < addedChars.length; i++) {
+          const charIndex = previousNormalized.length + i;
+          const typedChar = addedChars[i];
+
+          state.totalKeystrokes++;
+          if (typedChar !== verseNormalized[charIndex]) {
+            state.errorKeystrokes++;
+          }
         }
       }
-      prevValue = newVal;
 
-      if (!started && newVal.length > 0) { started = true; startTime = performance.now(); }
+      state.previousInputValue = currentValue;
+
+      // Start timer on first keystroke
+      if (!state.started && currentValue.length > 0) {
+        state.started = true;
+        state.startTime = performance.now();
+      }
+
       updateLiveMetrics();
       updateRaceTrack();
 
-      const blindActive = blindToggleEl.checked;
-      const verseVisible = remainingEl.textContent.length > 0;
-      if (!blindActive || verseVisible) {
-        const targetNorm = vtNorm.substring(0, newNorm.length);
-        if (newNorm === targetNorm) {
-          typedEl.textContent = verseText.substring(0, newVal.length);
-          remainingEl.textContent = verseText.substring(newVal.length);
-          inputEl.style.color = "var(--ink)";
-        } else inputEl.style.color = "var(--err)";
-        if (newVal.length === verseText.length && newNorm === vtNorm) finishAttempt(false);
+      // Find the first error position
+      let correctCharCount = 0;
+      for (let i = 0; i < currentNormalized.length; i++) {
+        if (currentNormalized[i] === verseNormalized[i]) {
+          correctCharCount++;
+        } else {
+          break;
+        }
+      }
+
+      const hasError = correctCharCount < currentValue.length;
+      const errorCharCount = currentValue.length - correctCharCount;
+
+      const isBlindMode = elements.blindToggle.checked;
+      const isVerseVisible = elements.remaining.textContent.length > 0 || elements.hiddenMask.textContent.length === 0;
+
+      if (!isBlindMode || isVerseVisible) {
+        // Update verse display: correct (green) + incorrect (red) + remaining (muted)
+        elements.typed.textContent = state.verseText.substring(0, correctCharCount);
+        elements.incorrect.textContent = state.verseText.substring(correctCharCount, correctCharCount + errorCharCount);
+        elements.remaining.textContent = state.verseText.substring(correctCharCount + errorCharCount);
+
+        // Update input error state
+        if (hasError) {
+          elements.input.classList.add("error-state");
+        } else {
+          elements.input.classList.remove("error-state");
+        }
+
+        // Check for completion
+        if (currentValue.length === state.verseText.length && !hasError) {
+          finishAttempt(false);
+        }
       } else {
-        const targetNorm = vtNorm.substring(0, newNorm.length);
-        inputEl.style.color = (newNorm === targetNorm) ? "var(--ink)" : "var(--err)";
+        // Blind mode with verse hidden - just update input state
+        if (hasError) {
+          elements.input.classList.add("error-state");
+        } else {
+          elements.input.classList.remove("error-state");
+        }
       }
     });
 
-    // ======= Buttons & shortcuts =======
-    newVerseBtn.addEventListener("click", loadRandomVerseForSelection);
-    restartBtn.addEventListener("click", restartSameVerse);
-    categoryEl.addEventListener("change", loadRandomVerseForSelection);
-    lengthEl.addEventListener("change", loadRandomVerseForSelection);
-    versionEl.addEventListener("change", loadRandomVerseForSelection);
-    blindToggleEl.addEventListener("change", () => {
-      setBlindFaithUI(blindToggleEl.checked);
-      loadRandomVerseForSelection();
+    // ========================================
+    // Event Listeners
+    // ========================================
+    elements.newVerseButton.addEventListener("click", loadRandomVerse);
+    elements.restartButton.addEventListener("click", restartCurrentVerse);
+    elements.category.addEventListener("change", loadRandomVerse);
+    elements.length.addEventListener("change", loadRandomVerse);
+    elements.version.addEventListener("change", loadRandomVerse);
+
+    elements.blindToggle.addEventListener("change", () => {
+      setBlindFaithUIVisible(elements.blindToggle.checked);
+      loadRandomVerse();
     });
-    previewSecEl.addEventListener("change", () => { getPreviewMs(); });
-    peekSecEl.addEventListener("change", () => { getPeekMs(); syncPeekButtonLabel(); });
-    peekBtn && peekBtn.addEventListener("click", handlePeek);
-    finishBtn && finishBtn.addEventListener("click", () => finishAttempt(true));
-    exportBtn.addEventListener("click", exportCSV);
-    document.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && (e.key === "Enter")) { e.preventDefault(); finishAttempt(true); }
-      else if (e.ctrlKey && (e.key.toLowerCase() === "p")) { e.preventDefault(); handlePeek(); }
-      else if (e.ctrlKey && (e.key.toLowerCase() === "r")) { e.preventDefault(); restartSameVerse(); }
-      else if (e.ctrlKey && (e.key.toLowerCase() === "m")) { e.preventDefault(); loadRandomVerseForSelection(); }
-      else if (e.ctrlKey && (e.key.toLowerCase() === "j")) {
-        e.preventDefault();
-        const modes = ['auto','light','dark'];
-        const cur = localStorage.getItem(THEME_KEY) || 'auto';
-        const idx = (modes.indexOf(cur)+1) % modes.length;
-        applyTheme(modes[idx]);
+
+    elements.previewSeconds.addEventListener("change", () => getPreviewMilliseconds());
+    elements.peekSeconds.addEventListener("change", () => {
+      getPeekMilliseconds();
+      syncPeekButtonLabel();
+    });
+
+    if (elements.peekButton) {
+      elements.peekButton.addEventListener("click", handlePeek);
+    }
+
+    if (elements.finishButton) {
+      elements.finishButton.addEventListener("click", () => finishAttempt(true));
+    }
+
+    elements.exportButton.addEventListener("click", exportHistoryToCSV);
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (event) => {
+      if (event.ctrlKey && event.key === "Enter") {
+        event.preventDefault();
+        finishAttempt(true);
+      } else if (event.ctrlKey && event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        handlePeek();
+      } else if (event.ctrlKey && event.key.toLowerCase() === "r") {
+        event.preventDefault();
+        restartCurrentVerse();
+      } else if (event.ctrlKey && event.key.toLowerCase() === "m") {
+        event.preventDefault();
+        loadRandomVerse();
+      } else if (event.ctrlKey && event.key.toLowerCase() === "j") {
+        event.preventDefault();
+        const themeModes = ["auto", "light", "dark"];
+        const currentTheme = localStorage.getItem(THEME_KEY) || "auto";
+        const nextIndex = (themeModes.indexOf(currentTheme) + 1) % themeModes.length;
+        applyTheme(themeModes[nextIndex]);
       }
     });
 
-    // ======= Init =======
+    // ========================================
+    // Initialization
+    // ========================================
     (async () => {
       initTheme();
       renderAvatarGrid();
-      document.getElementById("raceAvatar").src = getSelectedAvatar().src;
+      elements.raceAvatar.src = getSelectedAvatar().src;
 
-      previewSecEl.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SEC;
-      peekSecEl.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SEC;
+      elements.previewSeconds.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SECONDS;
+      elements.peekSeconds.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SECONDS;
       syncPeekButtonLabel();
-      setBlindFaithUI(blindToggleEl.checked);
+      setBlindFaithUIVisible(elements.blindToggle.checked);
 
-      categoryTitleEl.textContent=currentCategorySelectionLabel();
+      elements.categoryTitle.textContent = getCurrentCategoryLabel();
 
-      try { const res = await fetch("http://127.0.0.1:8000/health", { cache:"no-store" }); if (!res.ok) throw new Error("Proxy offline"); }
-      catch { showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV."); }
-      finally { loadRandomVerseForSelection(); }
+      // Check if proxy is available
+      try {
+        const response = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
+        if (!response.ok) throw new Error("Proxy offline");
+      } catch {
+        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV.");
+      }
+
+      // Load initial verse
+      await loadRandomVerse();
     })();
   </script>
 </body>
