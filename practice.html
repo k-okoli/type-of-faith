@@ -130,6 +130,8 @@
       padding: 0 1px;
     }
 
+    .corrected { background: rgba(253, 224, 71, 0.35); border-radius: 2px; }
+
     #remaining { color: var(--muted); }
 
     #hiddenMask {
@@ -534,6 +536,7 @@
       finished: false,
       totalKeystrokes: 0,
       errorKeystrokes: 0,
+      errorPositions: new Set(),
       previousInputValue: "",
       bestWPM: null,
       bestAccuracy: null,
@@ -1018,6 +1021,7 @@
       state.finished = false;
       state.totalKeystrokes = 0;
       state.errorKeystrokes = 0;
+      state.errorPositions.clear();
       state.previousInputValue = "";
 
       updateLiveMetrics();
@@ -1345,6 +1349,7 @@
           state.totalKeystrokes++;
           if (typedChar !== verseNormalized[charIndex]) {
             state.errorKeystrokes++;
+            state.errorPositions.add(charIndex); // Track position where error occurred
           }
         }
       }
@@ -1377,8 +1382,16 @@
       const isVerseVisible = elements.remaining.textContent.length > 0 || elements.hiddenMask.textContent.length === 0;
 
       if (!isBlindMode || isVerseVisible) {
-        // Update verse display: correct (green) + incorrect (red) + remaining (muted)
-        elements.typed.textContent = state.verseText.substring(0, correctCharCount);
+        // Update verse display: correct (green), corrected (yellow), incorrect (red), remaining (muted)
+        let typedHtml = '';
+        for (let k = 0; k < correctCharCount; k++) {
+          if (state.errorPositions.has(k)) {
+            typedHtml += `<span class="corrected">${state.verseText[k]}</span>`;
+          } else {
+            typedHtml += state.verseText[k];
+          }
+        }
+        elements.typed.innerHTML = typedHtml;
         elements.incorrect.textContent = state.verseText.substring(correctCharCount, correctCharCount + errorCharCount);
         elements.remaining.textContent = state.verseText.substring(correctCharCount + errorCharCount);
 

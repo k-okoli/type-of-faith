@@ -39,6 +39,7 @@
     #verse { font-size: 20px; line-height: 1.6; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 3.5em; }
     #typed { color: var(--ok); }
     #incorrect { color: #fff; background: var(--err); border-radius: 2px; padding: 0 1px; }
+    .corrected { background: rgba(253, 224, 71, 0.35); border-radius: 2px; }
     #remaining { color: var(--muted); }
     #input.error-state {
       background: color-mix(in srgb, var(--err) 10%, var(--panel));
@@ -237,6 +238,7 @@
     let started = false;
     let totalKeystrokes = 0;
     let errorKeystrokes = 0;
+    let errorPositions = new Set();
     let prevValue = "";
 
     // Race history for adaptive mode
@@ -495,6 +497,7 @@
       started = false;
       totalKeystrokes = 0;
       errorKeystrokes = 0;
+      errorPositions.clear();
       prevValue = "";
       inputEl.value = "";
       inputEl.disabled = true;
@@ -698,7 +701,10 @@
           const idx = prevNorm.length + i;
           const ch = added[i];
           totalKeystrokes++;
-          if (ch !== vtNorm[idx]) errorKeystrokes++;
+          if (ch !== vtNorm[idx]) {
+            errorKeystrokes++;
+            errorPositions.add(idx); // Track position where error occurred
+          }
         }
       }
       prevValue = newVal;
@@ -716,8 +722,16 @@
       const hasError = correctCount < newVal.length;
       const errorCount = newVal.length - correctCount;
 
-      // Update verse display: correct (green) + incorrect (red) + remaining (muted)
-      typedEl.textContent = verseText.substring(0, correctCount);
+      // Update verse display: correct (green), corrected (yellow), incorrect (red), remaining (muted)
+      let typedHtml = '';
+      for (let k = 0; k < correctCount; k++) {
+        if (errorPositions.has(k)) {
+          typedHtml += `<span class="corrected">${verseText[k]}</span>`;
+        } else {
+          typedHtml += verseText[k];
+        }
+      }
+      typedEl.innerHTML = typedHtml;
       incorrectEl.textContent = verseText.substring(correctCount, correctCount + errorCount);
       remainingEl.textContent = verseText.substring(correctCount + errorCount);
 

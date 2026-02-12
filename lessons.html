@@ -23,19 +23,25 @@
     .card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px; }
     #banner{ font-size:14px; color:var(--accent); background:var(--banner-bg); padding:6px 8px; border-radius:6px; display:none; margin:8px 0; }
 
-    /* Keyboard */
-    #keyboard .krow{ margin:2px 0; display:flex; gap:6px; justify-content:center }
-    #keyboard .key{
-      display:inline-block; min-width:24px; padding:8px 10px; text-align:center;
-      border:1px solid var(--border); border-radius:8px; background:var(--panel);
+    /* Keyboard - standard rectangular layout */
+    #keyboard {
+      background:var(--panel); border:1px solid var(--border); border-radius:8px;
+      padding:12px; display:inline-block;
     }
-    #keyboard .key.wide{ min-width:60px; font-size:12px; }
-    #keyboard .key.space{ min-width:220px; font-size:12px; }
-    [data-finger="lp"]{ background:#ffe7e7 } [data-finger="lr"]{ background:#ffeeda }
-    [data-finger="lm"]{ background:#fff7cc } [data-finger="li"]{ background:#eaffd1 }
-    [data-finger="ri"]{ background:#e0f3ff } [data-finger="rm"]{ background:#eae0ff }
-    [data-finger="rr"]{ background:#f5e0ff } [data-finger="rp"]{ background:#fbe0ef }
-    .highlight{ outline:2px solid var(--accent) }
+    #keyboard .krow{ margin:4px 0; display:flex; gap:4px; }
+    #keyboard .key{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:44px; height:44px; font-size:14px; font-weight:500;
+      border:1px solid var(--border); border-radius:6px; background:var(--bg);
+      color:var(--ink); transition:background .1s, transform .1s;
+    }
+    #keyboard .key:hover{ background:var(--panel); }
+    #keyboard .key.wide{ width:72px; font-size:11px; }
+    #keyboard .key.space{ width:280px; font-size:12px; }
+    #keyboard .key.highlight{ background:var(--accent); color:var(--bg); transform:scale(1.05); }
+
+    /* Corrected characters (had error but fixed) */
+    .corrected { background:rgba(253, 224, 71, 0.35); border-radius:2px; }
     #incorrect { color:#fff; background:var(--err); border-radius:2px; padding:0 1px; }
     #input.error-state {
       background: color-mix(in srgb, var(--err) 10%, var(--panel));
@@ -47,8 +53,8 @@
 
     /* Centering & stack */
     .stack-center { display:flex; flex-direction:column; align-items:center; }
-    .tips { max-width:820px; width:100%; }
-    .drill { max-width:820px; width:100%; margin-top:20px; }
+    .tips { max-width:700px; width:100%; margin:0; padding:0; list-style-position:inside; }
+    .drill { width:100%; }
 
     /* Drill navigation */
     #drillNav { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
@@ -63,6 +69,12 @@
     #lessonCompleteBanner { display:none; text-align:center; margin-top:10px; padding:12px; background:var(--banner-bg); border-radius:8px; }
     #lessonCompleteBanner .complete-text { font-size:16px; font-weight:700; color:var(--ok); margin-bottom:8px; }
     #lessonCompleteBanner button { font-size:14px; padding:6px 16px; }
+
+    /* Retry banner (accuracy not met) */
+    #retryBanner { display:none; text-align:center; margin-top:10px; padding:12px; background:color-mix(in srgb, var(--err) 15%, var(--panel)); border:1px solid var(--err); border-radius:8px; }
+    #retryBanner .retry-text { font-size:14px; font-weight:600; color:var(--err); margin-bottom:4px; }
+    #retryBanner .retry-score { font-size:13px; color:var(--muted); margin-bottom:10px; }
+    #retryBanner button { font-size:14px; padding:6px 16px; }
 
     /* Lesson tracker */
     #lessonTracker { margin-bottom:12px; }
@@ -79,7 +91,7 @@
     .lesson-row .lr-status { min-width:20px; text-align:center; }
 
     /* Skin tone selector */
-    .skin-selector { display:flex; gap:6px; align-items:center; margin:12px 0; }
+    .skin-selector { display:flex; gap:8px; align-items:center; margin:12px 0; }
     .skin-selector label { font-size:14px; color:var(--muted); }
     .skin-btn {
       width:28px; height:28px; border-radius:50%; border:2px solid transparent;
@@ -88,52 +100,50 @@
     .skin-btn:hover { transform:scale(1.1); }
     .skin-btn.selected { border-color:var(--accent); }
     .skin-btn[data-tone="light"] { background:#FFDBAC; }
-    .skin-btn[data-tone="medium-light"] { background:#F1C27D; }
-    .skin-btn[data-tone="medium"] { background:#E0AC69; }
-    .skin-btn[data-tone="medium-dark"] { background:#C68642; }
+    .skin-btn[data-tone="medium"] { background:#C68642; }
     .skin-btn[data-tone="dark"] { background:#8D5524; }
 
-    /* Hand diagrams */
+    /* Hand diagrams - image based */
     .hands-container {
-      display:flex; justify-content:center; gap:40px; margin:16px 0;
-      --hand-color:#F1C27D;
+      display:flex; justify-content:center; gap:40px; margin:20px 0;
     }
     .hand {
       display:flex; flex-direction:column; align-items:center;
     }
-    .hand-label { font-size:12px; color:var(--muted); margin-bottom:6px; }
-    .fingers {
-      display:flex; gap:4px; align-items:flex-end;
+    .hand-label { font-size:13px; color:var(--muted); margin-bottom:8px; }
+    .hand-wrapper {
+      position:relative; width:180px; height:220px;
     }
-    .finger {
-      display:flex; flex-direction:column; align-items:center; gap:2px;
+    .hand-img {
+      width:100%; height:100%; object-fit:contain;
     }
-    .finger-tip {
-      width:20px; height:28px; border-radius:10px 10px 6px 6px;
-      background:var(--hand-color); border:1px solid rgba(0,0,0,0.15);
-      transition:background .15s, transform .15s, box-shadow .15s;
+    /* Finger overlays - positioned over each finger area */
+    .finger-overlay {
+      position:absolute; border-radius:8px 8px 4px 4px;
+      pointer-events:none; transition:all .15s ease;
     }
-    .finger.pinky .finger-tip { height:22px; width:16px; }
-    .finger.ring .finger-tip { height:30px; width:18px; }
-    .finger.middle .finger-tip { height:34px; width:20px; }
-    .finger.index .finger-tip { height:30px; width:19px; }
-    .finger.thumb .finger-tip { height:22px; width:22px; border-radius:50%; margin-top:8px; }
-    .finger.active .finger-tip {
-      background:var(--accent);
-      transform:translateY(-4px);
-      box-shadow:0 4px 8px rgba(0,0,0,0.2);
+    .finger-overlay.active {
+      background:rgba(59, 130, 246, 0.4);
+      box-shadow:0 0 12px rgba(59, 130, 246, 0.6);
     }
     .finger-key {
-      font-size:9px; color:var(--muted); margin-top:2px;
-      opacity:0; transition:opacity .15s;
+      position:absolute; bottom:-18px; left:50%; transform:translateX(-50%);
+      font-size:10px; font-weight:600; color:var(--accent);
+      opacity:0; transition:opacity .15s; white-space:nowrap;
     }
-    .finger.active .finger-key { opacity:1; color:var(--accent); font-weight:600; }
-    .palm {
-      width:90px; height:30px; background:var(--hand-color);
-      border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.15);
-      border-top:none; margin-top:-2px;
-    }
-    .hand.right .palm { border-radius:0 0 20px 20px; }
+    .finger-overlay.active .finger-key { opacity:1; }
+    /* Left hand finger positions (pinky to thumb, left to right) */
+    .hand.left .finger-overlay.pinky  { left:5%;  top:8%;  width:16%; height:38%; }
+    .hand.left .finger-overlay.ring   { left:22%; top:2%;  width:16%; height:42%; }
+    .hand.left .finger-overlay.middle { left:39%; top:0%;  width:17%; height:45%; }
+    .hand.left .finger-overlay.index  { left:57%; top:6%;  width:17%; height:40%; }
+    .hand.left .finger-overlay.thumb  { left:72%; top:50%; width:22%; height:30%; border-radius:4px 12px 12px 4px; }
+    /* Right hand finger positions (thumb to pinky, left to right) */
+    .hand.right .finger-overlay.thumb  { left:6%;  top:50%; width:22%; height:30%; border-radius:12px 4px 4px 12px; }
+    .hand.right .finger-overlay.index  { left:26%; top:6%;  width:17%; height:40%; }
+    .hand.right .finger-overlay.middle { left:44%; top:0%;  width:17%; height:45%; }
+    .hand.right .finger-overlay.ring   { left:62%; top:2%;  width:16%; height:42%; }
+    .hand.right .finger-overlay.pinky  { left:79%; top:8%;  width:16%; height:38%; }
 
     /* Race track */
     .race-track { margin:12px 0; padding:6px 12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
@@ -168,30 +178,88 @@
     <div class="tracker-grid" id="trackerGrid"></div>
   </div>
 
-  <!-- Keyboard & Drill stacked and centered -->
+  <!-- Typing Drill (above keyboard) -->
+  <div class="card drill" aria-label="Typing drill" style="margin-bottom:12px;">
+    <div><strong>Drill</strong> <span class="muted" style="margin-left:12px">Goal: 95%+ accuracy</span></div>
+    <div style="font-size:20px; margin-top:8px;">
+      <span id="typed" style="color:var(--ok)"></span><span id="incorrect"></span><span id="remain" style="color:var(--muted)"></span>
+    </div>
+    <div class="race-track">
+      <div class="track-lane">
+        <img id="raceAvatar" class="race-avatar" src="" alt="avatar" />
+        <span id="racePct" class="race-pct">0%</span>
+        <div class="finish-line"></div>
+      </div>
+    </div>
+    <input id="input" placeholder="Type the drill here..." autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
+    <div id="stats" class="muted" style="margin-top:8px">WPM: 0 · Accuracy: 100% · Errors: 0</div>
+    <div id="drillNav"></div>
+    <div id="lessonCompleteBanner">
+      <div class="complete-text">Lesson complete!</div>
+      <button id="nextLessonBtn">Next Lesson</button>
+    </div>
+    <div id="retryBanner">
+      <div class="retry-text">Minimum 95% accuracy required to advance</div>
+      <div class="retry-score"></div>
+      <button id="redoDrillBtn">Redo Drill</button>
+    </div>
+  </div>
+
+  <!-- Keyboard & Finger Map -->
   <div class="card stack-center">
-    <div style="font-weight:700; margin-bottom:8px;">Keyboard & Finger Map</div>
+    <div style="font-weight:700; margin-bottom:12px;">Keyboard & Finger Map</div>
 
     <!-- Keyboard -->
     <div id="keyboard" aria-label="Keyboard diagram">
       <div class="krow">
+        <span class="key" data-finger="lp" data-key="`">`</span>
         <span class="key" data-finger="lp" data-key="1">1</span><span class="key" data-finger="lr" data-key="2">2</span><span class="key" data-finger="lm" data-key="3">3</span><span class="key" data-finger="li" data-key="4">4</span><span class="key" data-finger="li" data-key="5">5</span>
         <span class="key" data-finger="ri" data-key="6">6</span><span class="key" data-finger="ri" data-key="7">7</span><span class="key" data-finger="rm" data-key="8">8</span><span class="key" data-finger="rr" data-key="9">9</span><span class="key" data-finger="rp" data-key="0">0</span>
+        <span class="key" data-finger="rp" data-key="-">-</span><span class="key" data-finger="rp" data-key="=">=</span>
       </div>
       <div class="krow">
         <span class="key" data-finger="lp" data-key="q">Q</span><span class="key" data-finger="lr" data-key="w">W</span><span class="key" data-finger="lm" data-key="e">E</span><span class="key" data-finger="li" data-key="r">R</span><span class="key" data-finger="li" data-key="t">T</span>
         <span class="key" data-finger="ri" data-key="y">Y</span><span class="key" data-finger="ri" data-key="u">U</span><span class="key" data-finger="rm" data-key="i">I</span><span class="key" data-finger="rr" data-key="o">O</span><span class="key" data-finger="rp" data-key="p">P</span>
+        <span class="key" data-finger="rp" data-key="[">[</span><span class="key" data-finger="rp" data-key="]">]</span><span class="key" data-finger="rp" data-key="\">\</span>
       </div>
       <div class="krow">
         <span class="key" data-finger="lp" data-key="a">A</span><span class="key" data-finger="lr" data-key="s">S</span><span class="key" data-finger="lm" data-key="d">D</span><span class="key" data-finger="li" data-key="f">F</span><span class="key" data-finger="li" data-key="g">G</span>
         <span class="key" data-finger="ri" data-key="h">H</span><span class="key" data-finger="ri" data-key="j">J</span><span class="key" data-finger="rm" data-key="k">K</span><span class="key" data-finger="rr" data-key="l">L</span><span class="key" data-finger="rp" data-key=";">;</span><span class="key" data-finger="rp" data-key="'">'</span>
       </div>
       <div class="krow">
-        <span class="key wide" data-finger="lp" data-key="lshift">Shift</span><span class="key" data-finger="lp" data-key="z">Z</span><span class="key" data-finger="lr" data-key="x">X</span><span class="key" data-finger="lm" data-key="c">C</span><span class="key" data-finger="li" data-key="v">V</span><span class="key" data-finger="li" data-key="b">B</span>
-        <span class="key" data-finger="ri" data-key="n">N</span><span class="key" data-finger="ri" data-key="m">M</span><span class="key" data-finger="rm" data-key=",">,</span><span class="key" data-finger="rr" data-key=".">.</span><span class="key" data-finger="rp" data-key="/">/</span><span class="key wide" data-finger="rp" data-key="rshift">Shift</span>
+        <span class="key wide" data-finger="lp" data-key="lshift">Shift</span>
+        <span class="key" data-finger="lp" data-key="z">Z</span><span class="key" data-finger="lr" data-key="x">X</span><span class="key" data-finger="lm" data-key="c">C</span><span class="key" data-finger="li" data-key="v">V</span><span class="key" data-finger="li" data-key="b">B</span>
+        <span class="key" data-finger="ri" data-key="n">N</span><span class="key" data-finger="ri" data-key="m">M</span><span class="key" data-finger="rm" data-key=",">,</span><span class="key" data-finger="rr" data-key=".">.</span><span class="key" data-finger="rp" data-key="/">/</span>
+        <span class="key wide" data-finger="rp" data-key="rshift">Shift</span>
       </div>
       <div class="krow">
         <span class="key space" data-key=" ">Space</span>
+      </div>
+    </div>
+
+    <!-- Hand diagrams below keyboard -->
+    <div class="hands-container" id="handsContainer">
+      <div class="hand left">
+        <div class="hand-label">Left Hand</div>
+        <div class="hand-wrapper">
+          <img class="hand-img" id="leftHandImg" src="assets/hands/individual_hands_12/hand-left-medium.png" alt="Left hand">
+          <div class="finger-overlay pinky" data-finger="lp"><span class="finger-key">A</span></div>
+          <div class="finger-overlay ring" data-finger="lr"><span class="finger-key">S</span></div>
+          <div class="finger-overlay middle" data-finger="lm"><span class="finger-key">D</span></div>
+          <div class="finger-overlay index" data-finger="li"><span class="finger-key">F</span></div>
+          <div class="finger-overlay thumb"></div>
+        </div>
+      </div>
+      <div class="hand right">
+        <div class="hand-label">Right Hand</div>
+        <div class="hand-wrapper">
+          <img class="hand-img" id="rightHandImg" src="assets/hands/individual_hands_12/hand-right-medium.png" alt="Right hand">
+          <div class="finger-overlay thumb"></div>
+          <div class="finger-overlay index" data-finger="ri"><span class="finger-key">J</span></div>
+          <div class="finger-overlay middle" data-finger="rm"><span class="finger-key">K</span></div>
+          <div class="finger-overlay ring" data-finger="rr"><span class="finger-key">L</span></div>
+          <div class="finger-overlay pinky" data-finger="rp"><span class="finger-key">;</span></div>
+        </div>
       </div>
     </div>
 
@@ -199,66 +267,16 @@
     <div class="skin-selector">
       <label>Skin tone:</label>
       <button class="skin-btn" data-tone="light" title="Light"></button>
-      <button class="skin-btn" data-tone="medium-light" title="Medium-Light"></button>
       <button class="skin-btn selected" data-tone="medium" title="Medium"></button>
-      <button class="skin-btn" data-tone="medium-dark" title="Medium-Dark"></button>
       <button class="skin-btn" data-tone="dark" title="Dark"></button>
     </div>
 
-    <!-- Hand diagrams -->
-    <div class="hands-container" id="handsContainer">
-      <div class="hand left">
-        <div class="hand-label">Left Hand</div>
-        <div class="fingers">
-          <div class="finger pinky" data-finger="lp"><div class="finger-tip"></div><span class="finger-key">A</span></div>
-          <div class="finger ring" data-finger="lr"><div class="finger-tip"></div><span class="finger-key">S</span></div>
-          <div class="finger middle" data-finger="lm"><div class="finger-tip"></div><span class="finger-key">D</span></div>
-          <div class="finger index" data-finger="li"><div class="finger-tip"></div><span class="finger-key">F</span></div>
-          <div class="finger thumb"><div class="finger-tip"></div><span class="finger-key"></span></div>
-        </div>
-        <div class="palm"></div>
-      </div>
-      <div class="hand right">
-        <div class="hand-label">Right Hand</div>
-        <div class="fingers">
-          <div class="finger thumb"><div class="finger-tip"></div><span class="finger-key"></span></div>
-          <div class="finger index" data-finger="ri"><div class="finger-tip"></div><span class="finger-key">J</span></div>
-          <div class="finger middle" data-finger="rm"><div class="finger-tip"></div><span class="finger-key">K</span></div>
-          <div class="finger ring" data-finger="rr"><div class="finger-tip"></div><span class="finger-key">L</span></div>
-          <div class="finger pinky" data-finger="rp"><div class="finger-tip"></div><span class="finger-key">;</span></div>
-        </div>
-        <div class="palm"></div>
-      </div>
-    </div>
-
     <!-- Tips -->
-    <ul class="muted tips" style="margin-top:12px;">
+    <ul class="muted tips" style="margin-top:8px; font-size:13px;">
       <li>Keep wrists straight and relaxed. Elbows at ~90°.</li>
       <li>Place index fingers on F and J (feel the bumps).</li>
       <li>Eyes on screen; return to home row after each key.</li>
     </ul>
-
-    <!-- Drill: full-width block UNDER keyboard -->
-    <div class="card drill" aria-label="Typing drill">
-      <div><strong>Drill</strong> <span class="muted" style="margin-left:12px">Goal: 95%+ accuracy</span></div>
-      <div style="font-size:20px; margin-top:8px;">
-        <span id="typed" style="color:var(--ok)"></span><span id="incorrect"></span><span id="remain" style="color:var(--muted)"></span>
-      </div>
-      <div class="race-track">
-        <div class="track-lane">
-          <img id="raceAvatar" class="race-avatar" src="" alt="avatar" />
-          <span id="racePct" class="race-pct">0%</span>
-          <div class="finish-line"></div>
-        </div>
-      </div>
-      <input id="input" placeholder="Type the drill here..." autocomplete="off" spellcheck="false" style="width:100%; font-size:18px; margin-top:8px">
-      <div id="stats" class="muted" style="margin-top:8px">WPM: 0 · Accuracy: 100% · Errors: 0</div>
-      <div id="drillNav"></div>
-      <div id="lessonCompleteBanner">
-        <div class="complete-text">Lesson complete!</div>
-        <button id="nextLessonBtn">Next Lesson</button>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -382,6 +400,8 @@
     const drillNavEl = document.getElementById("drillNav");
     const lessonCompleteBanner = document.getElementById("lessonCompleteBanner");
     const nextLessonBtn = document.getElementById("nextLessonBtn");
+    const retryBanner = document.getElementById("retryBanner");
+    const redoDrillBtn = document.getElementById("redoDrillBtn");
     const trackerToggle = document.getElementById("trackerToggle");
     const trackerGrid = document.getElementById("trackerGrid");
     const raceAvatar = document.getElementById("raceAvatar");
@@ -395,17 +415,16 @@
     }
 
     // --- Skin tone handling ---
-    const SKIN_TONES = {
-      'light': '#FFDBAC',
-      'medium-light': '#F1C27D',
-      'medium': '#E0AC69',
-      'medium-dark': '#C68642',
-      'dark': '#8D5524'
-    };
+    const SKIN_TONES = ['light', 'medium', 'dark'];
+    const leftHandImg = document.getElementById('leftHandImg');
+    const rightHandImg = document.getElementById('rightHandImg');
 
     function setSkinTone(tone) {
+      // Validate tone - default to medium if invalid
+      if (!SKIN_TONES.includes(tone)) tone = 'medium';
       localStorage.setItem('tof_skin_tone', tone);
-      handsContainer.style.setProperty('--hand-color', SKIN_TONES[tone]);
+      leftHandImg.src = `assets/hands/individual_hands_12/hand-left-${tone}.png`;
+      rightHandImg.src = `assets/hands/individual_hands_12/hand-right-${tone}.png`;
       document.querySelectorAll('.skin-btn').forEach(btn => {
         btn.classList.toggle('selected', btn.dataset.tone === tone);
       });
@@ -450,6 +469,7 @@
     // --- Drill state ---
     let curLesson=null, curIdx=0, startTs=0, autoAdvanceTimer=null;
     let totalKeystrokes=0, errorKeystrokes=0, previousInputValue="";
+    let errorPositions = new Set(); // Track positions where errors occurred (even if corrected)
 
     // Shift-produced characters: map to base key
     const SHIFT_MAP = { ':':';', '"':"'", '<':',', '>':'.', '?':'/' };
@@ -458,7 +478,7 @@
 
     function highlightKeyFor(ch){
       document.querySelectorAll("#keyboard .key").forEach(el=>el.classList.remove("highlight"));
-      document.querySelectorAll(".finger").forEach(el=>el.classList.remove("active"));
+      document.querySelectorAll(".finger-overlay").forEach(el=>el.classList.remove("active"));
 
       if (!ch) return;
 
@@ -471,10 +491,10 @@
       if (keyEl) {
         keyEl.classList.add("highlight");
 
-        // Highlight the corresponding finger
+        // Highlight the corresponding finger overlay
         const fingerType = keyEl.dataset.finger;
         if (fingerType) {
-          const fingerEl = document.querySelector(`.finger[data-finger="${fingerType}"]`);
+          const fingerEl = document.querySelector(`.finger-overlay[data-finger="${fingerType}"]`);
           if (fingerEl) {
             fingerEl.classList.add("active");
             // Update the key label on the finger
@@ -492,7 +512,7 @@
 
         // Highlight the pinky that presses shift
         const shiftFinger = LEFT_KEYS.has(baseKey) ? 'rp' : 'lp';
-        const shiftFingerEl = document.querySelector(`.finger[data-finger="${shiftFinger}"]`);
+        const shiftFingerEl = document.querySelector(`.finger-overlay[data-finger="${shiftFinger}"]`);
         if (shiftFingerEl) shiftFingerEl.classList.add("active");
       }
     }
@@ -503,6 +523,7 @@
       const p = loadProgress(curLesson.id);
       curIdx = Math.min(p.idx||0, curLesson.drills.length-1);
       lessonCompleteBanner.style.display = "none";
+      retryBanner.style.display = "none";
       loadDrill(curIdx);
       renderLessonTracker();
     }
@@ -513,8 +534,9 @@
       const d = curLesson.drills[idx];
       typedEl.textContent=""; incorrectEl.textContent=""; remainEl.textContent = d.text;
       inputEl.value=""; inputEl.classList.remove("error-state"); startTs=0;
-      totalKeystrokes=0; errorKeystrokes=0; previousInputValue="";
+      totalKeystrokes=0; errorKeystrokes=0; previousInputValue=""; errorPositions.clear();
       lessonCompleteBanner.style.display = "none";
+      retryBanner.style.display = "none";
       highlightKeyFor(d.text.trim()[0]);
       statsEl.textContent = "WPM: 0 · Accuracy: 100% · Errors: 0";
       resetRaceTrack();
@@ -576,6 +598,10 @@
       }
     }
     nextLessonBtn.addEventListener("click", nextLesson);
+    redoDrillBtn.addEventListener("click", () => {
+      retryBanner.style.display = "none";
+      loadDrill(curIdx);
+    });
 
     // --- Lesson tracker ---
     trackerToggle.addEventListener("click", ()=>{
@@ -635,6 +661,7 @@
           totalKeystrokes++;
           if (addedChars[j] !== target[charIndex]) {
             errorKeystrokes++;
+            errorPositions.add(charIndex); // Track this position had an error
           }
         }
       }
@@ -647,8 +674,17 @@
       const hasError = correctCount < typed.length;
       const errorCount = typed.length - correctCount;
 
-      // Update display: correct (green) + incorrect (red) + remaining (muted)
-      typedEl.textContent = target.slice(0, correctCount);
+      // Update display: correct (green), corrected (yellow), incorrect (red), remaining (muted)
+      // Build typed section with corrected highlights
+      let typedHtml = '';
+      for (let k = 0; k < correctCount; k++) {
+        if (errorPositions.has(k)) {
+          typedHtml += `<span class="corrected">${target[k]}</span>`;
+        } else {
+          typedHtml += target[k];
+        }
+      }
+      typedEl.innerHTML = typedHtml;
       incorrectEl.textContent = target.slice(correctCount, correctCount + errorCount);
       remainEl.textContent = target.slice(correctCount + errorCount);
 
@@ -701,11 +737,13 @@
             showLessonBanner("success","Congratulations! You've completed all lessons!");
           }
         } else {
-          // Below 95% — stay on this drill
-          showLessonBanner("info",`Drill complete — ${finalAcc}% accuracy. Aim for 95%+ to advance. Press Start to retry.`);
+          // Below 95% — stay on this drill, show retry banner
+          showLessonBanner("","");
           saveProgress(curLesson.id, curIdx, best);
           renderDrillNav();
           renderLessonTracker();
+          retryBanner.querySelector(".retry-score").textContent = `Your accuracy: ${finalAcc}% — need 95% or higher`;
+          retryBanner.style.display = "block";
         }
       }
     });
