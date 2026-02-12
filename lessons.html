@@ -156,6 +156,7 @@
 <body>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
+  <script src="shared/audio.js"></script>
 
   <div id="banner"></div>
 
@@ -656,13 +657,21 @@
       // Track keystrokes for accuracy (same as practice page)
       if (typed.length > previousInputValue.length) {
         const addedChars = typed.slice(previousInputValue.length);
+        let hasErrorThisInput = false;
         for (let j = 0; j < addedChars.length; j++) {
           const charIndex = previousInputValue.length + j;
           totalKeystrokes++;
           if (addedChars[j] !== target[charIndex]) {
             errorKeystrokes++;
             errorPositions.add(charIndex); // Track this position had an error
+            hasErrorThisInput = true;
           }
+        }
+        // Play audio feedback
+        if (hasErrorThisInput) {
+          TofAudio.playError();
+        } else {
+          TofAudio.playCorrect();
         }
       }
       previousInputValue = typed;
@@ -718,6 +727,7 @@
 
         if(finalAcc >= 95 && !isLastDrill){
           // Passed drill — auto-advance after delay
+          TofAudio.playComplete();
           showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy! Advancing to next drill...`);
           curIdx += 1;
           saveProgress(curLesson.id, curIdx, best);
@@ -726,6 +736,7 @@
           autoAdvanceTimer = setTimeout(()=>{ loadDrill(curIdx); showLessonBanner("",""); }, 1500);
         } else if(finalAcc >= 95 && isLastDrill){
           // Passed last drill — lesson complete
+          TofAudio.playComplete();
           saveProgress(curLesson.id, curIdx, best);
           showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy!`);
           renderDrillNav();
@@ -738,6 +749,7 @@
           }
         } else {
           // Below 95% — stay on this drill, show retry banner
+          TofAudio.playRetry();
           showLessonBanner("","");
           saveProgress(curLesson.id, curIdx, best);
           renderDrillNav();

@@ -48,3 +48,15 @@
   background: var(--panel);
   color: var(--ink);
 }
+.tof-nav .tof-mute-btn {
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tof-nav .tof-mute-btn:hover {
+  background: var(--border);
+}

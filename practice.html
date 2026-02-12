@@ -313,12 +313,77 @@
       z-index: 3;
       pointer-events: none;
     }
+
+    /* Daily Challenge */
+    .daily-challenge {
+      background: linear-gradient(135deg, var(--panel) 0%, color-mix(in srgb, var(--accent) 15%, var(--panel)) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .daily-challenge .daily-icon {
+      font-size: 32px;
+    }
+    .daily-challenge .daily-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .daily-challenge .daily-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .daily-challenge .daily-verse {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .daily-challenge .daily-best {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .daily-challenge .daily-best strong {
+      color: var(--ok);
+    }
+    .daily-challenge button {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .daily-challenge button:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
   </style>
 </head>
 <body>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
+  <script src="shared/audio.js"></script>
+
+  <!-- Daily Challenge -->
+  <div class="daily-challenge" id="dailyChallenge">
+    <div class="daily-icon">📅</div>
+    <div class="daily-info">
+      <div class="daily-title">Daily Challenge</div>
+      <div class="daily-verse" id="dailyVerse">Loading today's verse...</div>
+      <div class="daily-best" id="dailyBest"></div>
+    </div>
+    <button id="dailyBtn">Start Challenge</button>
+  </div>
 
   <div class="controls">
     <label>
@@ -471,6 +536,80 @@
     const DEFAULT_PEEK_SECONDS = 5;
 
     // ========================================
+    // Daily Challenge
+    // ========================================
+    function getTodayDateString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function seededRandom(seed) {
+      // Simple seeded random using date string
+      let h = 0;
+      for (let i = 0; i < seed.length; i++) {
+        h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
+      }
+      return Math.abs(h);
+    }
+
+    function getDailyVerse() {
+      const today = getTodayDateString();
+      const allRefs = Object.values(VERSE_CATEGORIES).flat();
+      const uniqueRefs = [...new Set(allRefs)];
+      const idx = seededRandom(today) % uniqueRefs.length;
+      return uniqueRefs[idx];
+    }
+
+    function getDailyBest() {
+      const today = getTodayDateString();
+      const key = `tof_daily_${today}`;
+      try {
+        return JSON.parse(localStorage.getItem(key) || 'null');
+      } catch { return null; }
+    }
+
+    function saveDailyBest(wpm, accuracy, time) {
+      const today = getTodayDateString();
+      const key = `tof_daily_${today}`;
+      const current = getDailyBest();
+      // Save if no record exists or new WPM is higher
+      if (!current || wpm > current.wpm) {
+        localStorage.setItem(key, JSON.stringify({ wpm, accuracy, time, date: today }));
+        return true;
+      }
+      return false;
+    }
+
+    function initDailyChallenge() {
+      const dailyRef = getDailyVerse();
+      const dailyVerseEl = document.getElementById('dailyVerse');
+      const dailyBestEl = document.getElementById('dailyBest');
+      const dailyBtn = document.getElementById('dailyBtn');
+
+      dailyVerseEl.textContent = `Today's verse: ${dailyRef}`;
+
+      const best = getDailyBest();
+      if (best) {
+        dailyBestEl.innerHTML = `Your best today: <strong>${best.wpm} WPM</strong> · ${best.accuracy}% accuracy · ${best.time}s`;
+      } else {
+        dailyBestEl.textContent = 'No attempts yet today. Be the first!';
+      }
+
+      dailyBtn.addEventListener('click', async () => {
+        dailyBtn.disabled = true;
+        dailyBtn.textContent = 'Loading...';
+        try {
+          await loadSpecificVerse(dailyRef, 'KJV');
+          state.isDailyChallenge = true;
+        } catch (e) {
+          console.error('Failed to load daily verse:', e);
+        }
+        dailyBtn.disabled = false;
+        dailyBtn.textContent = 'Start Challenge';
+      });
+    }
+
+    // ========================================
     // Avatar definitions
     // ========================================
     const AVATARS = [
@@ -543,6 +682,7 @@
       fastestTime: null,
       bestFairness: null,
       history: [],
+      isDailyChallenge: false,
     };
 
     // ========================================
@@ -1171,6 +1311,7 @@
     function finishAttempt(isBlindFinish = false) {
       if (state.finished) return;
       state.finished = true;
+      TofAudio.playComplete();
 
       const attempt = elements.input.value || "";
       const elapsedSeconds = getElapsedSeconds();
@@ -1241,6 +1382,19 @@
 
       state.history.push(historyEntry);
       addHistoryRow(historyEntry);
+
+      // Save daily challenge best
+      if (state.isDailyChallenge) {
+        const isNewBest = saveDailyBest(wordsPerMinute, accuracyPercent, elapsedSeconds.toFixed(2));
+        if (isNewBest) {
+          showBanner("success", `New daily best! ${wordsPerMinute} WPM`);
+        }
+        // Update the daily challenge display
+        const dailyBestEl = document.getElementById('dailyBest');
+        if (dailyBestEl) {
+          dailyBestEl.innerHTML = `Your best today: <strong>${wordsPerMinute} WPM</strong> · ${accuracyPercent}% accuracy · ${elapsedSeconds.toFixed(2)}s`;
+        }
+      }
     }
 
     // ========================================
@@ -1249,6 +1403,7 @@
     async function loadRandomVerse() {
       clearAllTimers();
       setLoadingState(true);
+      state.isDailyChallenge = false;
 
       const category = elements.category.value;
       const lengthPreference = elements.length.value;
@@ -1304,6 +1459,50 @@
       }
     }
 
+    async function loadSpecificVerse(reference, versionCode = "KJV") {
+      clearAllTimers();
+      setLoadingState(true);
+      state.isDailyChallenge = true;
+
+      elements.meta.textContent = "Loading daily challenge...";
+      elements.copyline.textContent = "";
+      elements.categoryTitle.textContent = "Daily Challenge";
+
+      try {
+        const result = await fetchViaProxy(reference, versionCode);
+
+        if (!result || !result.text) {
+          throw new Error("Empty verse text");
+        }
+
+        showBanner("success", "Daily Challenge loaded. Good luck!");
+        resetTypingArea(result.text, result.reference || reference);
+
+        state.actualCategory = "Daily Challenge";
+
+        // Disable blind mode for daily challenge
+        elements.blindToggle.checked = false;
+        setBlindFaithUIVisible(false);
+        setTypingEnabled(true);
+        showVerse();
+        elements.banner.style.display = "none";
+
+        const lengthClass = classifyVerseLength(result.text);
+        elements.meta.textContent = `${state.reference} (${versionCode}) · ${titleCase(lengthClass)} · Daily Challenge`;
+
+        if (result.copyright) {
+          elements.copyline.textContent = result.copyright;
+        }
+      } catch (error) {
+        showBanner("error", "Could not load daily verse. Please try again.");
+        console.error("Daily verse load failed:", error);
+        state.isDailyChallenge = false;
+      } finally {
+        setLoadingState(false);
+        elements.input.focus();
+      }
+    }
+
     function restartCurrentVerse() {
       clearAllTimers();
       resetTypingArea(state.verseText, state.reference);
@@ -1341,6 +1540,7 @@
       // Track keystrokes for accuracy calculation
       if (currentValue.length > state.previousInputValue.length) {
         const addedChars = currentNormalized.slice(previousNormalized.length);
+        let hasErrorThisInput = false;
 
         for (let i = 0; i < addedChars.length; i++) {
           const charIndex = previousNormalized.length + i;
@@ -1350,7 +1550,15 @@
           if (typedChar !== verseNormalized[charIndex]) {
             state.errorKeystrokes++;
             state.errorPositions.add(charIndex); // Track position where error occurred
+            hasErrorThisInput = true;
           }
+        }
+
+        // Play audio feedback
+        if (hasErrorThisInput) {
+          TofAudio.playError();
+        } else {
+          TofAudio.playCorrect();
         }
       }
 
@@ -1476,6 +1684,7 @@
       initTheme();
       renderAvatarGrid();
       elements.raceAvatar.src = getSelectedAvatar().src;
+      initDailyChallenge();
 
       elements.previewSeconds.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SECONDS;
       elements.peekSeconds.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SECONDS;

@@ -35,6 +35,14 @@
   spacer.className = "tof-spacer";
   nav.appendChild(spacer);
 
+  // Mute button
+  const muteBtn = document.createElement("button");
+  muteBtn.id = "muteBtn";
+  muteBtn.className = "tof-mute-btn";
+  muteBtn.textContent = localStorage.getItem('tof_audio_muted') === 'true' ? '🔇' : '🔊';
+  muteBtn.title = localStorage.getItem('tof_audio_muted') === 'true' ? 'Unmute sounds' : 'Mute sounds';
+  nav.appendChild(muteBtn);
+
   // Theme select
   const themeLabel = document.createElement("label");
   themeLabel.style.cssText = "display:flex;align-items:center;gap:4px;font-size:14px;color:var(--muted);";

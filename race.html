@@ -84,6 +84,7 @@
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
+  <script src="shared/audio.js"></script>
 
   <h2>Race Mode</h2>
 
@@ -545,12 +546,15 @@
     function startCountdown() {
       let count = 3;
       showBanner("info", `${count}...`);
+      TofAudio.playCountdown();
       countdownInterval = setInterval(() => {
         count--;
         if (count > 0) {
           showBanner("info", `${count}...`);
+          TofAudio.playCountdown();
         } else if (count === 0) {
           showBanner("success", "GO!");
+          TofAudio.playGo();
         } else {
           clearInterval(countdownInterval);
           countdownInterval = null;
@@ -606,6 +610,7 @@
 
     function endRace(playerTime, playerWPM) {
       raceActive = false;
+      TofAudio.playRaceFinish();
       if (aiInterval) {
         clearInterval(aiInterval);
         aiInterval = null;
@@ -697,6 +702,7 @@
       // Track keystrokes for accuracy
       if (newVal.length > prevValue.length) {
         const added = newNorm.slice(prevNorm.length);
+        let hasErrorThisInput = false;
         for (let i = 0; i < added.length; i++) {
           const idx = prevNorm.length + i;
           const ch = added[i];
@@ -704,7 +710,14 @@
           if (ch !== vtNorm[idx]) {
             errorKeystrokes++;
             errorPositions.add(idx); // Track position where error occurred
+            hasErrorThisInput = true;
           }
+        }
+        // Play audio feedback
+        if (hasErrorThisInput) {
+          TofAudio.playError();
+        } else {
+          TofAudio.playCorrect();
         }
       }
       prevValue = newVal;
