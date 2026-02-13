@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multiplayer — Type of Faith</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%86%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
+  <style>
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555;
+      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
+      --panel:#fff; --border:#eee;
+      --banner-bg:#fff7e6; --link:#1a56db;
+      --input-border:#ddd; --btn-border:#ccc;
+    }
+    :root[data-theme="dark"] {
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
+      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a;
+      --banner-bg:#1d2430; --link:#87b3ff;
+      --input-border:#2b3240; --btn-border:#3a4252;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+    a { color: var(--link); }
+    h2 { margin: 8px 0 16px; font-weight: 600; }
+    button { cursor: pointer; border: 1px solid var(--btn-border); background: var(--panel); color: var(--ink); border-radius: 6px; font-size: 14px; padding: 8px 16px; }
+    button:hover { background: var(--border); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.primary { background: var(--accent); color: #fff; border: none; }
+    button.primary:hover { opacity: 0.9; }
+    input, select { font-size: 16px; padding: 10px 12px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--panel); color: var(--ink); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .card h3 { margin: 0 0 12px; font-size: 16px; }
+    #banner { font-size: 14px; color: var(--accent); background: var(--banner-bg); padding: 10px 12px; border-radius: 6px; margin-bottom: 16px; display: none; }
+    #banner.error { color: var(--err); background: color-mix(in srgb, var(--err) 10%, var(--panel)); }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Lobby Browser */
+    .lobby-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .lobby-list { display: flex; flex-direction: column; gap: 8px; }
+    .lobby-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+    .lobby-item .lobby-info { flex: 1; }
+    .lobby-item .lobby-verse { font-weight: 600; }
+    .lobby-item .lobby-meta { font-size: 12px; color: var(--muted); }
+    .lobby-item .lobby-players { font-size: 13px; color: var(--muted); }
+    .empty-msg { text-align: center; color: var(--muted); padding: 20px; }
+
+    /* Create Lobby */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Join by Code */
+    .join-code-form { display: flex; gap: 12px; align-items: flex-end; }
+    .join-code-form input { width: 150px; text-transform: uppercase; font-family: monospace; font-size: 20px; letter-spacing: 2px; }
+
+    /* Waiting Room */
+    .waiting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .join-code-display { font-family: monospace; font-size: 24px; font-weight: 700; color: var(--accent); background: var(--banner-bg); padding: 8px 16px; border-radius: 8px; }
+    .player-list { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .player-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px; background: var(--panel); border: 2px solid var(--border); border-radius: 12px; min-width: 100px; }
+    .player-card.ready { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--panel)); }
+    .player-card img { width: 48px; height: 48px; border-radius: 50%; }
+    .player-card .player-name { font-weight: 600; font-size: 14px; }
+    .player-card .player-status { font-size: 11px; color: var(--muted); }
+    .waiting-verse { background: var(--banner-bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+    .waiting-verse .verse-ref { font-weight: 600; margin-bottom: 4px; }
+    .waiting-verse .verse-text { color: var(--muted); font-size: 14px; }
+    .waiting-actions { display: flex; gap: 12px; }
+
+    /* Race View */
+    .race-arena { margin-bottom: 16px; }
+    .race-lane { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .lane-label { width: 100px; font-size: 13px; font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .track { flex: 1; height: 40px; background: color-mix(in srgb, var(--border) 50%, transparent); border-radius: 20px; position: relative; overflow: hidden; }
+    .track .avatar { position: absolute; top: 2px; left: 0; width: 36px; height: 36px; border-radius: 50%; transition: left 0.15s ease-out; }
+    .track .finish-line { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(to bottom, var(--ink) 0 4px, var(--panel) 4px 8px); }
+    .track .pct { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 600; color: var(--muted); }
+    #raceVerse { font-size: 20px; line-height: 1.6; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    #raceVerse #typed { color: var(--ok); }
+    #raceVerse #incorrect { color: #fff; background: var(--err); border-radius: 2px; padding: 0 1px; }
+    #raceVerse #remaining { color: var(--muted); }
+    #raceInput { width: 100%; font-size: 20px; padding: 12px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--panel); color: var(--ink); }
+    #raceInput:disabled { opacity: 0.5; }
+    .race-status { text-align: center; font-size: 14px; color: var(--muted); margin-top: 12px; }
+    .countdown-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .countdown-number { font-size: 150px; font-weight: 800; color: #fff; text-shadow: 0 0 40px rgba(255, 215, 0, 0.5); animation: countdownPulse 0.8s ease-out; }
+    .countdown-number.go { color: #6ee7a0; text-shadow: 0 0 60px rgba(110, 231, 160, 0.8); }
+    @keyframes countdownPulse { 0% { transform: scale(2); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Celebration animations */
+    .celebration-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+    .confetti { position: absolute; width: 10px; height: 10px; opacity: 0; }
+    .confetti.animate { animation: confettiFall 3s ease-out forwards; }
+    @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+    .trophy-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; z-index: 1001; opacity: 0; pointer-events: none; }
+    .trophy-popup.show { animation: trophyBounce 1.5s ease-out forwards; }
+    @keyframes trophyBounce { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+
+    /* Results */
+    .results-panel { text-align: center; }
+    .results-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .results-table th, .results-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .results-table .place-1 { color: #ffd700; font-weight: 700; }
+    .results-table .place-2 { color: #c0c0c0; font-weight: 700; }
+    .results-table .place-3 { color: #cd7f32; font-weight: 700; }
+    .avatar-cell { display: flex; align-items: center; gap: 8px; }
+    .avatar-cell img { width: 28px; height: 28px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <script src="shared/data.js"></script>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
+  <script src="shared/audio.js"></script>
+  <script src="shared/leaderboard.js"></script>
+
+  <div id="banner"></div>
+
+  <!-- LOGIN REQUIRED VIEW -->
+  <div id="loginView" class="view">
+    <div class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+      <h3>Login Required</h3>
+      <p style="color: var(--muted); margin-bottom: 16px;">You need an account to play multiplayer races.</p>
+      <button class="primary" id="loginBtn">Create Account</button>
+    </div>
+  </div>
+
+  <!-- LOBBY BROWSER VIEW -->
+  <div id="browserView" class="view">
+    <h2>Multiplayer Races</h2>
+
+    <div class="lobby-actions">
+      <button class="primary" id="createLobbyBtn">Create Lobby</button>
+      <button id="refreshLobbiesBtn">Refresh</button>
+    </div>
+
+    <div class="card">
+      <h3>Join by Code</h3>
+      <div class="join-code-form">
+        <input type="text" id="joinCodeInput" placeholder="ABC123" maxlength="6" />
+        <button id="joinByCodeBtn">Join</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Available Lobbies</h3>
+      <div id="lobbyList" class="lobby-list">
+        <div class="empty-msg">Loading lobbies...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE LOBBY VIEW -->
+  <div id="createView" class="view">
+    <h2>Create Lobby</h2>
+    <div class="card" style="max-width: 500px;">
+      <div class="form-group">
+        <label>Verse Reference</label>
+        <input type="text" id="verseRefInput" placeholder="John 3:16" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Version</label>
+          <select id="versionSelect">
+            <option value="KJV">KJV</option>
+            <option value="WEB">WEB</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Max Players</label>
+          <select id="maxPlayersSelect">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button id="cancelCreateBtn">Cancel</button>
+        <button class="primary" id="confirmCreateBtn">Create Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WAITING ROOM VIEW -->
+  <div id="waitingView" class="view">
+    <h2>Waiting Room</h2>
+    <div class="card">
+      <div class="waiting-header">
+        <div>
+          <div style="font-size: 12px; color: var(--muted);">JOIN CODE</div>
+          <div class="join-code-display" id="waitingJoinCode">ABC123</div>
+        </div>
+        <button id="copyCodeBtn">Copy Code</button>
+      </div>
+
+      <div class="waiting-verse">
+        <div class="verse-ref" id="waitingVerseRef">John 3:16</div>
+        <div class="verse-text" id="waitingVerseText">Loading verse...</div>
+      </div>
+
+      <h4 style="margin: 0 0 8px;">Players</h4>
+      <div class="player-list" id="playerList"></div>
+
+      <div class="waiting-actions">
+        <button id="leaveBtn">Leave</button>
+        <button class="primary" id="readyBtn">Ready</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RACE VIEW -->
+  <div id="raceView" class="view">
+    <div class="race-arena" id="raceArena"></div>
+    <div id="raceVerse">
+      <span id="typed"></span><span id="incorrect"></span><span id="remaining"></span>
+    </div>
+    <input type="text" id="raceInput" placeholder="Type when race starts..." disabled autocomplete="off" spellcheck="false" />
+    <div class="race-status" id="raceStatus">Waiting for race to start...</div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="resultsView" class="view">
+    <div class="card results-panel">
+      <h2>Race Complete!</h2>
+      <table class="results-table" id="resultsTable">
+        <thead>
+          <tr>
+            <th>Place</th>
+            <th>Player</th>
+            <th>Time</th>
+            <th>WPM</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+      <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+        <button id="backToLobbiesBtn">Back to Lobbies</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COUNTDOWN OVERLAY -->
+  <div class="countdown-overlay" id="countdownOverlay" style="display: none;">
+    <div class="countdown-number" id="countdownNumber">3</div>
+  </div>
+
+  <!-- Celebration elements -->
+  <div class="celebration-overlay" id="celebrationOverlay"></div>
+  <div class="trophy-popup" id="trophyPopup"></div>
+
+  <script>
+    // ========================================
+    // State
+    // ========================================
+    let currentLobby = null;
+    let currentPlayers = {};
+    let ws = null;
+    let raceStartTime = 0;
+    let verseText = '';
+    let isReady = false;
+
+    const API_BASE = 'http://127.0.0.1:8000';
+    const WS_BASE = 'ws://127.0.0.1:8000';
+
+    // ========================================
+    // DOM Elements
+    // ========================================
+    const views = {
+      login: document.getElementById('loginView'),
+      browser: document.getElementById('browserView'),
+      create: document.getElementById('createView'),
+      waiting: document.getElementById('waitingView'),
+      race: document.getElementById('raceView'),
+      results: document.getElementById('resultsView')
+    };
+
+    const banner = document.getElementById('banner');
+
+    function showView(viewName) {
+      Object.values(views).forEach(v => v.classList.remove('active'));
+      if (views[viewName]) views[viewName].classList.add('active');
+    }
+
+    function showBanner(msg, isError = false) {
+      banner.textContent = msg;
+      banner.className = isError ? 'error' : '';
+      banner.style.display = msg ? 'block' : 'none';
+    }
+
+    // ========================================
+    // API Helpers
+    // ========================================
+    async function apiCall(endpoint, options = {}) {
+      const token = localStorage.getItem('tof_auth_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+      const data = await response.json();
+      if (!response.ok) throw { status: response.status, detail: data.detail || 'Request failed' };
+      return data;
+    }
+
+    // ========================================
+    // Lobby Browser
+    // ========================================
+    async function loadLobbies() {
+      const list = document.getElementById('lobbyList');
+      try {
+        const data = await apiCall('/lobbies');
+        if (data.lobbies.length === 0) {
+          list.innerHTML = '<div class="empty-msg">No lobbies available. Create one!</div>';
+          return;
+        }
+        list.innerHTML = data.lobbies.map(l => `
+          <div class="lobby-item">
+            <div class="lobby-info">
+              <div class="lobby-verse">${l.verse_ref}</div>
+              <div class="lobby-meta">Host: ${l.host_username} · Code: ${l.join_code}</div>
+            </div>
+            <div class="lobby-players">${l.player_count}/${l.max_players}</div>
+            <button onclick="joinLobby('${l.join_code}')">Join</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="empty-msg">Could not load lobbies</div>';
+      }
+    }
+
+    async function joinLobby(code) {
+      try {
+        showBanner('Joining lobby...');
+        const result = await apiCall(`/lobbies/join/${code}`, { method: 'POST' });
+        currentLobby = { id: result.id };
+        await loadLobbyDetails(result.id);
+        connectWebSocket(result.id);
+        showView('waiting');
+        showBanner('');
+      } catch (e) {
+        showBanner(e.detail || 'Could not join lobby', true);
+      }
+    }
+
+    // ========================================
+    // Create Lobby
+    // ========================================
+    async function createLobby() {
+      const verseRef = document.getElementById('verseRefInput').value.trim();
+      const version = document.getElementById('versionSelect').value;
+      const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
+
+      if (!verseRef) {
+        showBanner('Please enter a verse reference', true);
+        return;
+      }
+
+      try {
+        showBanner('Creating lobby...');
+        const result = await apiCall('/lobbies/create', {
+          method: 'POST',
+          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers })
+        });
+        currentLobby = result;
+        verseText = result.verse_text;
+        await loadLobbyDetails(result.id);
+        connectWebSocket(result.id);
+        showView('waiting');
+        showBanner('');
+      } catch (e) {
+        showBanner(e.detail || 'Could not create lobby', true);
+      }
+    }
+
+    // ========================================
+    // Waiting Room
+    // ========================================
+    async function loadLobbyDetails(lobbyId) {
+      const data = await apiCall(`/lobbies/${lobbyId}`);
+      currentLobby = data;
+      verseText = data.verse_text;
+
+      document.getElementById('waitingJoinCode').textContent = data.join_code;
+      document.getElementById('waitingVerseRef').textContent = data.verse_ref;
+      document.getElementById('waitingVerseText').textContent = data.verse_text;
+
+      currentPlayers = {};
+      data.players.forEach(p => {
+        currentPlayers[p.user_id] = p;
+      });
+      renderPlayerList();
+    }
+
+    function renderPlayerList() {
+      const list = document.getElementById('playerList');
+      const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+
+      list.innerHTML = Object.values(currentPlayers).map(p => `
+        <div class="player-card ${p.ready ? 'ready' : ''}">
+          <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" alt="${p.username}" />
+          <div class="player-name">${p.username}${p.user_id === currentUserId ? ' (You)' : ''}</div>
+          <div class="player-status">${p.ready ? 'Ready!' : 'Waiting...'}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleReady() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ready' }));
+      } else {
+        showBanner('Not connected to lobby', true);
+      }
+    }
+
+    async function leaveLobby() {
+      if (ws) ws.close();
+      if (currentLobby) {
+        try {
+          await apiCall(`/lobbies/${currentLobby.id}/leave`, { method: 'POST' });
+        } catch {}
+      }
+      currentLobby = null;
+      currentPlayers = {};
+      isReady = false;
+      showView('browser');
+      loadLobbies();
+    }
+
+    // ========================================
+    // WebSocket
+    // ========================================
+    function connectWebSocket(lobbyId) {
+      const token = localStorage.getItem('tof_auth_token');
+      ws = new WebSocket(`${WS_BASE}/ws/race/${lobbyId}?token=${token}`);
+
+      ws.onopen = () => console.log('WebSocket connected');
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        handleWsMessage(msg);
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        ws = null;
+      };
+
+      ws.onerror = (e) => {
+        console.error('WebSocket error:', e);
+        showBanner('Connection error', true);
+      };
+    }
+
+    function handleWsMessage(msg) {
+      switch (msg.type) {
+        case 'player_joined':
+          currentPlayers[msg.user_id] = {
+            user_id: msg.user_id,
+            username: msg.username,
+            avatar_id: msg.avatar_id,
+            ready: false
+          };
+          renderPlayerList();
+          break;
+
+        case 'player_left':
+          delete currentPlayers[msg.user_id];
+          renderPlayerList();
+          break;
+
+        case 'player_ready':
+          if (currentPlayers[msg.user_id]) {
+            currentPlayers[msg.user_id].ready = msg.ready;
+          }
+          // Update local state and button if it's the current user
+          const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+          if (msg.user_id === currentUserId) {
+            isReady = msg.ready;
+            document.getElementById('readyBtn').textContent = isReady ? 'Not Ready' : 'Ready';
+          }
+          renderPlayerList();
+          break;
+
+        case 'countdown':
+          showCountdown(msg.seconds);
+          break;
+
+        case 'race_start':
+          startRace(msg.verse_text, msg.start_time);
+          break;
+
+        case 'progress':
+          updatePlayerProgress(msg.user_id, msg.chars, msg.wpm);
+          break;
+
+        case 'player_finished':
+          handlePlayerFinished(msg);
+          break;
+
+        case 'race_end':
+          showResults(msg.results);
+          break;
+      }
+    }
+
+    // ========================================
+    // Race Logic
+    // ========================================
+    function showCountdown(seconds) {
+      const overlay = document.getElementById('countdownOverlay');
+      const number = document.getElementById('countdownNumber');
+      overlay.style.display = 'flex';
+
+      // Reset animation
+      number.style.animation = 'none';
+      number.offsetHeight; // Trigger reflow
+      number.style.animation = '';
+
+      if (seconds === 0) {
+        number.textContent = 'GO!';
+        number.classList.add('go');
+        TofAudio.playGo();
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          number.classList.remove('go');
+        }, 500);
+      } else {
+        number.textContent = seconds;
+        number.classList.remove('go');
+        TofAudio.playCountdown();
+      }
+    }
+
+    function startRace(text, startTime) {
+      verseText = text;
+      raceStartTime = startTime;
+
+      // Setup race view
+      showView('race');
+      document.getElementById('countdownOverlay').style.display = 'none';
+
+      // Setup race arena lanes
+      const arena = document.getElementById('raceArena');
+      arena.innerHTML = Object.values(currentPlayers).map(p => `
+        <div class="race-lane" data-user="${p.user_id}">
+          <div class="lane-label">${p.username}</div>
+          <div class="track">
+            <img class="avatar" src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" style="left: 0;" />
+            <div class="finish-line"></div>
+            <div class="pct">0%</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Setup verse display
+      document.getElementById('typed').textContent = '';
+      document.getElementById('incorrect').textContent = '';
+      document.getElementById('remaining').textContent = verseText;
+
+      // Enable input
+      const input = document.getElementById('raceInput');
+      input.disabled = false;
+      input.value = '';
+      input.focus();
+
+      document.getElementById('raceStatus').textContent = 'Type the verse!';
+      TofAudio.playGo();
+    }
+
+    function updatePlayerProgress(userId, chars, wpm) {
+      const lane = document.querySelector(`.race-lane[data-user="${userId}"]`);
+      if (!lane) return;
+
+      const progress = Math.min(chars / verseText.length, 1);
+      const track = lane.querySelector('.track');
+      const avatar = lane.querySelector('.avatar');
+      const pct = lane.querySelector('.pct');
+
+      const maxLeft = track.offsetWidth - avatar.offsetWidth;
+      avatar.style.left = `${progress * maxLeft}px`;
+      pct.textContent = `${Math.round(progress * 100)}%`;
+    }
+
+    function handlePlayerFinished(msg) {
+      updatePlayerProgress(msg.user_id, verseText.length, msg.wpm);
+    }
+
+    // ========================================
+    // Celebration Animations
+    // ========================================
+    function showConfetti() {
+      const overlay = document.getElementById('celebrationOverlay');
+      overlay.innerHTML = '';
+      const colors = ['#ffd700', '#ff6b6b', '#6ee7a0', '#87b3ff', '#ff9ff3', '#feca57'];
+
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-20px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        confetti.style.width = (Math.random() * 8 + 6) + 'px';
+        confetti.style.height = (Math.random() * 8 + 6) + 'px';
+        confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + 's';
+        overlay.appendChild(confetti);
+        requestAnimationFrame(() => confetti.classList.add('animate'));
+      }
+      setTimeout(() => { overlay.innerHTML = ''; }, 4000);
+    }
+
+    function showTrophy(place) {
+      const trophy = document.getElementById('trophyPopup');
+      const emoji = place === 1 ? '🏆' : place === 2 ? '🥈' : place === 3 ? '🥉' : '🎉';
+      trophy.textContent = emoji;
+      trophy.classList.add('show');
+      setTimeout(() => trophy.classList.remove('show'), 1500);
+    }
+
+    function showResults(results) {
+      showView('results');
+
+      // Find player's place
+      const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+      const playerResult = results.find(r => r.user_id === currentUserId);
+      const playerPlace = playerResult?.place || 99;
+
+      // Trigger celebration animations
+      if (playerPlace <= 3) {
+        showTrophy(playerPlace);
+        if (playerPlace === 1) {
+          showConfetti();
+        }
+      }
+
+      // Fetch usernames from currentPlayers
+      const tbody = document.getElementById('resultsBody');
+      tbody.innerHTML = results.map((r, i) => {
+        const p = currentPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'moses' };
+        const placeClass = r.place === 1 ? 'place-1' : r.place === 2 ? 'place-2' : r.place === 3 ? 'place-3' : '';
+        const placeText = r.place === 1 ? '1st' : r.place === 2 ? '2nd' : r.place === 3 ? '3rd' : `${r.place}th`;
+        return `
+          <tr>
+            <td class="${placeClass}">${placeText}</td>
+            <td>
+              <div class="avatar-cell">
+                <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />
+                ${p.username}
+              </div>
+            </td>
+            <td>${r.time ? r.time.toFixed(2) + 's' : 'DNF'}</td>
+            <td>${r.wpm || 0}</td>
+          </tr>
+        `;
+      }).join('');
+
+      if (playerPlace === 1) {
+        TofAudio.playRaceFinish();
+      } else {
+        TofAudio.playComplete();
+      }
+    }
+
+    // ========================================
+    // Input Handling
+    // ========================================
+    let totalKeystrokes = 0;
+    let errorKeystrokes = 0;
+    let prevInput = '';
+    let lastProgressSend = 0;
+
+    document.getElementById('raceInput').addEventListener('input', (e) => {
+      const input = e.target;
+      const current = input.value;
+      const normalizedCurrent = normalizeQuotes(current);
+      const normalizedVerse = normalizeQuotes(verseText);
+
+      // Track keystrokes
+      if (current.length > prevInput.length) {
+        const addedChars = normalizedCurrent.slice(prevInput.length);
+        for (let i = 0; i < addedChars.length; i++) {
+          const idx = prevInput.length + i;
+          totalKeystrokes++;
+          if (addedChars[i] !== normalizedVerse[idx]) {
+            errorKeystrokes++;
+            TofAudio.playError();
+          } else {
+            TofAudio.playCorrect();
+          }
+        }
+      }
+      prevInput = current;
+
+      // Find correct chars
+      let correctCount = 0;
+      for (let i = 0; i < normalizedCurrent.length; i++) {
+        if (normalizedCurrent[i] === normalizedVerse[i]) {
+          correctCount++;
+        } else {
+          break;
+        }
+      }
+
+      const hasError = correctCount < current.length;
+      const errorCount = current.length - correctCount;
+
+      // Update display
+      document.getElementById('typed').textContent = verseText.substring(0, correctCount);
+      document.getElementById('incorrect').textContent = verseText.substring(correctCount, correctCount + errorCount);
+      document.getElementById('remaining').textContent = verseText.substring(correctCount + errorCount);
+
+      // Calculate WPM
+      const elapsed = (Date.now() - raceStartTime) / 1000 / 60;
+      const wpm = elapsed > 0 ? Math.round((correctCount / 5) / elapsed) : 0;
+
+      // Send progress (throttled)
+      const now = Date.now();
+      if (now - lastProgressSend > 200) {
+        lastProgressSend = now;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'progress', chars: correctCount, wpm }));
+        }
+      }
+
+      // Update own lane
+      const userId = TofLeaderboard.getCurrentUser()?.user_id;
+      if (userId) updatePlayerProgress(userId, correctCount, wpm);
+
+      // Check finish
+      if (correctCount === verseText.length && !hasError) {
+        const finishTime = (Date.now() - raceStartTime) / 1000;
+        const accuracy = totalKeystrokes > 0 ? Math.round((1 - errorKeystrokes / totalKeystrokes) * 100) : 100;
+
+        input.disabled = true;
+        document.getElementById('raceStatus').textContent = `Finished! ${finishTime.toFixed(2)}s · ${wpm} WPM`;
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'finished', time: finishTime, wpm, accuracy }));
+        }
+      }
+    });
+
+    function normalizeQuotes(text) {
+      return (text || '').replace(/['\u2018\u2019\u201A\u201B]/g, "'").replace(/["\u201C\u201D\u201E\u201F]/g, '"');
+    }
+
+    // ========================================
+    // Event Listeners
+    // ========================================
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      try {
+        await TofLeaderboard.showAuthModal();
+        init();
+      } catch {}
+    });
+
+    document.getElementById('createLobbyBtn').addEventListener('click', () => showView('create'));
+    document.getElementById('refreshLobbiesBtn').addEventListener('click', loadLobbies);
+    document.getElementById('cancelCreateBtn').addEventListener('click', () => { showView('browser'); showBanner(''); });
+    document.getElementById('confirmCreateBtn').addEventListener('click', createLobby);
+
+    document.getElementById('joinByCodeBtn').addEventListener('click', () => {
+      const code = document.getElementById('joinCodeInput').value.trim();
+      if (code) joinLobby(code);
+    });
+
+    document.getElementById('joinCodeInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const code = e.target.value.trim();
+        if (code) joinLobby(code);
+      }
+    });
+
+    document.getElementById('readyBtn').addEventListener('click', toggleReady);
+    document.getElementById('leaveBtn').addEventListener('click', leaveLobby);
+
+    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+      const code = document.getElementById('waitingJoinCode').textContent;
+      navigator.clipboard.writeText(code);
+      showBanner('Code copied!');
+      setTimeout(() => showBanner(''), 2000);
+    });
+
+    document.getElementById('backToLobbiesBtn').addEventListener('click', () => {
+      currentLobby = null;
+      currentPlayers = {};
+      totalKeystrokes = 0;
+      errorKeystrokes = 0;
+      prevInput = '';
+      showView('browser');
+      loadLobbies();
+    });
+
+    // ========================================
+    // Init
+    // ========================================
+    async function init() {
+      initTheme();
+
+      // Check auth
+      const user = await TofLeaderboard.checkAuth();
+      if (!user) {
+        showView('login');
+        return;
+      }
+
+      showView('browser');
+      loadLobbies();
+    }
+
+    init();
+  </script>
+</body>
+</html>

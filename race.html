@@ -78,6 +78,125 @@
     .stat { font-variant-numeric: tabular-nums; }
     #status { font-size: 14px; color: var(--muted); }
     @media (max-width: 600px) { .panels { grid-template-columns: 1fr; } }
+
+    /* ---------- Countdown overlay ---------- */
+    .countdown-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .countdown-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .countdown-number {
+      font-size: 150px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+      animation: countdownPulse 0.8s ease-out;
+    }
+    .countdown-number.go {
+      color: #6ee7a0;
+      text-shadow: 0 0 60px rgba(110, 231, 160, 0.8);
+    }
+    @keyframes countdownPulse {
+      0% { transform: scale(2); opacity: 0; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ---------- Race win celebration ---------- */
+    .celebration-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      opacity: 0;
+    }
+    .confetti.animate {
+      animation: confettiFall 3s ease-out forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ---------- Trophy animation ---------- */
+    .trophy-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 100px;
+      z-index: 1001;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .trophy-popup.show {
+      animation: trophyBounce 1.5s ease-out forwards;
+    }
+    @keyframes trophyBounce {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; }
+      70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+
+    /* ---------- Achievement toast ---------- */
+    .achievement-toast {
+      position: fixed;
+      top: 80px;
+      right: -400px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+      color: #1a1a1a;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(255, 215, 0, 0.4);
+      z-index: 1002;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .achievement-toast.show {
+      right: 24px;
+    }
+    .achievement-toast img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+    }
+    .achievement-toast .toast-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .achievement-toast .toast-title {
+      font-size: 12px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .achievement-toast .toast-name {
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +204,7 @@
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
+  <script src="shared/achievements.js"></script>
 
   <h2>Race Mode</h2>
 
@@ -174,6 +294,22 @@
     <div class="card">
       <strong>Your Stats</strong>
       <div id="playerStats" class="stat">Races: 0 | Avg WPM: --</div>
+    </div>
+  </div>
+
+  <!-- Countdown overlay -->
+  <div class="countdown-overlay" id="countdownOverlay">
+    <div class="countdown-number" id="countdownNumber">3</div>
+  </div>
+
+  <!-- Celebration elements -->
+  <div class="celebration-overlay" id="celebrationOverlay"></div>
+  <div class="trophy-popup" id="trophyPopup"></div>
+  <div class="achievement-toast" id="achievementToast">
+    <img src="" alt="" id="toastAvatar" />
+    <div class="toast-content">
+      <div class="toast-title">Achievement Unlocked!</div>
+      <div class="toast-name" id="toastName"></div>
     </div>
   </div>
 
@@ -544,23 +680,91 @@
     }
 
     function startCountdown() {
+      const overlay = document.getElementById("countdownOverlay");
+      const numberEl = document.getElementById("countdownNumber");
       let count = 3;
-      showBanner("info", `${count}...`);
+
+      // Show overlay and first number
+      overlay.classList.add("show");
+      numberEl.textContent = count;
+      numberEl.classList.remove("go");
+      // Reset animation
+      numberEl.style.animation = "none";
+      numberEl.offsetHeight; // Trigger reflow
+      numberEl.style.animation = "";
       TofAudio.playCountdown();
+
       countdownInterval = setInterval(() => {
         count--;
         if (count > 0) {
-          showBanner("info", `${count}...`);
+          numberEl.textContent = count;
+          numberEl.style.animation = "none";
+          numberEl.offsetHeight;
+          numberEl.style.animation = "";
           TofAudio.playCountdown();
         } else if (count === 0) {
-          showBanner("success", "GO!");
+          numberEl.textContent = "GO!";
+          numberEl.classList.add("go");
+          numberEl.style.animation = "none";
+          numberEl.offsetHeight;
+          numberEl.style.animation = "";
           TofAudio.playGo();
         } else {
           clearInterval(countdownInterval);
           countdownInterval = null;
+          overlay.classList.remove("show");
           startRace();
         }
       }, 1000);
+    }
+
+    // ======= Celebration animations =======
+    function showConfetti() {
+      const overlay = document.getElementById("celebrationOverlay");
+      overlay.innerHTML = "";
+      const colors = ["#ffd700", "#ff6b6b", "#6ee7a0", "#87b3ff", "#ff9ff3", "#feca57"];
+
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.top = "-20px";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+        confetti.style.width = (Math.random() * 8 + 6) + "px";
+        confetti.style.height = (Math.random() * 8 + 6) + "px";
+        confetti.style.animationDelay = (Math.random() * 0.5) + "s";
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + "s";
+        overlay.appendChild(confetti);
+
+        // Trigger animation
+        requestAnimationFrame(() => confetti.classList.add("animate"));
+      }
+
+      // Clean up after animation
+      setTimeout(() => { overlay.innerHTML = ""; }, 4000);
+    }
+
+    function showTrophy(place) {
+      const trophy = document.getElementById("trophyPopup");
+      const emoji = place === 1 ? "🏆" : place === 2 ? "🥈" : place === 3 ? "🥉" : "🎉";
+      trophy.textContent = emoji;
+      trophy.classList.add("show");
+
+      setTimeout(() => trophy.classList.remove("show"), 1500);
+    }
+
+    function showAchievementToast(avatarId, avatarName) {
+      const toast = document.getElementById("achievementToast");
+      const avatar = document.getElementById("toastAvatar");
+      const name = document.getElementById("toastName");
+
+      avatar.src = `assets/avatars/${avatarId}-2d.png`;
+      avatar.alt = avatarName;
+      name.textContent = `${avatarName} Unlocked!`;
+
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4000);
     }
 
     function startRace() {
@@ -637,9 +841,32 @@
       // Save race result
       saveRaceResult(playerWPM, aiModeEl.value);
 
+      // Check if player won (finished 1st)
+      const playerPlace = allRacers.findIndex(r => r.id === "player") + 1;
+
+      // Trigger celebration animations
+      if (playerPlace <= 3) {
+        showTrophy(playerPlace);
+        if (playerPlace === 1) {
+          showConfetti();
+        }
+      }
+
+      if (playerPlace === 1) {
+        const newUnlocks = TofAchievements.recordRaceWin();
+        if (newUnlocks && newUnlocks.length > 0) {
+          // Delay achievement toast so it doesn't overlap with trophy
+          setTimeout(() => {
+            newUnlocks.forEach((avatar, i) => {
+              setTimeout(() => showAchievementToast(avatar.id, avatar.name), i * 4500);
+            });
+          }, 2000);
+        }
+      }
+
       // Show results
       showResults(allRacers);
-      showBanner("success", "Race complete!");
+      showBanner("success", playerPlace === 1 ? "You won the race!" : playerPlace <= 3 ? `You placed ${playerPlace === 2 ? "2nd" : "3rd"}!` : "Race complete!");
     }
 
     function showResults(sortedRacers) {

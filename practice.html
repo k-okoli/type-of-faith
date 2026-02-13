@@ -255,6 +255,44 @@
       color: var(--muted);
     }
 
+    .avatar-option.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .avatar-option.locked img {
+      filter: grayscale(100%);
+    }
+
+    .avatar-option .lock-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .avatar-option .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .avatar-option .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .avatar-option .progress-text {
+      font-size: 9px;
+      color: var(--muted);
+    }
+
     /* ========== Race track ========== */
     .race-track {
       margin: 8px 0;
@@ -366,6 +404,171 @@
       opacity: 0.9;
       transform: scale(1.02);
     }
+
+    /* User status bar */
+    .user-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .user-bar .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .user-bar .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+    .user-bar .user-name {
+      font-weight: 600;
+    }
+    .user-bar .user-stats {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .user-bar button {
+      font-size: 13px;
+      padding: 6px 12px;
+    }
+    .user-bar .login-prompt {
+      color: var(--muted);
+    }
+
+    /* Leaderboard panel */
+    .leaderboard-panel {
+      margin-top: 12px;
+    }
+    .leaderboard-panel h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .leaderboard-panel .refresh-btn {
+      font-size: 12px;
+      padding: 2px 8px;
+      background: transparent;
+    }
+
+    /* ========== Celebration animations ========== */
+    .celebration-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      opacity: 0;
+    }
+    .confetti.animate {
+      animation: confettiFall 3s ease-out forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .completion-badge {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 80px;
+      z-index: 1001;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .completion-badge.show {
+      animation: badgeBounce 1.2s ease-out forwards;
+    }
+    @keyframes badgeBounce {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      40% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      60% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; }
+      80% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+
+    .achievement-toast {
+      position: fixed;
+      top: 80px;
+      right: -400px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+      color: #1a1a1a;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(255, 215, 0, 0.4);
+      z-index: 1002;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .achievement-toast.show {
+      right: 24px;
+    }
+    .achievement-toast img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+    }
+    .achievement-toast .toast-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .achievement-toast .toast-title {
+      font-size: 12px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .achievement-toast .toast-name {
+      font-size: 16px;
+    }
+
+    .wpm-milestone {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, var(--ok) 0%, #4ade80 100%);
+      color: #fff;
+      padding: 20px 40px;
+      border-radius: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      z-index: 1001;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 200, 100, 0.4);
+    }
+    .wpm-milestone.show {
+      animation: milestonePop 2s ease-out forwards;
+    }
+    @keyframes milestonePop {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+      80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -373,6 +576,27 @@
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
+  <script src="shared/achievements.js"></script>
+  <script src="shared/leaderboard.js"></script>
+
+  <!-- User Status Bar -->
+  <div class="user-bar" id="userBar">
+    <div class="user-info" id="userInfo">
+      <span class="login-prompt">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Celebration elements -->
+  <div class="celebration-overlay" id="celebrationOverlay"></div>
+  <div class="completion-badge" id="completionBadge"></div>
+  <div class="wpm-milestone" id="wpmMilestone"></div>
+  <div class="achievement-toast" id="achievementToast">
+    <img src="" alt="" id="toastAvatar" />
+    <div class="toast-content">
+      <div class="toast-title">Achievement Unlocked!</div>
+      <div class="toast-name" id="toastName"></div>
+    </div>
+  </div>
 
   <!-- Daily Challenge -->
   <div class="daily-challenge" id="dailyChallenge">
@@ -527,6 +751,15 @@
     </div>
   </div>
 
+  <!-- Daily Leaderboard -->
+  <div class="card leaderboard-panel" id="leaderboardPanel">
+    <h4>
+      📊 Today's Leaderboard
+      <button class="refresh-btn" id="refreshLeaderboard">Refresh</button>
+    </h4>
+    <div id="leaderboardContainer">Loading leaderboard...</div>
+  </div>
+
   <script>
     // ========================================
     // Configuration
@@ -610,17 +843,11 @@
     }
 
     // ========================================
-    // Avatar definitions
+    // Avatar definitions (now from achievements system)
     // ========================================
-    const AVATARS = [
-      { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
-      { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
-      { id: "elijah", name: "Elijah", src: "assets/avatars/elijah-2d.png" },
-      { id: "jonah", name: "Jonah", src: "assets/avatars/jonah-2d.png" },
-      { id: "noahs-ark", name: "Noah's Ark", src: "assets/avatars/noahs-ark-2d.png" },
-      { id: "burning-bush", name: "Burning Bush", src: "assets/avatars/burning-bush-2d.png" },
-      { id: "ten-commandments", name: "Commandments", src: "assets/avatars/ten-commandments-2d.png" },
-    ];
+    function getAvatars() {
+      return TofAchievements.getAllAvatarsWithStatus();
+    }
 
     // ========================================
     // DOM Element References
@@ -690,24 +917,51 @@
     // ========================================
     function getSelectedAvatar() {
       const savedAvatarId = localStorage.getItem("tof_avatar");
-      return AVATARS.find(avatar => avatar.id === savedAvatarId) || AVATARS[0];
+      const avatars = getAvatars();
+      const selected = avatars.find(a => a.id === savedAvatarId && a.unlocked);
+      return selected || avatars.find(a => a.unlocked) || avatars[0];
     }
 
     function renderAvatarGrid() {
       const selectedAvatar = getSelectedAvatar();
+      const avatars = getAvatars();
       elements.avatarGrid.innerHTML = "";
 
-      for (const avatar of AVATARS) {
+      for (const avatar of avatars) {
         const div = document.createElement("div");
         const isSelected = avatar.id === selectedAvatar.id;
-        div.className = "avatar-option" + (isSelected ? " selected" : "");
-        div.innerHTML = `<img src="${avatar.src}" alt="${avatar.name}" /><span>${avatar.name}</span>`;
-        div.addEventListener("click", () => selectAvatar(avatar.id));
+        const isLocked = !avatar.unlocked;
+
+        div.className = "avatar-option" + (isSelected ? " selected" : "") + (isLocked ? " locked" : "");
+        div.style.position = "relative";
+
+        let progressHtml = "";
+        if (isLocked && avatar.progress) {
+          progressHtml = `
+            <div class="progress-bar"><div class="progress-fill" style="width:${avatar.progress.percent}%"></div></div>
+            <span class="progress-text">${avatar.progress.current}/${avatar.progress.required}</span>
+          `;
+        }
+
+        div.innerHTML = `
+          <img src="${avatar.src}" alt="${avatar.name}" />
+          ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}
+          <span>${avatar.name}</span>
+          ${progressHtml}
+        `;
+
+        if (isLocked) {
+          div.title = avatar.progress?.description || "Locked";
+        } else {
+          div.addEventListener("click", () => selectAvatar(avatar.id));
+        }
+
         elements.avatarGrid.appendChild(div);
       }
     }
 
     function selectAvatar(avatarId) {
+      if (!TofAchievements.isAvatarUnlocked(avatarId)) return;
       localStorage.setItem("tof_avatar", avatarId);
       renderAvatarGrid();
       elements.raceAvatar.src = getSelectedAvatar().src;
@@ -1308,10 +1562,65 @@
       URL.revokeObjectURL(url);
     }
 
+    // ========================================
+    // Celebration Animations
+    // ========================================
+    function showConfetti() {
+      const overlay = document.getElementById("celebrationOverlay");
+      overlay.innerHTML = "";
+      const colors = ["#ffd700", "#ff6b6b", "#6ee7a0", "#87b3ff", "#ff9ff3", "#feca57"];
+
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.top = "-20px";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+        confetti.style.width = (Math.random() * 8 + 6) + "px";
+        confetti.style.height = (Math.random() * 8 + 6) + "px";
+        confetti.style.animationDelay = (Math.random() * 0.5) + "s";
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + "s";
+        overlay.appendChild(confetti);
+        requestAnimationFrame(() => confetti.classList.add("animate"));
+      }
+      setTimeout(() => { overlay.innerHTML = ""; }, 4000);
+    }
+
+    function showCompletionBadge(emoji = "✅") {
+      const badge = document.getElementById("completionBadge");
+      badge.textContent = emoji;
+      badge.classList.add("show");
+      setTimeout(() => badge.classList.remove("show"), 1200);
+    }
+
+    function showWpmMilestone(wpm, milestone) {
+      const el = document.getElementById("wpmMilestone");
+      el.innerHTML = `🔥 ${wpm} WPM!<br><span style="font-size:16px">New personal best!</span>`;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2000);
+    }
+
+    function showAchievementToast(avatarId, avatarName) {
+      const toast = document.getElementById("achievementToast");
+      const avatar = document.getElementById("toastAvatar");
+      const name = document.getElementById("toastName");
+
+      avatar.src = `assets/avatars/${avatarId}-2d.png`;
+      avatar.alt = avatarName;
+      name.textContent = `${avatarName} Unlocked!`;
+
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4000);
+    }
+
     function finishAttempt(isBlindFinish = false) {
       if (state.finished) return;
       state.finished = true;
       TofAudio.playComplete();
+
+      // Track if this is a new personal best for celebration purposes
+      let isNewBestWPM = false;
 
       const attempt = elements.input.value || "";
       const elapsedSeconds = getElapsedSeconds();
@@ -1356,6 +1665,7 @@
 
       // Update best stats
       if (state.bestWPM === null || wordsPerMinute > state.bestWPM) {
+        isNewBestWPM = state.bestWPM !== null; // Only celebrate if it's beating a previous record
         state.bestWPM = wordsPerMinute;
       }
       if (state.bestAccuracy === null || accuracyPercent > state.bestAccuracy) {
@@ -1366,6 +1676,17 @@
       }
 
       elements.bestStats.textContent = `Best WPM: ${state.bestWPM ?? "—"} · Best Accuracy: ${state.bestAccuracy ?? "—"}% · Fastest Time: ${state.fastestTime ? state.fastestTime.toFixed(2) + "s" : "—"} · Best Fairness (Blind): ${state.bestFairness ?? "—"}%`;
+
+      // Celebration animations
+      if (accuracyPercent >= 95) {
+        showCompletionBadge(accuracyPercent === 100 ? "🌟" : "✅");
+        if (accuracyPercent === 100 && wordsPerMinute >= 40) {
+          showConfetti();
+        }
+      }
+      if (isNewBestWPM && wordsPerMinute >= 30) {
+        setTimeout(() => showWpmMilestone(wordsPerMinute), 1500);
+      }
 
       // Add to history
       const historyEntry = {
@@ -1389,11 +1710,31 @@
         if (isNewBest) {
           showBanner("success", `New daily best! ${wordsPerMinute} WPM`);
         }
-        // Update the daily challenge display
+        // Update the daily challenge display with actual best (not current attempt)
+        const best = getDailyBest();
         const dailyBestEl = document.getElementById('dailyBest');
-        if (dailyBestEl) {
-          dailyBestEl.innerHTML = `Your best today: <strong>${wordsPerMinute} WPM</strong> · ${accuracyPercent}% accuracy · ${elapsedSeconds.toFixed(2)}s`;
+        if (dailyBestEl && best) {
+          dailyBestEl.innerHTML = `Your best today: <strong>${best.wpm} WPM</strong> · ${best.accuracy}% accuracy · ${best.time}s`;
         }
+        // Record daily challenge completion
+        TofAchievements.recordDailyChallenge();
+
+        // Submit to global leaderboard (if logged in)
+        submitToLeaderboard(wordsPerMinute, accuracyPercent, elapsedSeconds, state.reference).then(result => {
+          if (result && result.rank) {
+            showBanner("success", result.message);
+          }
+        });
+      }
+
+      // Record practice session and check for new avatar unlocks
+      const newUnlocks = TofAchievements.recordPracticeSession(wordsPerMinute, accuracyPercent);
+      if (newUnlocks && newUnlocks.length > 0) {
+        // Use the new toast animation for unlocks (delay to avoid overlap)
+        newUnlocks.forEach((avatar, i) => {
+          setTimeout(() => showAchievementToast(avatar.id, avatar.name), 3000 + (i * 4500));
+        });
+        renderAvatarGrid(); // Refresh to show newly unlocked avatar
       }
     }
 
@@ -1678,6 +2019,65 @@
     });
 
     // ========================================
+    // User Bar & Leaderboard
+    // ========================================
+    function renderUserBar() {
+      const userInfo = document.getElementById('userInfo');
+      const user = TofLeaderboard.getCurrentUser();
+
+      if (user) {
+        userInfo.innerHTML = `
+          <img class="user-avatar" src="assets/avatars/${getSelectedAvatar().id}-2d.png" alt="" />
+          <span class="user-name">${user.username}</span>
+          <span class="user-stats">Best: ${user.best_wpm || 0} WPM</span>
+          <button id="logoutBtn">Log Out</button>
+        `;
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+          await TofLeaderboard.logout();
+          renderUserBar();
+        });
+      } else {
+        userInfo.innerHTML = `
+          <span class="login-prompt">Log in to save scores to the leaderboard</span>
+          <button id="loginBtn">Join Leaderboard</button>
+        `;
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+          try {
+            await TofLeaderboard.showAuthModal();
+            renderUserBar();
+            loadLeaderboard();
+          } catch (e) {
+            // User cancelled
+          }
+        });
+      }
+    }
+
+    async function loadLeaderboard() {
+      const container = document.getElementById('leaderboardContainer');
+      try {
+        const data = await TofLeaderboard.getDailyLeaderboard();
+        TofLeaderboard.renderLeaderboard(data, 'leaderboardContainer');
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--muted)">Could not load leaderboard. Server may be offline.</p>';
+      }
+    }
+
+    // Submit score to leaderboard when daily challenge is completed
+    async function submitToLeaderboard(wpm, accuracy, timeSeconds, verseRef) {
+      if (!TofLeaderboard.isAuthenticated()) return null;
+
+      try {
+        const result = await TofLeaderboard.submitDailyScore(wpm, accuracy, timeSeconds, verseRef);
+        loadLeaderboard(); // Refresh leaderboard
+        return result;
+      } catch (e) {
+        console.warn('Failed to submit score:', e);
+        return null;
+      }
+    }
+
+    // ========================================
     // Initialization
     // ========================================
     (async () => {
@@ -1697,8 +2097,18 @@
       try {
         const response = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
         if (!response.ok) throw new Error("Proxy offline");
+
+        // Initialize user bar and leaderboard
+        await TofLeaderboard.checkAuth();
+        renderUserBar();
+        loadLeaderboard();
+
+        // Add refresh button handler
+        document.getElementById('refreshLeaderboard').addEventListener('click', loadLeaderboard);
       } catch {
-        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV.");
+        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV and leaderboard.");
+        document.getElementById('userBar').style.display = 'none';
+        document.getElementById('leaderboardPanel').style.display = 'none';
       }
 
       // Load initial verse

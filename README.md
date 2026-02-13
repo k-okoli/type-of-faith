@@ -11,7 +11,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 
 1. Install dependencies (Python 3.8+):
    ```bash
-   pip install fastapi uvicorn requests dotenv
+   pip install -r requirements.txt
    ```
 
 2. Set your API keys (in PowerShell on Windows):
@@ -30,7 +30,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
    ```
 
 4. Visit the health check:
-   - http://127.0.0.1:8000/health → should return `{"ok": true}`
+   - http://127.0.0.1:8000/health → returns server status, cache stats, and uptime
 
 ### Run the frontend (game UI)
 
@@ -51,7 +51,8 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 - **Live metrics**: WPM, accuracy, time
 - **Daily Challenge**: Date-seeded verse of the day with best score tracking
 - **Session stats & history**: CSV export
-- **Avatar selection**: 7 biblical character avatars
+- **Avatar selection**: 7 biblical character avatars with unlock system
+- **Achievement tracking**: Unlock avatars through races, WPM milestones, lessons
 - **Race track progress bar**: Visual typing progress
 
 ### Lessons Page (lessons.html)
@@ -77,16 +78,33 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 - **Countdown with audio**: 3, 2, 1, GO!
 - **Results panel**: Final standings with times and WPM
 
+### Multiplayer Page (lobby.html)
+- **Real-time racing**: Race against other players via WebSocket
+- **Lobby system**: Create or join lobbies with 6-character codes
+- **Username-only auth**: Simple sign-up (username + auto-generated token)
+- **Live progress sync**: See all players' progress in real-time
+- **Results & standings**: Final positions with WPM for each player
+
 ### Audio & Feedback
 - **Sound effects**: Correct/error keystrokes, completion, countdown
 - **Mute toggle**: In navigation bar
 - **Corrected highlighting**: Yellow background for fixed mistakes
+- **Celebration animations**: Confetti, trophy popups, milestone toasts
+- **Achievement toasts**: Slide-in notifications for avatar unlocks
 
 ### Keyboard shortcuts
 - `Ctrl+Enter` → Finish attempt
 - `Ctrl+P` → Peek (Blind Faith mode)
 - `Ctrl+R` → Restart verse
 - `Ctrl+M` → New verse
+
+### Backend API (server.py)
+- **Async requests**: Non-blocking verse fetching with httpx
+- **File-based caching**: 24-hour TTL, max 5000 entries, persists across restarts
+- **Rate limiting**: 60 requests/minute per IP (slowapi)
+- **Retry logic**: Exponential backoff (3 attempts) for transient failures
+- **Structured logging**: Request/cache activity logged with timestamps
+- **Health endpoint**: Returns uptime, cache stats, supported versions
 
 ---
 
@@ -95,19 +113,27 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 ```
 .
 ├─ server.py              # FastAPI proxy for verse fetching
+├─ requirements.txt       # Python dependencies
+├─ index.html             # Redirect to practice.html (for GitHub Pages)
 ├─ practice.html          # Practice page — main typing game
 ├─ lessons.html           # Touch-typing lessons with keyboard map
 ├─ quiz.html              # Verse identification quiz
 ├─ race.html              # Race mode — compete against AI
+├─ lobby.html             # Multiplayer — real-time WebSocket racing
 ├─ shared/
 │  ├─ nav.js              # Navigation bar injection
 │  ├─ nav.css             # Navigation styles
 │  ├─ theme.js            # Theme switching (auto/light/dark)
 │  ├─ data.js             # Verse categories and references
-│  └─ audio.js            # Sound effects (Web Audio API)
+│  ├─ audio.js            # Sound effects (Web Audio API)
+│  ├─ achievements.js     # Avatar unlocking & achievement tracking
+│  └─ leaderboard.js      # Auth & leaderboard API client
 ├─ assets/
 │  ├─ avatars/            # Biblical character PNGs (2D & 3D)
 │  └─ hands/              # Hand diagram images (3 skin tones)
+├─ tests/                 # Unit tests (pytest + JS)
+├─ docs/                  # Architecture documentation
+├─ .cache/                # Verse cache (auto-created, gitignored)
 ├─ todo.md                # Project task tracker
 └─ README.md              # Project documentation
 ```
@@ -143,19 +169,22 @@ Restart the server and add the version to the `<select>` dropdown.
 ## Troubleshooting
 
 - **FBV/api.bible returns 500**: Ensure `API_BIBLE_KEY` is set and valid.
-- **CORS errors**: `server.py` has CORS enabled by default.
+- **CORS errors**: `server.py` has CORS enabled for localhost. For production, add your domain to `ALLOWED_ORIGINS`.
 - **Nothing loads**: Run from a local server, not `file://`.
+- **Rate limit errors (429)**: Wait a minute or reduce request frequency.
+- **Clear cache**: Visit `http://127.0.0.1:8000/cache/clear` to reset cached verses.
 
 ---
 
 ## Roadmap
 
 - [ ] 3D avatar toggle (assets ready)
-- [ ] Avatar unlocking through achievements
-- [ ] Multiplayer lobbies / ghost races
-- [ ] Global leaderboard for daily challenges
+- [x] Avatar unlocking through achievements
+- [x] Multiplayer lobbies / real-time racing
+- [x] Global leaderboard for daily challenges
+- [x] Celebration animations (confetti, trophies, toasts)
 - [ ] More Bible translations (NIV, CSB, NLT)
-- [ ] Seasonal events (Christmas, Easter, Pentecost)
+- [ ] Seasonal events (Christmas, Lent, Easter, Pentecost)
 
 ---
 

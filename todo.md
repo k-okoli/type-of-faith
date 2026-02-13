@@ -34,8 +34,9 @@
 ## Race Page (race.html)
 - [x] Race mode page — compete against 1-3 AI opponents
 - [x] Three AI modes: Fixed, Personality, Adaptive
-- [x] Countdown with audio cues
+- [x] Full-screen countdown overlay (3, 2, 1, GO!) with animations
 - [x] Results panel with standings
+- [x] Trophy/confetti celebrations for wins
 
 ## Shared / Infrastructure
 - [x] Extracted shared modules (nav, theme, data, audio)
@@ -43,18 +44,19 @@
 - [x] FastAPI backend proxy (server.py)
 - [x] Audio cues (correct/error keystrokes, complete, countdown, race finish)
 - [x] Corrected character highlighting (yellow) across all pages
-- [ ] Fix bugs
-- [ ] Write unit tests
+- [x] Server improvements: async httpx, file-based cache with TTL, rate limiting, retry logic, logging
+- [x] Fix bugs (daily challenge best score overwrite)
+- [x] Write unit tests (pytest backend + JS frontend)
 
 ## Race Track / Avatars
 - [x] Race track progress bar on all pages
 - [ ] 3D avatar toggle (assets ready in assets/avatars/)
-- [ ] Avatar unlocking through achievements
+- [x] Avatar unlocking through achievements (7 avatars with unlock conditions)
 
 ## Future Features
-- [ ] Multiplayer mode / lobbies / ghost races
-- [ ] Leaderboard (global daily challenge scores)
+- [x] Multiplayer mode / lobbies (Phase 2 complete — WebSocket real-time racing)
+- [x] Leaderboard (global daily challenge scores) — Phase 1 complete (auth + daily leaderboard)
 - [ ] Seasonal events/themed competitions (Christmas, Holy Week/Resurrection Sunday/Easter, Pentecost, Lent)
 - [ ] User profiles and analytics
 - [ ] More Bible translations (NIV, CSB, NLT, etc.)
-- [ ] Animations for completion/achievements
+- [x] Animations for completion/achievements (confetti, trophy, milestone toasts, achievement unlocks)

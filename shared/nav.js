@@ -4,7 +4,8 @@
     { label: "Practice", href: "practice.html" },
     { label: "Lessons",  href: "lessons.html" },
     { label: "Quiz",     href: "quiz.html" },
-    { label: "Race",     href: "race.html" }
+    { label: "Race",     href: "race.html" },
+    { label: "Multiplayer", href: "lobby.html" }
   ];
 
   const currentPage = location.pathname.split("/").pop() || "index.html";
