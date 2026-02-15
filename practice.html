@@ -94,19 +94,28 @@
     }
 
     /* ========== Verse display ========== */
+    .verse-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
     #categoryTitle {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 2px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
+    }
+    .verse-header .header-sep {
+      color: var(--border);
+      font-size: 18px;
+      user-select: none;
     }
     #meta {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 600;
       color: var(--ink);
-      margin-bottom: 8px;
     }
 
     #banner {
@@ -526,6 +535,75 @@
       background: var(--ok);
     }
 
+    /* ========== Blind Faith countdown overlay ========== */
+    .bf-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .bf-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .bf-overlay-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .bf-overlay-label {
+      font-size: 18px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .bf-overlay.memorize .bf-overlay-label { color: #6ee7a0; }
+    .bf-overlay.peeking .bf-overlay-label { color: #60a5fa; }
+    .bf-overlay.hidden-now .bf-overlay-label { color: #f87171; }
+    .bf-overlay-count {
+      font-size: 120px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      animation: bfPulse 1s ease-out;
+    }
+    .bf-overlay.memorize .bf-overlay-count {
+      text-shadow: 0 0 40px rgba(110, 231, 160, 0.5);
+    }
+    .bf-overlay.peeking .bf-overlay-count {
+      text-shadow: 0 0 40px rgba(96, 165, 250, 0.5);
+    }
+    .bf-overlay-hint {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 20px;
+    }
+    .bf-overlay-final {
+      font-size: 60px;
+      font-weight: 800;
+      animation: bfPulse 0.6s ease-out;
+    }
+    .bf-overlay.hidden-now .bf-overlay-final {
+      color: #f87171;
+      text-shadow: 0 0 60px rgba(248, 113, 113, 0.7);
+    }
+    .bf-overlay.peeking .bf-overlay-final {
+      color: #60a5fa;
+      text-shadow: 0 0 60px rgba(96, 165, 250, 0.7);
+    }
+    @keyframes bfPulse {
+      0% { transform: scale(1.8); opacity: 0; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     /* User status bar */
     .user-bar {
       display: flex;
@@ -793,6 +871,14 @@
   </div>
 
   <!-- Celebration elements -->
+  <!-- Blind Faith countdown overlay -->
+  <div class="bf-overlay" id="bfOverlay">
+    <div class="bf-overlay-icon" id="bfOverlayIcon"></div>
+    <div class="bf-overlay-label" id="bfOverlayLabel"></div>
+    <div class="bf-overlay-count" id="bfOverlayCount"></div>
+    <div class="bf-overlay-hint" id="bfOverlayHint"></div>
+  </div>
+
   <div class="celebration-overlay" id="celebrationOverlay"></div>
   <div class="completion-badge" id="completionBadge"></div>
   <div class="wpm-milestone" id="wpmMilestone"></div>
@@ -895,8 +981,11 @@
     <div class="avatar-grid" id="avatarGrid"></div>
   </div>
 
-  <div id="categoryTitle">All</div>
-  <div id="meta"></div>
+  <div class="verse-header">
+    <div id="categoryTitle">All</div>
+    <span class="header-sep">·</span>
+    <div id="meta"></div>
+  </div>
   <div id="banner"></div>
 
   <div id="verse">
@@ -1099,6 +1188,11 @@
       hiddenMask: document.getElementById("hiddenMask"),
       input: document.getElementById("input"),
       submitButton: document.getElementById("submitBtn"),
+      bfOverlay: document.getElementById("bfOverlay"),
+      bfOverlayIcon: document.getElementById("bfOverlayIcon"),
+      bfOverlayLabel: document.getElementById("bfOverlayLabel"),
+      bfOverlayCount: document.getElementById("bfOverlayCount"),
+      bfOverlayHint: document.getElementById("bfOverlayHint"),
       blindFaithControls: document.getElementById("bfControls"),
       peekButton: document.getElementById("peekBtn"),
       peekCount: document.getElementById("peekCount"),
@@ -1123,6 +1217,7 @@
       hideTimer: null,
       countdownTimer: null,
       peekTimer: null,
+      peekCountdownTimer: null,
       peekCount: 0,
       started: false,
       startTime: 0,
@@ -1590,6 +1685,11 @@
         clearInterval(state.countdownTimer);
         state.countdownTimer = null;
       }
+      if (state.peekCountdownTimer) {
+        clearInterval(state.peekCountdownTimer);
+        state.peekCountdownTimer = null;
+      }
+      hideBfOverlay();
     }
 
     // ========================================
@@ -1652,26 +1752,65 @@
     // ========================================
     // Blind Faith Mode
     // ========================================
+    function showBfOverlay(mode, icon, label, hint) {
+      const overlay = elements.bfOverlay;
+      overlay.className = 'bf-overlay show ' + mode;
+      elements.bfOverlayIcon.textContent = icon;
+      elements.bfOverlayLabel.textContent = label;
+      elements.bfOverlayCount.textContent = '';
+      elements.bfOverlayCount.className = 'bf-overlay-count';
+      elements.bfOverlayHint.textContent = hint || '';
+    }
+
+    function updateBfOverlayCount(value) {
+      elements.bfOverlayCount.textContent = value;
+      elements.bfOverlayCount.style.animation = 'none';
+      elements.bfOverlayCount.offsetHeight; // reflow
+      elements.bfOverlayCount.style.animation = '';
+    }
+
+    function showBfOverlayFinal(text) {
+      elements.bfOverlayCount.textContent = '';
+      const final = document.createElement('div');
+      final.className = 'bf-overlay-final';
+      final.textContent = text;
+      elements.bfOverlayCount.appendChild(final);
+    }
+
+    function hideBfOverlay() {
+      elements.bfOverlay.classList.remove('show');
+    }
+
     function startBlindPreviewCountdown() {
       const totalMs = getPreviewMilliseconds();
-      let remainingMs = totalMs;
+      let remainingSec = Math.round(totalMs / 1000);
 
-      showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${Math.round(remainingMs / 1000)}s`);
+      showBfOverlay('memorize', '\u{1F441}', 'MEMORIZE', 'Read the verse carefully...');
+      updateBfOverlayCount(remainingSec);
+      TofAudio.playCountdown();
 
       state.countdownTimer = setInterval(() => {
-        remainingMs -= 1000;
+        remainingSec--;
 
-        if (remainingMs <= 0) {
+        if (remainingSec <= 0) {
           clearInterval(state.countdownTimer);
           state.countdownTimer = null;
+          // Flash "HIDDEN" then dismiss
+          showBfOverlay('hidden-now', '\u{1F648}', '', '');
+          showBfOverlayFinal('HIDDEN');
+          TofAudio.playGo();
+          setTimeout(() => hideBfOverlay(), 800);
         } else {
-          showBanner("info", `Blind Faith: Memorise the verse... Hiding in ${Math.round(remainingMs / 1000)}s`);
+          updateBfOverlayCount(remainingSec);
+          if (remainingSec <= 3) {
+            TofAudio.playCountdown();
+          }
         }
       }, 1000);
 
       state.hideTimer = setTimeout(() => {
         hideVerse();
-        showBanner("info", "Blind Faith: Type from memory. Use Peek if needed.");
+        showBanner("info", "Type from memory. Use Peek if needed.");
         state.hideTimer = null;
       }, totalMs);
     }
@@ -1685,6 +1824,28 @@
       showVerse();
 
       const peekDuration = getPeekMilliseconds();
+      let remainingSec = Math.round(peekDuration / 1000);
+
+      showBfOverlay('peeking', '\u{1F440}', 'PEEKING', 'Quick — re-read the verse!');
+      updateBfOverlayCount(remainingSec);
+
+      state.peekCountdownTimer = setInterval(() => {
+        remainingSec--;
+        if (remainingSec <= 0) {
+          clearInterval(state.peekCountdownTimer);
+          state.peekCountdownTimer = null;
+          showBfOverlay('hidden-now', '\u{1F648}', '', '');
+          showBfOverlayFinal('HIDDEN');
+          TofAudio.playGo();
+          setTimeout(() => hideBfOverlay(), 800);
+        } else {
+          updateBfOverlayCount(remainingSec);
+          if (remainingSec <= 2) {
+            TofAudio.playCountdown();
+          }
+        }
+      }, 1000);
+
       state.peekTimer = setTimeout(() => {
         hideVerse();
         state.peekTimer = null;
