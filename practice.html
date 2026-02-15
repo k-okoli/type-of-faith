@@ -162,10 +162,11 @@
       color: var(--ink);
     }
     #submitBtn {
+      display: none;
       padding: 10px 20px;
       font-size: 15px;
       font-weight: 600;
-      background: var(--accent);
+      background: var(--ok);
       color: var(--bg);
       border: none;
       border-radius: 8px;
@@ -898,9 +899,8 @@
 
   <div class="bf-controls" id="bfControls" style="display:none;">
     <button id="peekBtn" title="Reveal the verse (Ctrl+P)">Peek Verse</button>
-    <button id="finishBtn" title="Calculate your fairness score (Ctrl+Enter)">Finish Attempt</button>
     <span>Peeks used: <span id="peekCount">0</span></span>
-    <span class="hint right">Shortcuts: Ctrl+P peek · Ctrl+Enter finish · Ctrl+R restart · Ctrl+M new</span>
+    <span class="hint right">Shortcuts: Ctrl+P peek · Ctrl+Enter submit · Ctrl+R restart · Ctrl+M new</span>
   </div>
 
   <div id="raceTrack" class="race-track">
@@ -1093,7 +1093,6 @@
       submitButton: document.getElementById("submitBtn"),
       blindFaithControls: document.getElementById("bfControls"),
       peekButton: document.getElementById("peekBtn"),
-      finishButton: document.getElementById("finishBtn"),
       peekCount: document.getElementById("peekCount"),
       status: document.getElementById("status"),
       result: document.getElementById("result"),
@@ -1513,7 +1512,7 @@
     // UI State Management
     // ========================================
     function setLoadingState(isLoading) {
-      const buttons = [elements.newVerseButton, elements.restartButton, elements.peekButton, elements.finishButton].filter(Boolean);
+      const buttons = [elements.newVerseButton, elements.restartButton, elements.peekButton, elements.submitButton].filter(Boolean);
       buttons.forEach(button => button.disabled = isLoading);
       elements.input.disabled = isLoading;
 
@@ -1534,6 +1533,7 @@
 
     function setBlindFaithUIVisible(visible) {
       elements.blindFaithControls.style.display = visible ? "flex" : "none";
+      elements.submitButton.style.display = visible ? "block" : "none";
       syncPeekButtonLabel();
     }
 
@@ -2219,14 +2219,7 @@
       elements.peekButton.addEventListener("click", handlePeek);
     }
 
-    if (elements.finishButton) {
-      elements.finishButton.addEventListener("click", () => finishAttempt(true));
-    }
-
-    elements.submitButton.addEventListener("click", () => {
-      const isBlind = elements.blindToggle.checked;
-      finishAttempt(isBlind);
-    });
+    elements.submitButton.addEventListener("click", () => finishAttempt(true));
 
     elements.exportButton.addEventListener("click", exportHistoryToCSV);
 
