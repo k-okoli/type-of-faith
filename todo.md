@@ -56,7 +56,8 @@
 ## Future Features
 - [x] Multiplayer mode / lobbies (Phase 2 complete — WebSocket real-time racing)
 - [x] Leaderboard (global daily challenge scores) — Phase 1 complete (auth + daily leaderboard)
-- [ ] Seasonal events/themed competitions (Christmas, Holy Week/Resurrection Sunday/Easter, Pentecost, Lent)
+- [x] Seasonal events — Christmas & Easter/Holy Week (banners, themed verses, CSS accents, snowfall effect)
+- [ ] More seasonal events (Lent, Pentecost)
 - [ ] User profiles and analytics
 - [ ] More Bible translations (NIV, CSB, NLT, etc.)
 - [x] Animations for completion/achievements (confetti, trophy, milestone toasts, achievement unlocks)

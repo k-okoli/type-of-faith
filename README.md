@@ -50,6 +50,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 - **Typing feedback**: Green (correct), red (error), yellow (corrected)
 - **Live metrics**: WPM, accuracy, time
 - **Daily Challenge**: Date-seeded verse of the day with best score tracking
+- **Seasonal events**: Christmas (Dec 1–25) and Easter/Holy Week themes with seasonal verses, banners, and visual accents
 - **Session stats & history**: CSV export
 - **Avatar selection**: 7 biblical character avatars with unlock system
 - **Achievement tracking**: Unlock avatars through races, WPM milestones, lessons
@@ -127,7 +128,8 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 │  ├─ data.js             # Verse categories and references
 │  ├─ audio.js            # Sound effects (Web Audio API)
 │  ├─ achievements.js     # Avatar unlocking & achievement tracking
-│  └─ leaderboard.js      # Auth & leaderboard API client
+│  ├─ leaderboard.js      # Auth & leaderboard API client
+│  └─ seasons.js          # Seasonal theming (Christmas, Easter/Holy Week)
 ├─ assets/
 │  ├─ avatars/            # Biblical character PNGs (2D & 3D)
 │  └─ hands/              # Hand diagram images (3 skin tones)
@@ -184,7 +186,8 @@ Restart the server and add the version to the `<select>` dropdown.
 - [x] Global leaderboard for daily challenges
 - [x] Celebration animations (confetti, trophies, toasts)
 - [ ] More Bible translations (NIV, CSB, NLT)
-- [ ] Seasonal events (Christmas, Lent, Easter, Pentecost)
+- [x] Seasonal events — Christmas & Easter/Holy Week (banners, themed verses, visual accents)
+- [ ] More seasonal events (Lent, Pentecost)
 
 ---
 
