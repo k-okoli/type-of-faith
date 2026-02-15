@@ -491,9 +491,7 @@
     .bf-settings {
       display: flex;
       gap: 16px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
+      margin-top: 8px;
     }
     .bf-setting {
       display: flex;
@@ -567,6 +565,26 @@
     .bf-overlay.memorize .bf-overlay-label { color: #6ee7a0; }
     .bf-overlay.peeking .bf-overlay-label { color: #60a5fa; }
     .bf-overlay.hidden-now .bf-overlay-label { color: #f87171; }
+    .bf-overlay-verse {
+      max-width: 700px;
+      font-size: 20px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      padding: 16px 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .bf-overlay-verse:empty { display: none; }
+    .bf-overlay-verse .bf-verse-ref {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+    }
     .bf-overlay-count {
       font-size: 120px;
       font-weight: 800;
@@ -875,6 +893,7 @@
   <div class="bf-overlay" id="bfOverlay">
     <div class="bf-overlay-icon" id="bfOverlayIcon"></div>
     <div class="bf-overlay-label" id="bfOverlayLabel"></div>
+    <div class="bf-overlay-verse" id="bfOverlayVerse"></div>
     <div class="bf-overlay-count" id="bfOverlayCount"></div>
     <div class="bf-overlay-hint" id="bfOverlayHint"></div>
   </div>
@@ -908,7 +927,7 @@
     <div class="bf-info">
       <div class="bf-title">Blind Faith</div>
       <div class="bf-subtitle">Memorize the verse, then type from memory</div>
-      <div class="bf-settings" id="bfSettings" style="display:none">
+      <div class="bf-settings" id="bfSettings">
         <label class="bf-setting">
           Preview
           <input id="previewSec" type="number" min="1" max="30" step="1" />
@@ -1191,6 +1210,7 @@
       bfOverlay: document.getElementById("bfOverlay"),
       bfOverlayIcon: document.getElementById("bfOverlayIcon"),
       bfOverlayLabel: document.getElementById("bfOverlayLabel"),
+      bfOverlayVerse: document.getElementById("bfOverlayVerse"),
       bfOverlayCount: document.getElementById("bfOverlayCount"),
       bfOverlayHint: document.getElementById("bfOverlayHint"),
       blindFaithControls: document.getElementById("bfControls"),
@@ -1752,11 +1772,12 @@
     // ========================================
     // Blind Faith Mode
     // ========================================
-    function showBfOverlay(mode, icon, label, hint) {
+    function showBfOverlay(mode, icon, label, hint, verseHtml) {
       const overlay = elements.bfOverlay;
       overlay.className = 'bf-overlay show ' + mode;
       elements.bfOverlayIcon.textContent = icon;
       elements.bfOverlayLabel.textContent = label;
+      elements.bfOverlayVerse.innerHTML = verseHtml || '';
       elements.bfOverlayCount.textContent = '';
       elements.bfOverlayCount.className = 'bf-overlay-count';
       elements.bfOverlayHint.textContent = hint || '';
@@ -1781,11 +1802,20 @@
       elements.bfOverlay.classList.remove('show');
     }
 
+    function getVerseOverlayHtml() {
+      const text = state.verseText || '';
+      const ref = state.reference || '';
+      if (!text) return '';
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const refEscaped = ref.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return escaped + (refEscaped ? `<span class="bf-verse-ref">— ${refEscaped}</span>` : '');
+    }
+
     function startBlindPreviewCountdown() {
       const totalMs = getPreviewMilliseconds();
       let remainingSec = Math.round(totalMs / 1000);
 
-      showBfOverlay('memorize', '\u{1F441}', 'MEMORIZE', 'Read the verse carefully...');
+      showBfOverlay('memorize', '\u{1F441}', 'MEMORIZE', 'Memorize the verse...', getVerseOverlayHtml());
       updateBfOverlayCount(remainingSec);
       TofAudio.playCountdown();
 
@@ -1826,7 +1856,7 @@
       const peekDuration = getPeekMilliseconds();
       let remainingSec = Math.round(peekDuration / 1000);
 
-      showBfOverlay('peeking', '\u{1F440}', 'PEEKING', 'Quick — re-read the verse!');
+      showBfOverlay('peeking', '\u{1F440}', 'PEEKING', 'Quick — re-read the verse!', getVerseOverlayHtml());
       updateBfOverlayCount(remainingSec);
 
       state.peekCountdownTimer = setInterval(() => {
@@ -2212,7 +2242,6 @@
         elements.blindToggle.checked = false;
         elements.blindFaithCard.classList.remove("active");
         elements.blindFaithToggleBtn.textContent = "Activate";
-        elements.bfSettings.style.display = "none";
         setBlindFaithUIVisible(false);
         setTypingEnabled(true);
         showVerse();
@@ -2373,7 +2402,6 @@
       const active = elements.blindToggle.checked;
       elements.blindFaithCard.classList.toggle("active", active);
       elements.blindFaithToggleBtn.textContent = active ? "Deactivate" : "Activate";
-      elements.bfSettings.style.display = active ? "flex" : "none";
       setBlindFaithUIVisible(active);
       loadRandomVerse();
     });
@@ -2509,7 +2537,6 @@
       const blindActive = elements.blindToggle.checked;
       elements.blindFaithCard.classList.toggle("active", blindActive);
       elements.blindFaithToggleBtn.textContent = blindActive ? "Deactivate" : "Activate";
-      elements.bfSettings.style.display = blindActive ? "flex" : "none";
       setBlindFaithUIVisible(blindActive);
 
       elements.categoryTitle.textContent = getCurrentCategoryLabel();
