@@ -126,8 +126,8 @@
     </label>
     <label>Version:
       <select id="version">
+        <option value="WEB" selected>WEB (World English Bible)</option>
         <option value="KJV">KJV (bible-api.com)</option>
-        <option value="WEB">WEB (World English Bible)</option>
         <option value="FBV">FBV (api.bible via proxy)</option>
         <option value="ESV">ESV (Crossway via proxy)</option>
       </select>
@@ -231,7 +231,7 @@ function sampleDistinct(pool, k, avoidSet){
 
 /* ---------- Fetching verses ---------- */
 async function fetchViaBibleApi(ref, versionCode){
-  const t = (versionCode||'KJV').toLowerCase();
+  const t = (versionCode||'WEB').toLowerCase();
   const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
   const res = await fetch(url);
   const text = await res.text();
@@ -240,7 +240,7 @@ async function fetchViaBibleApi(ref, versionCode){
   const verseText = Array.isArray(data.verses) && data.verses.length
     ? data.verses.map(v => v.text.trim()).join(' ')
     : (data.text || '');
-  return { reference: data.reference||ref, text: verseText.replace(/\s+/g,' ').trim(), version:(versionCode||'KJV').toUpperCase(), copyright: data.copyright };
+  return { reference: data.reference||ref, text: verseText.replace(/\s+/g,' ').trim(), version:(versionCode||'WEB').toUpperCase(), copyright: data.copyright };
 }
 async function fetchViaProxy(ref, versionCode){
   const url = `http://127.0.0.1:8000/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
@@ -275,7 +275,7 @@ async function newQuestion(){
   showQuizBanner('', '');
 
   const cat = categoryEl.value;
-  const ver = (versionEl.value||'KJV').toUpperCase();
+  const ver = (versionEl.value||'WEB').toUpperCase();
 
   const pool = (cat==='all') ? ALL_REFS : (VERSE_CATEGORIES[cat] || []);
   if (!pool.length){ showQuizBanner('error','No verses found for this category.'); return; }
@@ -394,7 +394,7 @@ async function toggleVerseItem(item){
     textEl.classList.add('verse-loading');
 
     try {
-      const ver = (versionEl.value || 'KJV').toUpperCase();
+      const ver = (versionEl.value || 'WEB').toUpperCase();
       const data = await getVerse(ref, ver);
       loadedVerses[ref] = data.text;
       textEl.textContent = data.text;

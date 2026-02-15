@@ -229,8 +229,8 @@
     <label>
       Version:
       <select id="version">
+        <option value="WEB" selected>WEB</option>
         <option value="KJV">KJV</option>
-        <option value="WEB">WEB</option>
         <option value="FBV">FBV</option>
         <option value="ESV">ESV</option>
       </select>
@@ -486,7 +486,7 @@
     }
 
     async function fetchViaBibleApi(ref, versionCode) {
-      const t = (versionCode || "KJV").toLowerCase();
+      const t = (versionCode || "WEB").toLowerCase();
       const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
       const { signal, cancel } = withTimeout(9000);
       try {
@@ -495,7 +495,7 @@
         if (!res.ok) throw { __http: true, res, text };
         const data = JSON.parse(text);
         const verseText = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || "");
-        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "KJV").toUpperCase(), fallback: true };
+        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "WEB").toUpperCase(), fallback: true };
       } catch (e) {
         const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e);
         const err = new Error(c.user);

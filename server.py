@@ -116,7 +116,7 @@ class RaceLobby(Base):
     host_id = Column(String(32), nullable=False)
     verse_ref = Column(String(50), nullable=False)
     verse_text = Column(String(2000), nullable=False)
-    version = Column(String(10), default="KJV")
+    version = Column(String(10), default="WEB")
     max_players = Column(Integer, default=4)
     status = Column(String(20), default="waiting")  # waiting, countdown, racing, finished
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -247,7 +247,7 @@ class LeaderboardEntry(BaseModel):
 # ---------- Lobby Request/Response Models ----------
 class CreateLobbyRequest(BaseModel):
     verse_ref: str = Field(..., min_length=3)
-    version: str = Field(default="KJV")
+    version: str = Field(default="WEB")
     max_players: int = Field(default=4, ge=2, le=8)
 
 
@@ -631,7 +631,7 @@ async def health():
 
 @app.get("/verse")
 @limiter.limit("60/minute")
-async def get_verse(request: Request, ref: str = Query(..., min_length=1), version: str = Query("KJV")):
+async def get_verse(request: Request, ref: str = Query(..., min_length=1), version: str = Query("WEB")):
     """
     Fetch a Bible verse.
 

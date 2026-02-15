@@ -405,6 +405,96 @@
       transform: scale(1.02);
     }
 
+    /* ========== Blind Faith feature card ========== */
+    .blind-faith-card {
+      background: linear-gradient(135deg, var(--panel) 0%, color-mix(in srgb, var(--accent) 10%, var(--panel)) 100%);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    }
+    .blind-faith-card.active {
+      border-color: var(--ok);
+      box-shadow: 0 0 0 1px var(--ok), 0 2px 12px color-mix(in srgb, var(--ok) 20%, transparent);
+      background: linear-gradient(135deg, var(--panel) 0%, color-mix(in srgb, var(--ok) 12%, var(--panel)) 100%);
+    }
+    .blind-faith-card .bf-icon {
+      font-size: 32px;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+    .blind-faith-card.active .bf-icon {
+      opacity: 1;
+    }
+    .blind-faith-card .bf-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .blind-faith-card .bf-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .blind-faith-card.active .bf-title {
+      color: var(--ok);
+    }
+    .blind-faith-card .bf-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .bf-settings {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .bf-setting {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .bf-setting input[type="number"] {
+      width: 56px;
+      font-size: 14px;
+      padding: 4px 6px;
+      background: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+    }
+    .bf-unit {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .bf-toggle-btn {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s, background 0.3s;
+      white-space: nowrap;
+    }
+    .bf-toggle-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
+    .blind-faith-card.active .bf-toggle-btn {
+      background: var(--ok);
+    }
+
     /* User status bar */
     .user-bar {
       display: flex;
@@ -694,6 +784,29 @@
     <button id="dailyBtn">Start Challenge</button>
   </div>
 
+  <!-- Blind Faith Mode Card -->
+  <div class="blind-faith-card" id="blindFaithCard">
+    <input type="checkbox" id="blindToggle" style="display:none" />
+    <div class="bf-icon">&#128065;</div>
+    <div class="bf-info">
+      <div class="bf-title">Blind Faith</div>
+      <div class="bf-subtitle">Memorize the verse, then type from memory</div>
+      <div class="bf-settings" id="bfSettings" style="display:none">
+        <label class="bf-setting">
+          Preview
+          <input id="previewSec" type="number" min="1" max="30" step="1" />
+          <span class="bf-unit">sec</span>
+        </label>
+        <label class="bf-setting">
+          Peek
+          <input id="peekSec" type="number" min="1" max="10" step="1" />
+          <span class="bf-unit">sec</span>
+        </label>
+      </div>
+    </div>
+    <button type="button" id="blindFaithToggleBtn" class="bf-toggle-btn">Activate</button>
+  </div>
+
   <div class="controls">
     <label>
       Category:
@@ -735,26 +848,11 @@
     <label>
       Version:
       <select id="version">
+        <option value="WEB" selected>WEB (World English Bible)</option>
         <option value="KJV">KJV (bible-api.com)</option>
-        <option value="WEB">WEB (World English Bible)</option>
         <option value="FBV">FBV (api.bible via proxy)</option>
         <option value="ESV">ESV (Crossway API via proxy)</option>
       </select>
-    </label>
-
-    <label class="toggle" title="Show verse briefly, then hide it so you type from memory">
-      <input type="checkbox" id="blindToggle" />
-      Blind Faith
-    </label>
-
-    <label id="previewLabel" class="toggle" title="Initial visible time before hiding (1-30s)" style="display:none">
-      Preview (s):
-      <input id="previewSec" type="number" min="1" max="30" step="1" />
-    </label>
-
-    <label id="peekLabel" class="toggle" title="Peek reveal time (1-10s)" style="display:none">
-      Peek (s):
-      <input id="peekSec" type="number" min="1" max="10" step="1" />
     </label>
 
     <button id="newVerseBtn" title="Ctrl+M">New Verse</button>
@@ -928,7 +1026,7 @@
         dailyBtn.disabled = true;
         dailyBtn.textContent = 'Loading...';
         try {
-          await loadSpecificVerse(dailyRef, 'KJV');
+          await loadSpecificVerse(dailyRef, 'WEB');
           state.isDailyChallenge = true;
         } catch (e) {
           console.error('Failed to load daily verse:', e);
@@ -953,10 +1051,11 @@
       length: document.getElementById("length"),
       version: document.getElementById("version"),
       blindToggle: document.getElementById("blindToggle"),
+      blindFaithCard: document.getElementById("blindFaithCard"),
+      blindFaithToggleBtn: document.getElementById("blindFaithToggleBtn"),
+      bfSettings: document.getElementById("bfSettings"),
       previewSeconds: document.getElementById("previewSec"),
       peekSeconds: document.getElementById("peekSec"),
-      previewLabel: document.getElementById("previewLabel"),
-      peekLabel: document.getElementById("peekLabel"),
       categoryTitle: document.getElementById("categoryTitle"),
       newVerseButton: document.getElementById("newVerseBtn"),
       restartButton: document.getElementById("restartBtn"),
@@ -1289,7 +1388,7 @@
     }
 
     async function fetchViaBibleApi(reference, versionCode) {
-      const translation = (versionCode || "KJV").toLowerCase();
+      const translation = (versionCode || "WEB").toLowerCase();
       const url = `https://bible-api.com/${encodeURIComponent(reference)}?translation=${encodeURIComponent(translation)}`;
       const { signal, cancel } = createTimeoutController(9000);
 
@@ -1309,7 +1408,7 @@
         return {
           reference: data.reference || reference,
           text: verseText.replace(/\s+/g, " ").trim(),
-          version: (versionCode || "KJV").toUpperCase(),
+          version: (versionCode || "WEB").toUpperCase(),
           fallback: true
         };
       } catch (error) {
@@ -1410,8 +1509,6 @@
 
     function setBlindFaithUIVisible(visible) {
       elements.blindFaithControls.style.display = visible ? "flex" : "none";
-      elements.previewLabel.style.display = visible ? "inline-flex" : "none";
-      elements.peekLabel.style.display = visible ? "inline-flex" : "none";
       syncPeekButtonLabel();
     }
 
@@ -1844,7 +1941,7 @@
 
       const category = elements.category.value;
       const lengthPreference = elements.length.value;
-      const versionCode = (elements.version.value || "KJV").toUpperCase();
+      const versionCode = (elements.version.value || "WEB").toUpperCase();
 
       elements.meta.textContent = "Loading verse...";
       elements.copyline.textContent = "";
@@ -1896,7 +1993,7 @@
       }
     }
 
-    async function loadSpecificVerse(reference, versionCode = "KJV") {
+    async function loadSpecificVerse(reference, versionCode = "WEB") {
       clearAllTimers();
       setLoadingState(true);
       state.isDailyChallenge = true;
@@ -1919,6 +2016,9 @@
 
         // Disable blind mode for daily challenge
         elements.blindToggle.checked = false;
+        elements.blindFaithCard.classList.remove("active");
+        elements.blindFaithToggleBtn.textContent = "Activate";
+        elements.bfSettings.style.display = "none";
         setBlindFaithUIVisible(false);
         setTypingEnabled(true);
         showVerse();
@@ -2070,8 +2170,17 @@
     elements.length.addEventListener("change", loadRandomVerse);
     elements.version.addEventListener("change", loadRandomVerse);
 
+    elements.blindFaithToggleBtn.addEventListener("click", () => {
+      elements.blindToggle.checked = !elements.blindToggle.checked;
+      elements.blindToggle.dispatchEvent(new Event("change"));
+    });
+
     elements.blindToggle.addEventListener("change", () => {
-      setBlindFaithUIVisible(elements.blindToggle.checked);
+      const active = elements.blindToggle.checked;
+      elements.blindFaithCard.classList.toggle("active", active);
+      elements.blindFaithToggleBtn.textContent = active ? "Deactivate" : "Activate";
+      elements.bfSettings.style.display = active ? "flex" : "none";
+      setBlindFaithUIVisible(active);
       loadRandomVerse();
     });
 
@@ -2205,7 +2314,11 @@
       elements.previewSeconds.value = localStorage.getItem("tof_preview_sec") ?? DEFAULT_PREVIEW_SECONDS;
       elements.peekSeconds.value = localStorage.getItem("tof_peek_sec") ?? DEFAULT_PEEK_SECONDS;
       syncPeekButtonLabel();
-      setBlindFaithUIVisible(elements.blindToggle.checked);
+      const blindActive = elements.blindToggle.checked;
+      elements.blindFaithCard.classList.toggle("active", blindActive);
+      elements.blindFaithToggleBtn.textContent = blindActive ? "Deactivate" : "Activate";
+      elements.bfSettings.style.display = blindActive ? "flex" : "none";
+      setBlindFaithUIVisible(blindActive);
 
       elements.categoryTitle.textContent = getCurrentCategoryLabel();
 
