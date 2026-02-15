@@ -569,6 +569,87 @@
       80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
     }
+
+    /* ========== Seasonal theming ========== */
+    .seasonal-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      background: var(--seasonal-banner, var(--banner-bg));
+      color: #fff;
+      box-shadow: 0 4px 20px var(--seasonal-glow, transparent);
+    }
+    .seasonal-banner .seasonal-icon {
+      font-size: 32px;
+    }
+    .seasonal-banner .seasonal-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .seasonal-banner .seasonal-text strong {
+      font-size: 18px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .seasonal-banner .seasonal-text span {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    /* Christmas theme accents */
+    [data-season="christmas"] .daily-challenge {
+      background: linear-gradient(135deg, var(--panel) 0%, rgba(22, 91, 51, 0.15) 50%, rgba(196, 30, 58, 0.15) 100%);
+      border-color: #c41e3a;
+    }
+    [data-season="christmas"] .daily-challenge .daily-title {
+      color: #c41e3a;
+    }
+    [data-season="christmas"] .daily-challenge .daily-icon::after {
+      content: '🎄';
+    }
+    [data-season="christmas"] .daily-challenge .daily-icon {
+      font-size: 0;
+    }
+
+    /* Easter theme accents */
+    [data-season="easter"] .daily-challenge {
+      background: linear-gradient(135deg, var(--panel) 0%, rgba(218, 165, 32, 0.15) 100%);
+      border-color: #daa520;
+    }
+    [data-season="easter"] .daily-challenge .daily-title {
+      color: #daa520;
+    }
+    [data-season="easter"] .daily-challenge .daily-icon::after {
+      content: '✝️';
+    }
+    [data-season="easter"] .daily-challenge .daily-icon {
+      font-size: 0;
+    }
+
+    /* Snowfall animation for Christmas */
+    [data-season="christmas"] .seasonal-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle, #fff 1px, transparent 1px),
+        radial-gradient(circle, #fff 1px, transparent 1px);
+      background-size: 50px 50px, 30px 30px;
+      background-position: 0 0, 25px 25px;
+      opacity: 0.15;
+      pointer-events: none;
+      border-radius: 12px;
+    }
+    .seasonal-banner {
+      position: relative;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
@@ -578,6 +659,10 @@
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
   <script src="shared/leaderboard.js"></script>
+  <script src="shared/seasons.js"></script>
+
+  <!-- Seasonal Banner (dynamically populated) -->
+  <div id="seasonalBannerContainer"></div>
 
   <!-- User Status Bar -->
   <div class="user-bar" id="userBar">
@@ -787,10 +872,19 @@
 
     function getDailyVerse() {
       const today = getTodayDateString();
+
+      // Check for seasonal verses first
+      const season = TofSeasons.getCurrentSeason();
+      if (season && season.verses && season.verses.length > 0) {
+        const idx = seededRandom(today) % season.verses.length;
+        return { ref: season.verses[idx], seasonal: true, season };
+      }
+
+      // Default: all verses
       const allRefs = Object.values(VERSE_CATEGORIES).flat();
       const uniqueRefs = [...new Set(allRefs)];
       const idx = seededRandom(today) % uniqueRefs.length;
-      return uniqueRefs[idx];
+      return { ref: uniqueRefs[idx], seasonal: false, season: null };
     }
 
     function getDailyBest() {
@@ -814,12 +908,14 @@
     }
 
     function initDailyChallenge() {
-      const dailyRef = getDailyVerse();
+      const daily = getDailyVerse();
+      const dailyRef = daily.ref;
       const dailyVerseEl = document.getElementById('dailyVerse');
       const dailyBestEl = document.getElementById('dailyBest');
       const dailyBtn = document.getElementById('dailyBtn');
 
-      dailyVerseEl.textContent = `Today's verse: ${dailyRef}`;
+      const seasonLabel = daily.seasonal ? ` (${daily.season.name})` : '';
+      dailyVerseEl.textContent = `Today's verse: ${dailyRef}${seasonLabel}`;
 
       const best = getDailyBest();
       if (best) {
@@ -2078,10 +2174,30 @@
     }
 
     // ========================================
+    // Seasonal Features
+    // ========================================
+    function initSeasonalFeatures() {
+      const season = TofSeasons.getCurrentSeason();
+      if (season) {
+        // Apply theme colors
+        TofSeasons.applySeasonalTheme(season);
+
+        // Show seasonal banner
+        const container = document.getElementById('seasonalBannerContainer');
+        if (container) {
+          container.innerHTML = TofSeasons.createSeasonalBanner(season);
+        }
+
+        console.log(`Seasonal event active: ${season.name}`);
+      }
+    }
+
+    // ========================================
     // Initialization
     // ========================================
     (async () => {
       initTheme();
+      initSeasonalFeatures();
       renderAvatarGrid();
       elements.raceAvatar.src = getSelectedAvatar().src;
       initDailyChallenge();
