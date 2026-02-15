@@ -146,15 +146,36 @@
     }
 
     /* ========== Input field ========== */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      margin: 12px 0;
+    }
     #input {
-      width: 100%;
+      flex: 1;
       font-size: 20px;
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--input-border);
       background: var(--panel);
       color: var(--ink);
-      margin: 12px 0;
+    }
+    #submitBtn {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+    #submitBtn:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
     }
 
     #input.error-state {
@@ -890,7 +911,10 @@
     </div>
   </div>
 
-  <input id="input" placeholder="Start typing the verse here..." autocomplete="off" spellcheck="false" />
+  <div class="input-row">
+    <input id="input" placeholder="Start typing the verse here..." autocomplete="off" spellcheck="false" />
+    <button id="submitBtn" title="Submit your attempt (Ctrl+Enter)">Submit</button>
+  </div>
 
   <div class="panels">
     <div class="card">
@@ -1066,6 +1090,7 @@
       remaining: document.getElementById("remaining"),
       hiddenMask: document.getElementById("hiddenMask"),
       input: document.getElementById("input"),
+      submitButton: document.getElementById("submitBtn"),
       blindFaithControls: document.getElementById("bfControls"),
       peekButton: document.getElementById("peekBtn"),
       finishButton: document.getElementById("finishBtn"),
@@ -2197,6 +2222,11 @@
     if (elements.finishButton) {
       elements.finishButton.addEventListener("click", () => finishAttempt(true));
     }
+
+    elements.submitButton.addEventListener("click", () => {
+      const isBlind = elements.blindToggle.checked;
+      finishAttempt(isBlind);
+    });
 
     elements.exportButton.addEventListener("click", exportHistoryToCSV);
 
