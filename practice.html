@@ -94,10 +94,19 @@
     }
 
     /* ========== Verse display ========== */
-    #meta {
-      font-size: 14px;
+    #categoryTitle {
+      font-size: 13px;
+      font-weight: 600;
       color: var(--muted);
-      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 2px;
+    }
+    #meta {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
     }
 
     #banner {
@@ -886,8 +895,7 @@
     <div class="avatar-grid" id="avatarGrid"></div>
   </div>
 
-  <h2 id="categoryTitle">All</h2>
-
+  <div id="categoryTitle">All</div>
   <div id="meta"></div>
   <div id="banner"></div>
 
