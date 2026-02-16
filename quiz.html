@@ -5,12 +5,13 @@
   <title>Type of Faith — Verse Memory Quiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="shared/nav.css" />
+  <link rel="stylesheet" href="shared/controls.css" />
   <style>
     /* ---------- Theme tokens ---------- */
     /* Light */
     :root {
       --bg:#faf8f5; --ink:#111; --muted:#555; --accent:#8b6b3b;
-      --panel:#ffffff; --border:#e9e3d7; --btn:#fff;
+      --panel:#ffffff; --border:#e9e3d7; --btn-border:#cfc8ba; --input-border:#cfc8ba;
       --ok:#0a7a0a; --err:#b00020; --link:#1a56db;
       --banner-ok-bg:#eef8ff; --banner-ok-ink:#1a4f7a;
       --banner-err-bg:#ffeeef; --banner-err-ink:#7a1a2a;
@@ -21,7 +22,7 @@
     /* Dark */
     :root[data-theme="dark"]{
       --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8; --accent:#d7c3a0;
-      --panel:#151922; --border:#2a2f3a; --btn:#151922;
+      --panel:#151922; --border:#2a2f3a; --btn-border:#3a4252; --input-border:#3a4252;
       --ok:#6ee7a0; --err:#ff6b81; --link:#87b3ff;
       --banner-ok-bg:#142132; --banner-ok-ink:#a8c8ff;
       --banner-err-bg:#301822; --banner-err-ink:#ff9dac;
@@ -34,12 +35,7 @@
     body{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); margin:24px; }
     a{ color:var(--link) }
 
-    select, button{ font-size:16px; padding:8px 10px; border-radius:8px; border:1px solid var(--opt-border); background:var(--btn); color:var(--ink); }
-    button{ cursor:pointer; }
-    button:disabled{ opacity:.65; cursor:not-allowed; }
-
     .card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow: var(--shadow); }
-    .controls{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; }
     .right{ margin-left:auto }
 
     #banner{ display:none; margin:8px 0 12px; padding:8px 10px; border-radius:8px; font-size:14px; }
@@ -121,19 +117,21 @@
   </div>
 
   <div class="controls">
-    <label>Category:
+    <div class="control-group">
+      <label for="category">Category</label>
       <select id="category"></select>
-    </label>
-    <label>Version:
+    </div>
+    <div class="control-group">
+      <label for="version">Version</label>
       <select id="version">
         <option value="WEB" selected>WEB (World English Bible)</option>
         <option value="KJV">KJV (bible-api.com)</option>
         <option value="FBV">FBV (api.bible via proxy)</option>
         <option value="ESV">ESV (Crossway via proxy)</option>
       </select>
-    </label>
+    </div>
     <span id="quizControls">
-      <button id="newBtn">New Question</button>
+      <button class="primary" id="newBtn">New Question</button>
       <button id="revealBtn">Reveal Answer</button>
     </span>
     <div class="right stat muted" id="score">Score: 0 / 0 · Streak: 0</div>

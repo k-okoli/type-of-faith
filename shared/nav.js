@@ -46,7 +46,7 @@
 
   // Theme select
   const themeLabel = document.createElement("label");
-  themeLabel.style.cssText = "display:flex;align-items:center;gap:4px;font-size:14px;color:var(--muted);";
+  themeLabel.className = "tof-theme-label";
   themeLabel.textContent = "Theme: ";
   const sel = document.createElement("select");
   sel.id = "themeMode";

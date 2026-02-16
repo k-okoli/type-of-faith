@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
+  <link rel="stylesheet" href="shared/controls.css" />
   <style>
     /* ========== Light theme (default) ========== */
     :root {
@@ -56,36 +57,6 @@
       font-weight: 600;
       color: var(--ink);
     }
-
-    /* ========== Controls ========== */
-    .controls {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    select, button, label, input[type="number"] { font-size: 16px; }
-    select, button, input[type="number"] { padding: 8px 10px; }
-
-    input[type="number"] {
-      width: 80px;
-      background: var(--panel);
-      color: var(--ink);
-      border: 1px solid var(--input-border);
-      border-radius: 6px;
-    }
-
-    button {
-      cursor: pointer;
-      border: 1px solid var(--btn-border);
-      background: var(--panel);
-      color: var(--ink);
-      border-radius: 6px;
-    }
-
-    button:active { transform: translateY(1px); }
 
     .toggle {
       display: inline-flex;
@@ -944,8 +915,8 @@
   </div>
 
   <div class="controls">
-    <label>
-      Category:
+    <div class="control-group">
+      <label for="category">Category</label>
       <select id="category">
         <option value="all">All</option>
         <option value="anger">Anger</option>
@@ -969,29 +940,29 @@
         <option value="temptation">Temptation</option>
         <option value="wisdom">Wisdom</option>
       </select>
-    </label>
+    </div>
 
-    <label>
-      Verse length:
+    <div class="control-group">
+      <label for="length">Verse length</label>
       <select id="length">
         <option value="any">Any</option>
         <option value="short">Short</option>
         <option value="medium">Medium</option>
         <option value="long">Long</option>
       </select>
-    </label>
+    </div>
 
-    <label>
-      Version:
+    <div class="control-group">
+      <label for="version">Version</label>
       <select id="version">
         <option value="WEB" selected>WEB (World English Bible)</option>
         <option value="KJV">KJV (bible-api.com)</option>
         <option value="FBV">FBV (api.bible via proxy)</option>
         <option value="ESV">ESV (Crossway API via proxy)</option>
       </select>
-    </label>
+    </div>
 
-    <button id="newVerseBtn" title="Ctrl+M">New Verse</button>
+    <button class="primary" id="newVerseBtn" title="Ctrl+M">New Verse</button>
     <button id="restartBtn" title="Restart this verse (Ctrl+R)">Restart</button>
   </div>
 
