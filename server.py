@@ -12,6 +12,7 @@ from datetime import datetime, date, timedelta
 
 from fastapi import FastAPI, HTTPException, Query, Request, Header, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -1385,3 +1386,10 @@ async def websocket_race(
             "user_id": user.id,
             "username": user.username
         })
+
+# ---------- Serve static frontend files ----------
+# Mount LAST so API routes take priority over file paths
+STATIC_DIR = Path(__file__).resolve().parent
+logger.info(f"Serving static files from: {STATIC_DIR}")
+logger.info(f"lobby.html exists: {(STATIC_DIR / 'lobby.html').exists()}")
+app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
