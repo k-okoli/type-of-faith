@@ -1,6 +1,6 @@
 // shared/offline.js — Offline indicator with auto-ping and dismissible banner
 (function () {
-  const HEALTH_URL = "http://127.0.0.1:8000/health";
+  const HEALTH_URL = TofConfig.API_BASE + "/health";
   const CHECK_INTERVAL = 60000; // 60s
   let offline = false;
   let intervalId = null;

@@ -8,7 +8,7 @@
 (function() {
   'use strict';
 
-  const API_BASE = 'http://127.0.0.1:8000';
+  const API_BASE = TofConfig.API_BASE;
   const TOKEN_KEY = 'tof_auth_token';
   const USER_KEY = 'tof_user';
 

@@ -106,6 +106,7 @@
   </style>
 </head>
 <body>
+  <script src="shared/config.js"></script>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
@@ -264,8 +265,8 @@
     let verseText = '';
     let isReady = false;
 
-    const API_BASE = 'http://127.0.0.1:8000';
-    const WS_BASE = 'ws://127.0.0.1:8000';
+    const API_BASE = TofConfig.API_BASE;
+    const WS_BASE = TofConfig.WS_BASE;
 
     // ========================================
     // DOM Elements

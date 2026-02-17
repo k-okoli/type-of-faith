@@ -104,6 +104,7 @@
   </style>
 </head>
 <body>
+  <script src="shared/config.js"></script>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
@@ -245,7 +246,7 @@ async function fetchViaBibleApi(ref, versionCode){
   return { reference: data.reference||ref, text: verseText.replace(/\s+/g,' ').trim(), version:(versionCode||'WEB').toUpperCase(), copyright: data.copyright };
 }
 async function fetchViaProxy(ref, versionCode){
-  const url = `http://127.0.0.1:8000/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
+  const url = `${TofConfig.API_BASE}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
   const res = await fetch(url);
   const text = await res.text();
   if (!res.ok) throw new Error(text||'Proxy error');

@@ -841,6 +841,7 @@
   </style>
 </head>
 <body>
+  <script src="shared/config.js"></script>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
@@ -1484,7 +1485,7 @@
     // Verse Fetching
     // ========================================
     async function fetchViaProxy(reference, versionCode) {
-      const baseUrl = "http://127.0.0.1:8000";
+      const baseUrl = TofConfig.API_BASE;
       const url = `${baseUrl}/verse?ref=${encodeURIComponent(reference)}&version=${encodeURIComponent(versionCode)}`;
       const { signal, cancel } = createTimeoutController(9000);
 

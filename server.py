@@ -370,19 +370,8 @@ OSIS_RE = re.compile(r"^[A-Z0-9]{3}\.\d+(\.\d+)?$", re.IGNORECASE)
 
 # ---------- CORS ----------
 # Production: add your deployed domain to this list
-ALLOWED_ORIGINS = [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "null",  # for file:// protocol
-    # Add your GitHub Pages URL here:
-    # "https://yourusername.github.io",
-]
+# Allow any origin for dev/LAN use. In production, replace "*" with your domain.
+ALLOWED_ORIGINS = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

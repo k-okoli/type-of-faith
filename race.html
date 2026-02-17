@@ -195,6 +195,7 @@
   </style>
 </head>
 <body>
+  <script src="shared/config.js"></script>
   <script src="shared/data.js"></script>
   <script src="shared/nav.js"></script>
   <script src="shared/theme.js"></script>
@@ -466,7 +467,7 @@
     }
 
     async function fetchViaProxy(ref, versionCode) {
-      const base = "http://127.0.0.1:8000";
+      const base = TofConfig.API_BASE;
       const url = `${base}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
       const { signal, cancel } = withTimeout(9000);
       try {
