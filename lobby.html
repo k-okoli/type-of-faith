@@ -241,6 +241,7 @@
       </table>
       <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
         <button id="backToLobbiesBtn">Back to Lobbies</button>
+        <button class="primary" id="raceAgainBtn">Race Again</button>
       </div>
     </div>
   </div>
@@ -795,6 +796,36 @@
       prevInput = '';
       showView('browser');
       loadLobbies();
+    });
+
+    document.getElementById('raceAgainBtn').addEventListener('click', async () => {
+      const verseRef = currentLobby?.verse_ref || '';
+      const version = currentLobby?.version || 'WEB';
+      const maxPlayers = currentLobby?.max_players || 4;
+
+      // Reset state
+      currentPlayers = {};
+      totalKeystrokes = 0;
+      errorKeystrokes = 0;
+      prevInput = '';
+      isReady = false;
+      if (ws) ws.close();
+
+      try {
+        showBanner('Creating new lobby...');
+        const result = await apiCall('/lobbies/create', {
+          method: 'POST',
+          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers })
+        });
+        currentLobby = result;
+        verseText = result.verse_text;
+        await loadLobbyDetails(result.id);
+        connectWebSocket(result.id);
+        showView('waiting');
+        showBanner('');
+      } catch (e) {
+        showBanner(e.detail || 'Could not create lobby', true);
+      }
     });
 
     // ========================================
