@@ -22,9 +22,20 @@
   // Local dev: file://, localhost, or 127.0.0.1 → talk to localhost:8000
   var isLocal = protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
 
-  var apiHost = isLocal ? 'http://127.0.0.1:8000' : protocol + '//' + host + ':8000';
-  var wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
-  var wsHost = isLocal ? 'ws://127.0.0.1:8000' : wsProtocol + '//' + host + ':8000';
+  // Hosted (e.g. Render): no port needed, use origin directly
+  var isHosted = !isLocal && (protocol === 'https:' || protocol === 'http:') && !window.location.port;
+
+  var apiHost, wsHost;
+  if (isLocal) {
+    apiHost = 'http://127.0.0.1:8000';
+    wsHost = 'ws://127.0.0.1:8000';
+  } else if (isHosted) {
+    apiHost = window.location.origin;
+    wsHost = window.location.origin.replace(/^https?/, protocol === 'https:' ? 'wss' : 'ws');
+  } else {
+    apiHost = protocol + '//' + host + ':8000';
+    wsHost = (protocol === 'https:' ? 'wss:' : 'ws:') + '//' + host + ':8000';
+  }
 
   window.TofConfig = {
     API_BASE: apiHost,
