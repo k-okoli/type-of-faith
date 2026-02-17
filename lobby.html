@@ -159,7 +159,10 @@
     <div class="card" style="max-width: 500px;">
       <div class="form-group">
         <label>Verse Reference</label>
-        <input type="text" id="verseRefInput" placeholder="John 3:16" />
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="verseRefInput" placeholder="John 3:16" style="flex: 1;" />
+          <button type="button" id="randomVerseBtn" title="Pick a random verse">Random</button>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -351,15 +354,14 @@
     // ========================================
     // Create Lobby
     // ========================================
+    function getRandomVerse() {
+      return ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
+    }
+
     async function createLobby() {
-      const verseRef = document.getElementById('verseRefInput').value.trim();
+      const verseRef = document.getElementById('verseRefInput').value.trim() || getRandomVerse();
       const version = document.getElementById('versionSelect').value;
       const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
-
-      if (!verseRef) {
-        showBanner('Please enter a verse reference', true);
-        return;
-      }
 
       try {
         showBanner('Creating lobby...');
@@ -765,6 +767,9 @@
     document.getElementById('refreshLobbiesBtn').addEventListener('click', loadLobbies);
     document.getElementById('cancelCreateBtn').addEventListener('click', () => { showView('browser'); showBanner(''); });
     document.getElementById('confirmCreateBtn').addEventListener('click', createLobby);
+    document.getElementById('randomVerseBtn').addEventListener('click', () => {
+      document.getElementById('verseRefInput').value = getRandomVerse();
+    });
 
     document.getElementById('joinByCodeBtn').addEventListener('click', () => {
       const code = document.getElementById('joinCodeInput').value.trim();
@@ -799,7 +804,7 @@
     });
 
     document.getElementById('raceAgainBtn').addEventListener('click', async () => {
-      const verseRef = currentLobby?.verse_ref || '';
+      const verseRef = currentLobby?.verse_ref || getRandomVerse();
       const version = currentLobby?.version || 'WEB';
       const maxPlayers = currentLobby?.max_players || 4;
 
