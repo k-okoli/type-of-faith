@@ -200,6 +200,10 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
 
   <h2>Race Mode</h2>
 
@@ -862,6 +866,9 @@
       // Show results
       showResults(allRacers);
       showBanner("success", playerPlace === 1 ? "You won the race!" : playerPlace <= 3 ? `You placed ${playerPlace === 2 ? "2nd" : "3rd"}!` : "Race complete!");
+
+      // Record streak activity
+      TofStreak.recordActivity();
     }
 
     function showResults(sortedRacers) {
@@ -1029,17 +1036,16 @@
     // ======= Init =======
     (async () => {
       initTheme();
+      TofStreak.initBadge();
+      TofShortcuts.registerShortcuts([
+        { keys: "Ctrl+M", desc: "New verse" }
+      ]);
       populateCategoryDropdown();
       updatePlayerStats();
 
-      try {
-        const res = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
-        if (!res.ok) throw new Error("Proxy offline");
-      } catch {
-        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider.");
-      } finally {
-        loadVerse();
-      }
+      // offline.js handles the banner automatically
+      await TofOffline.checkHealth();
+      loadVerse();
     })();
   </script>
 </body>

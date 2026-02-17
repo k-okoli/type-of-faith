@@ -91,3 +91,26 @@
   background: var(--border);
   border-color: var(--accent);
 }
+
+/* Settings gear button — matches mute button style */
+.tof-nav .tof-settings-btn {
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tof-nav .tof-settings-btn:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+
+/* Streak badge */
+.tof-nav .tof-streak-badge {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}

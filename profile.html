@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profile — Type of Faith</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
+  <link rel="stylesheet" href="shared/controls.css" />
+  <style>
+    /* Light theme */
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555;
+      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
+      --panel:#fff; --border:#eee;
+      --banner-bg:#fff7e6; --link:#1a56db;
+      --input-border:#ddd; --btn-border:#ccc;
+    }
+    /* Dark theme */
+    :root[data-theme="dark"] {
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
+      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a;
+      --banner-bg:#1d2430; --link:#87b3ff;
+      --input-border:#2b3240; --btn-border:#3a4252;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+    a { color: var(--link); }
+
+    /* Profile header */
+    .profile-header {
+      display: flex; align-items: center; gap: 20px;
+      padding: 24px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 20px;
+    }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
+    .profile-info h2 { margin: 0 0 4px; font-size: 22px; }
+    .profile-info .profile-sub { color: var(--muted); font-size: 14px; }
+    .profile-streak { margin-left: auto; text-align: center; font-size: 14px; color: var(--muted); }
+    .profile-streak .streak-num { font-size: 32px; font-weight: 700; color: var(--accent); display: block; }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; text-align: center;
+    }
+    .stat-card .stat-val { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-card .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Sections */
+    .profile-section {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    }
+    .profile-section h3 { margin: 0 0 14px; font-size: 16px; }
+
+    /* Daily history table */
+    .daily-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .daily-table th, .daily-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .daily-table th { font-weight: 600; color: var(--muted); font-size: 12px; }
+    .daily-table .no-data { text-align: center; color: var(--muted); padding: 16px; }
+
+    /* Avatar collection */
+    .avatar-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 12px;
+    }
+    .avatar-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 12px 8px; border-radius: 10px; border: 1px solid var(--border);
+      text-align: center;
+    }
+    .avatar-item.locked { opacity: 0.45; }
+    .avatar-item img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+    .avatar-item .av-name { font-size: 13px; font-weight: 600; }
+    .avatar-item .av-desc { font-size: 11px; color: var(--muted); }
+    .avatar-item .av-progress {
+      width: 100%; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .avatar-item .av-progress-fill {
+      height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s;
+    }
+
+    /* Lesson progress */
+    .lesson-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .lesson-chip {
+      padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--bg);
+    }
+    .lesson-chip.done { background: color-mix(in srgb, var(--ok) 15%, var(--panel)); border-color: var(--ok); color: var(--ok); }
+
+    @media (max-width: 600px) {
+      .profile-header { flex-direction: column; text-align: center; }
+      .profile-streak { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <script src="shared/data.js"></script>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
+  <script src="shared/audio.js"></script>
+  <script src="shared/achievements.js"></script>
+  <script src="shared/leaderboard.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
+
+  <div id="profileContent"></div>
+
+  <script>
+  (async function () {
+    initTheme();
+    TofStreak.initBadge();
+
+    const container = document.getElementById("profileContent");
+
+    // Gather data
+    const achievements = TofAchievements.getAchievements();
+    const streak = TofStreak.getStreak();
+    const avatars = TofAchievements.getAllAvatarsWithStatus();
+    const currentAvatarId = localStorage.getItem("tof_avatar") || "moses";
+    const currentAvatar = avatars.find(a => a.id === currentAvatarId) || avatars[0];
+
+    // Try to get server user data
+    let user = null;
+    try {
+      user = await TofLeaderboard.checkAuth();
+    } catch { /* offline or guest */ }
+
+    const username = user ? user.username : "Guest";
+    const memberSince = user && user.created_at
+      ? new Date(user.created_at).toLocaleDateString()
+      : "Local player";
+
+    // Server stats (merge with local)
+    const bestWPM = Math.max(user?.best_wpm || 0, achievements.max_wpm || 0);
+    const totalRaces = user?.total_races || achievements.races_won || 0;
+    const racesWon = achievements.races_won || 0;
+    const practiceSessions = achievements.practice_sessions || 0;
+    const dailyChallenges = achievements.daily_challenges || 0;
+
+    // ===== Render Header =====
+    let html = `
+      <div class="profile-header">
+        <img class="profile-avatar" src="${currentAvatar.src}" alt="${currentAvatar.name}" />
+        <div class="profile-info">
+          <h2>${username}</h2>
+          <div class="profile-sub">${memberSince}</div>
+        </div>
+        <div class="profile-streak">
+          <span class="streak-num">${streak.current > 0 ? "\uD83D\uDD25 " + streak.current : "0"}</span>
+          day streak
+        </div>
+      </div>
+    `;
+
+    // ===== Stats Grid =====
+    html += `
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val">${bestWPM}</div><div class="stat-label">Best WPM</div></div>
+        <div class="stat-card"><div class="stat-val">${totalRaces}</div><div class="stat-label">Total Races</div></div>
+        <div class="stat-card"><div class="stat-val">${racesWon}</div><div class="stat-label">Races Won</div></div>
+        <div class="stat-card"><div class="stat-val">${practiceSessions}</div><div class="stat-label">Practice Sessions</div></div>
+        <div class="stat-card"><div class="stat-val">${streak.current}</div><div class="stat-label">Current Streak</div></div>
+        <div class="stat-card"><div class="stat-val">${dailyChallenges}</div><div class="stat-label">Daily Challenges</div></div>
+      </div>
+    `;
+
+    // ===== Daily Challenge History (last 14 days) =====
+    html += `<div class="profile-section"><h3>Daily Challenge History</h3>`;
+    const dailyRows = [];
+    for (let i = 0; i < 14; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = "tof_daily_" + d.toISOString().slice(0, 10);
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          dailyRows.push({
+            date: d.toLocaleDateString(),
+            wpm: data.wpm || "—",
+            accuracy: data.accuracy != null ? data.accuracy + "%" : "—",
+            time: data.time || "—"
+          });
+        } catch { /* skip corrupt entries */ }
+      }
+    }
+    if (dailyRows.length > 0) {
+      html += `<table class="daily-table"><thead><tr><th>Date</th><th>WPM</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>`;
+      for (const r of dailyRows) {
+        html += `<tr><td>${r.date}</td><td>${r.wpm}</td><td>${r.accuracy}</td><td>${r.time}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+    } else {
+      html += `<div class="daily-table no-data">No daily challenge attempts in the last 14 days.</div>`;
+    }
+    html += `</div>`;
+
+    // ===== Avatar Collection =====
+    html += `<div class="profile-section"><h3>Avatar Collection</h3><div class="avatar-grid">`;
+    for (const av of avatars) {
+      const lockedCls = av.unlocked ? "" : "locked";
+      const pct = av.progress ? Math.min(100, Math.round((av.progress.current / av.progress.target) * 100)) : (av.unlocked ? 100 : 0);
+      html += `
+        <div class="avatar-item ${lockedCls}">
+          <img src="${av.src}" alt="${av.name}" />
+          <span class="av-name">${av.name}</span>
+          <span class="av-desc">${av.unlocked ? "Unlocked" : av.description}</span>
+          ${!av.unlocked ? `<div class="av-progress"><div class="av-progress-fill" style="width:${pct}%"></div></div>` : ""}
+        </div>`;
+    }
+    html += `</div></div>`;
+
+    // ===== Lesson Progress =====
+    html += `<div class="profile-section"><h3>Lesson Progress</h3><div class="lesson-grid">`;
+    for (let i = 1; i <= 10; i++) {
+      const key = `tof_lesson_lesson${i}_progress`;
+      const raw = localStorage.getItem(key);
+      let done = false;
+      if (raw) {
+        try {
+          const p = JSON.parse(raw);
+          // Consider done if they progressed through all drills with good accuracy
+          if (p.bestAcc >= 95) done = true;
+        } catch { /* skip */ }
+      }
+      // Also check achievements
+      if (achievements.lessons_completed >= i) done = true;
+      html += `<div class="lesson-chip${done ? " done" : ""}">Lesson ${i}</div>`;
+    }
+    html += `</div></div>`;
+
+    container.innerHTML = html;
+  })();
+  </script>
+</body>
+</html>

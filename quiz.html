@@ -109,6 +109,10 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
 
   <!-- Mode tabs -->
   <div class="mode-tabs">
@@ -314,6 +318,7 @@ function checkAnswer(btn, ref){
     score += 1; streak += 1;
     feedbackEl.textContent = '✅ Correct!';
     TofAudio.playComplete();
+    TofStreak.recordActivity();
   } else {
     streak = 0;
     feedbackEl.textContent = `❌ Incorrect. Correct answer: ${correctRef}`;
@@ -407,6 +412,7 @@ async function toggleVerseItem(item){
 /* ---------- Init ---------- */
 (function init(){
   initTheme();
+  TofStreak.initBadge();
 
   categoryEl.innerHTML = CAT_NAMES.map(c => `<option value="${c}">${c==='all'?'All':titleCase(c)}</option>`).join('');
   setScore(); setCategoryTitle(); updateStreakBar();

@@ -156,6 +156,10 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
 
   <div id="banner"></div>
 
@@ -729,6 +733,7 @@
         if(finalAcc >= 95 && !isLastDrill){
           // Passed drill — auto-advance after delay
           TofAudio.playComplete();
+          TofStreak.recordActivity();
           showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy! Advancing to next drill...`);
           curIdx += 1;
           saveProgress(curLesson.id, curIdx, best);
@@ -738,6 +743,7 @@
         } else if(finalAcc >= 95 && isLastDrill){
           // Passed last drill — lesson complete
           TofAudio.playComplete();
+          TofStreak.recordActivity();
           saveProgress(curLesson.id, curIdx, best);
           showLessonBanner("success",`Drill complete — ${finalAcc}% accuracy!`);
           renderDrillNav();
@@ -783,6 +789,7 @@
 
     // --- Init ---
     initTheme();
+    TofStreak.initBadge();
     initSkinTone();
     raceAvatar.src = getSelectedAvatar().src;
     populateLessons();

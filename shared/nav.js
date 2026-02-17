@@ -5,7 +5,8 @@
     { label: "Lessons",  href: "lessons.html" },
     { label: "Quiz",     href: "quiz.html" },
     { label: "Race",     href: "race.html" },
-    { label: "Multiplayer", href: "lobby.html" }
+    { label: "Multiplayer", href: "lobby.html" },
+    { label: "Profile",  href: "profile.html" }
   ];
 
   const currentPage = location.pathname.split("/").pop() || "index.html";
@@ -18,6 +19,13 @@
   brand.className = "tof-brand";
   brand.textContent = "Type of Faith";
   nav.appendChild(brand);
+
+  // Streak badge (hidden by default, shown by streak.js)
+  const streakBadge = document.createElement("span");
+  streakBadge.id = "tof-streak-badge";
+  streakBadge.className = "tof-streak-badge";
+  streakBadge.style.display = "none";
+  nav.appendChild(streakBadge);
 
   // Links
   const links = document.createElement("div");
@@ -43,6 +51,16 @@
   muteBtn.textContent = localStorage.getItem('tof_audio_muted') === 'true' ? '🔇' : '🔊';
   muteBtn.title = localStorage.getItem('tof_audio_muted') === 'true' ? 'Unmute sounds' : 'Mute sounds';
   nav.appendChild(muteBtn);
+
+  // Settings gear button
+  const settingsBtn = document.createElement("button");
+  settingsBtn.className = "tof-settings-btn";
+  settingsBtn.textContent = "\u2699\uFE0F";
+  settingsBtn.title = "Settings";
+  settingsBtn.addEventListener("click", () => {
+    if (typeof TofSettings !== "undefined") TofSettings.show();
+  });
+  nav.appendChild(settingsBtn);
 
   // Theme select
   const themeLabel = document.createElement("label");

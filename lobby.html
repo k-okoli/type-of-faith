@@ -111,6 +111,10 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/leaderboard.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
 
   <div id="banner"></div>
 
@@ -797,6 +801,7 @@
     // ========================================
     async function init() {
       initTheme();
+      TofStreak.initBadge();
 
       // Check auth
       const user = await TofLeaderboard.checkAuth();

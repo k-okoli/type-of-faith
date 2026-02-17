@@ -848,6 +848,10 @@
   <script src="shared/achievements.js"></script>
   <script src="shared/leaderboard.js"></script>
   <script src="shared/seasons.js"></script>
+  <script src="shared/streak.js"></script>
+  <script src="shared/offline.js"></script>
+  <script src="shared/shortcuts.js"></script>
+  <script src="shared/settings.js"></script>
 
   <!-- Seasonal Banner (dynamically populated) -->
   <div id="seasonalBannerContainer"></div>
@@ -2124,6 +2128,9 @@
         });
         renderAvatarGrid(); // Refresh to show newly unlocked avatar
       }
+
+      // Record streak activity
+      TofStreak.recordActivity();
     }
 
     // ========================================
@@ -2497,6 +2504,13 @@
     // ========================================
     (async () => {
       initTheme();
+      TofStreak.initBadge();
+      TofShortcuts.registerShortcuts([
+        { keys: "Ctrl+M", desc: "New verse" },
+        { keys: "Ctrl+R", desc: "Restart verse" },
+        { keys: "Ctrl+P", desc: "Peek (Blind Faith)" },
+        { keys: "Ctrl+Enter", desc: "Submit (Blind Faith)" }
+      ]);
       initSeasonalFeatures();
       renderAvatarGrid();
       elements.raceAvatar.src = getSelectedAvatar().src;
@@ -2512,23 +2526,23 @@
 
       elements.categoryTitle.textContent = getCurrentCategoryLabel();
 
-      // Check if proxy is available
-      try {
-        const response = await fetch("http://127.0.0.1:8000/health", { cache: "no-store" });
-        if (!response.ok) throw new Error("Proxy offline");
-
-        // Initialize user bar and leaderboard
+      // Check if proxy is available (offline.js handles the banner)
+      const online = await TofOffline.checkHealth();
+      if (online) {
         await TofLeaderboard.checkAuth();
         renderUserBar();
         loadLeaderboard();
-
-        // Add refresh button handler
         document.getElementById('refreshLeaderboard').addEventListener('click', loadLeaderboard);
-      } catch {
-        showBanner("warn", "Proxy offline. KJV/WEB will fall back to public provider. Start FastAPI for FBV/ESV and leaderboard.");
+      } else {
         document.getElementById('userBar').style.display = 'none';
         document.getElementById('leaderboardPanel').style.display = 'none';
       }
+
+      // Listen for avatar changes from settings
+      document.addEventListener("tof-avatar-changed", () => {
+        elements.raceAvatar.src = getSelectedAvatar().src;
+        renderAvatarGrid();
+      });
 
       // Load initial verse
       await loadRandomVerse();
