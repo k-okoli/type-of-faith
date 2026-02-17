@@ -1377,6 +1377,17 @@ async def websocket_race(
                         ]
                     })
 
+            elif msg_type == "rematch":
+                # Broadcast new lobby code so other players can auto-join
+                new_join_code = data.get("join_code", "")
+                if new_join_code:
+                    await ws_manager.broadcast_to_lobby(lobby_id, {
+                        "type": "rematch",
+                        "join_code": new_join_code,
+                        "user_id": user.id,
+                        "username": user.username
+                    })
+
     except WebSocketDisconnect:
         pass
     finally:

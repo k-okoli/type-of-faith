@@ -392,10 +392,16 @@
       document.getElementById('waitingVerseRef').textContent = data.verse_ref;
       document.getElementById('waitingVerseText').textContent = data.verse_text;
 
+      // Reset ready state and button for this player
+      const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
       currentPlayers = {};
       data.players.forEach(p => {
         currentPlayers[p.user_id] = p;
+        if (p.user_id === currentUserId) {
+          isReady = p.ready;
+        }
       });
+      document.getElementById('readyBtn').textContent = isReady ? 'Not Ready' : 'Ready';
       renderPlayerList();
     }
 
@@ -508,6 +514,14 @@
         case 'race_end':
           showResults(msg.results);
           break;
+
+        case 'rematch':
+          // Another player created a rematch lobby — auto-join it
+          const myId = TofLeaderboard.getCurrentUser()?.user_id;
+          if (msg.user_id !== myId) {
+            joinLobby(msg.join_code);
+          }
+          break;
       }
     }
 
@@ -542,6 +556,7 @@
     function startRace(text, startTime) {
       verseText = text;
       raceStartTime = startTime;
+      finishedCount = 0;
 
       // Setup race view
       showView('race');
@@ -589,8 +604,24 @@
       pct.textContent = `${Math.round(progress * 100)}%`;
     }
 
+    let finishedCount = 0;
+
     function handlePlayerFinished(msg) {
       updatePlayerProgress(msg.user_id, verseText.length, msg.wpm);
+      finishedCount++;
+
+      // Celebrate immediately when the current player finishes
+      const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+      if (msg.user_id === currentUserId) {
+        const place = finishedCount;
+        showTrophy(place);
+        if (place === 1) {
+          showConfetti();
+          TofAudio.playRaceFinish();
+        } else {
+          TofAudio.playComplete();
+        }
+      }
     }
 
     // ========================================
@@ -629,20 +660,7 @@
     function showResults(results) {
       showView('results');
 
-      // Find player's place
-      const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
-      const playerResult = results.find(r => r.user_id === currentUserId);
-      const playerPlace = playerResult?.place || 99;
-
-      // Trigger celebration animations
-      if (playerPlace <= 3) {
-        showTrophy(playerPlace);
-        if (playerPlace === 1) {
-          showConfetti();
-        }
-      }
-
-      // Fetch usernames from currentPlayers
+      // Render results table
       const tbody = document.getElementById('resultsBody');
       tbody.innerHTML = results.map((r, i) => {
         const p = currentPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'moses' };
@@ -662,12 +680,6 @@
           </tr>
         `;
       }).join('');
-
-      if (playerPlace === 1) {
-        TofAudio.playRaceFinish();
-      } else {
-        TofAudio.playComplete();
-      }
     }
 
     // ========================================
@@ -741,7 +753,7 @@
         const accuracy = totalKeystrokes > 0 ? Math.round((1 - errorKeystrokes / totalKeystrokes) * 100) : 100;
 
         input.disabled = true;
-        document.getElementById('raceStatus').textContent = `Finished! ${finishTime.toFixed(2)}s · ${wpm} WPM`;
+        document.getElementById('raceStatus').textContent = `Finished! ${finishTime.toFixed(2)}s · ${wpm} WPM · Waiting for others...`;
 
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'finished', time: finishTime, wpm, accuracy }));
@@ -807,6 +819,7 @@
       const verseRef = currentLobby?.verse_ref || getRandomVerse();
       const version = currentLobby?.version || 'WEB';
       const maxPlayers = currentLobby?.max_players || 4;
+      const oldWs = ws;
 
       // Reset state
       currentPlayers = {};
@@ -814,7 +827,6 @@
       errorKeystrokes = 0;
       prevInput = '';
       isReady = false;
-      if (ws) ws.close();
 
       try {
         showBanner('Creating new lobby...');
@@ -822,6 +834,13 @@
           method: 'POST',
           body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers })
         });
+
+        // Broadcast rematch to old lobby so other players auto-join
+        if (oldWs && oldWs.readyState === WebSocket.OPEN) {
+          oldWs.send(JSON.stringify({ type: 'rematch', join_code: result.join_code }));
+          setTimeout(() => oldWs.close(), 500);
+        }
+
         currentLobby = result;
         verseText = result.verse_text;
         await loadLobbyDetails(result.id);
@@ -830,6 +849,7 @@
         showBanner('');
       } catch (e) {
         showBanner(e.detail || 'Could not create lobby', true);
+        if (oldWs) oldWs.close();
       }
     });
 
