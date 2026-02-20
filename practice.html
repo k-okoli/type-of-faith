@@ -2097,6 +2097,20 @@
       state.history.push(historyEntry);
       addHistoryRow(historyEntry);
 
+      // Save to persistent practice history
+      const saved = JSON.parse(localStorage.getItem("tof_practice_history") || "[]");
+      saved.push({
+        reference: state.reference,
+        category: titleCase(state.actualCategory),
+        wpm: wordsPerMinute,
+        accuracy: accuracyPercent,
+        seconds: parseFloat(elapsedSeconds.toFixed(2)),
+        mode: elements.blindToggle.checked ? "Blind" : "Normal",
+        date: new Date().toISOString()
+      });
+      if (saved.length > 100) saved.splice(0, saved.length - 100);
+      localStorage.setItem("tof_practice_history", JSON.stringify(saved));
+
       // Save daily challenge best
       if (state.isDailyChallenge) {
         const isNewBest = saveDailyBest(wordsPerMinute, accuracyPercent, elapsedSeconds.toFixed(2));

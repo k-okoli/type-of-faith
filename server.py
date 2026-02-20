@@ -119,6 +119,8 @@ class RaceLobby(Base):
     verse_text = Column(String(2000), nullable=False)
     version = Column(String(10), default="WEB")
     max_players = Column(Integer, default=4)
+    mode = Column(String(10), default="race")  # "race" or "quiz"
+    total_rounds = Column(Integer, default=1)  # For quiz mode
     status = Column(String(20), default="waiting")  # waiting, countdown, racing, finished
     created_at = Column(DateTime, default=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)
@@ -247,9 +249,11 @@ class LeaderboardEntry(BaseModel):
 
 # ---------- Lobby Request/Response Models ----------
 class CreateLobbyRequest(BaseModel):
-    verse_ref: str = Field(..., min_length=3)
+    verse_ref: Optional[str] = Field(default=None, min_length=3)
     version: str = Field(default="WEB")
     max_players: int = Field(default=4, ge=2, le=8)
+    mode: str = Field(default="race")  # "race" or "quiz"
+    total_rounds: int = Field(default=5, ge=1, le=20)
 
 
 class LobbyResponse(BaseModel):
@@ -285,6 +289,8 @@ class ConnectionManager:
         self.active_connections: Dict[str, Dict[str, WebSocket]] = {}
         # lobby_id -> {user_id: {"progress": int, "wpm": int, "finished": bool, ...}}
         self.race_state: Dict[str, Dict[str, dict]] = {}
+        # lobby_id -> {"round": int, "scores": {user_id: int}, "locked_out": set, "correct_ref": str}
+        self.quiz_state: Dict[str, dict] = {}
 
     async def connect(self, lobby_id: str, user_id: str, websocket: WebSocket):
         await websocket.accept()
@@ -368,6 +374,62 @@ VERSION_MAP = {
 }
 
 OSIS_RE = re.compile(r"^[A-Z0-9]{3}\.\d+(\.\d+)?$", re.IGNORECASE)
+
+# All verse references for quiz question generation (mirrors shared/data.js)
+ALL_REFERENCES_PY = [
+    "Ephesians 4:26","Proverbs 15:1","James 1:19-20","Colossians 3:8",
+    "Philippians 4:6-7","1 Peter 5:7","Matthew 6:34","Psalm 94:19",
+    "Joshua 1:9","Psalm 27:1","2 Timothy 1:7","Deuteronomy 31:6",
+    "Psalm 34:17-18","Psalm 42:11","Isaiah 41:10","Matthew 11:28",
+    "James 1:6","Mark 9:24","Matthew 21:21","John 20:27",
+    "Hebrews 11:1","Proverbs 3:5-6","Mark 11:24","2 Corinthians 5:7",
+    "Psalm 56:3",
+    "Ephesians 4:32","Colossians 3:13","Matthew 6:14","Psalm 103:12",
+    "Jeremiah 30:17","Isaiah 53:5","James 5:14-15","Psalm 147:3",
+    "Jeremiah 29:11","Romans 15:13","Psalm 42:5","Isaiah 40:31",
+    "Proverbs 14:30","James 3:16","Galatians 5:26","1 Corinthians 3:3",
+    "Nehemiah 8:10","Psalm 16:11","Philippians 4:4","John 15:11",
+    "Psalm 34:18","Matthew 5:4","Revelation 21:4","1 Thessalonians 4:13-14",
+    "1 Corinthians 13:4-7","John 13:34","1 John 4:7","Romans 12:10","John 3:16",
+    "Galatians 6:9","Romans 12:12","James 5:8","Ecclesiastes 7:8",
+    "John 14:27","Philippians 4:7","Isaiah 26:3","Colossians 3:15",
+    "Proverbs 16:18","James 4:6","1 Peter 5:5","Proverbs 11:2",
+    "Matthew 11:28-30","John 16:33","Psalm 55:22","Proverbs 12:25",
+    "1 Corinthians 10:13","Matthew 26:41","James 1:12-14","Hebrews 2:18",
+    "James 1:5","Proverbs 1:7","Proverbs 3:13","Proverbs 4:7",
+]
+
+import random
+
+async def generate_quiz_question(version: str) -> dict:
+    """Generate a quiz question: fetch a random verse, create 4 options."""
+    correct_ref = random.choice(ALL_REFERENCES_PY)
+
+    # Fetch verse text
+    cfg = VERSION_MAP.get(version, VERSION_MAP["WEB"])
+    async with httpx.AsyncClient() as client:
+        if cfg["provider"] == "bibleapi":
+            trans = "kjv" if version == "KJV" else (cfg.get("id") or "kjv")
+            data = await fetch_bibleapi(client, correct_ref, trans)
+        else:
+            bible_id = cfg.get("id")
+            data = await fetch_apibible(client, bible_id, correct_ref)
+
+    verse_text = data.get("text", "")
+    display_ref = data.get("reference", correct_ref)
+
+    # Pick 3 distractors
+    pool = [r for r in ALL_REFERENCES_PY if r != correct_ref]
+    distractors = random.sample(pool, min(3, len(pool)))
+
+    options = [correct_ref] + distractors
+    random.shuffle(options)
+
+    return {
+        "correct_ref": correct_ref,
+        "verse_text": verse_text,
+        "options": options,
+    }
 
 # ---------- CORS ----------
 # Production: add your deployed domain to this list
@@ -930,6 +992,7 @@ def generate_join_code() -> str:
 async def list_lobbies(
     request: Request,
     status: str = Query("waiting"),
+    mode: str = Query("all"),
     db: DBSession = Depends(get_db)
 ):
     """
@@ -937,12 +1000,15 @@ async def list_lobbies(
 
     Query params:
     - status: 'waiting', 'racing', or 'all' (default: 'waiting')
+    - mode: 'race', 'quiz', or 'all' (default: 'all')
     """
     query = db.query(RaceLobby, User.username)\
         .join(User, RaceLobby.host_id == User.id)
 
     if status != "all":
         query = query.filter(RaceLobby.status == status)
+    if mode != "all":
+        query = query.filter(RaceLobby.mode == mode)
 
     # Only show recent lobbies (last hour)
     cutoff = datetime.utcnow() - timedelta(hours=1)
@@ -962,7 +1028,9 @@ async def list_lobbies(
             "verse_ref": lobby.verse_ref,
             "status": lobby.status,
             "player_count": player_count,
-            "max_players": lobby.max_players
+            "max_players": lobby.max_players,
+            "mode": lobby.mode or "race",
+            "total_rounds": lobby.total_rounds or 1,
         })
 
     return {"lobbies": result}
@@ -977,29 +1045,40 @@ async def create_lobby(
     db: DBSession = Depends(get_db)
 ):
     """
-    Create a new race lobby.
+    Create a new race or quiz lobby.
 
-    The host provides a verse reference and the server fetches the text.
+    For race mode: host provides a verse reference and the server fetches the text.
+    For quiz mode: no verse needed; questions are generated per-round.
     Returns the lobby ID and join code.
     """
-    # Fetch the verse text
+    lobby_mode = body.mode if body.mode in ("race", "quiz") else "race"
     version = body.version.upper()
     if version not in VERSION_MAP:
         raise HTTPException(400, f"Unsupported version: {version}")
 
-    try:
-        async with httpx.AsyncClient() as client:
-            cfg = VERSION_MAP[version]
-            if cfg["provider"] == "bibleapi":
-                trans = "kjv" if version == "KJV" else (cfg.get("id") or "kjv")
-                verse_data = await fetch_bibleapi(client, body.verse_ref, trans)
-            else:
-                verse_data = await fetch_apibible(client, cfg["id"], body.verse_ref)
-    except Exception as e:
-        raise HTTPException(502, f"Could not fetch verse: {str(e)}")
+    if lobby_mode == "quiz":
+        # Quiz mode: no specific verse needed
+        verse_ref = "Quiz Mode"
+        verse_text_val = ""
+    else:
+        # Race mode: fetch the verse
+        if not body.verse_ref:
+            raise HTTPException(400, "verse_ref is required for race mode")
+        try:
+            async with httpx.AsyncClient() as client:
+                cfg = VERSION_MAP[version]
+                if cfg["provider"] == "bibleapi":
+                    trans = "kjv" if version == "KJV" else (cfg.get("id") or "kjv")
+                    verse_data = await fetch_bibleapi(client, body.verse_ref, trans)
+                else:
+                    verse_data = await fetch_apibible(client, cfg["id"], body.verse_ref)
+        except Exception as e:
+            raise HTTPException(502, f"Could not fetch verse: {str(e)}")
 
-    if not verse_data.get("text"):
-        raise HTTPException(404, "Verse not found")
+        if not verse_data.get("text"):
+            raise HTTPException(404, "Verse not found")
+        verse_ref = verse_data.get("reference", body.verse_ref)
+        verse_text_val = verse_data["text"]
 
     # Create lobby
     lobby_id = secrets.token_hex(16)
@@ -1013,10 +1092,12 @@ async def create_lobby(
         id=lobby_id,
         join_code=join_code,
         host_id=user.id,
-        verse_ref=verse_data.get("reference", body.verse_ref),
-        verse_text=verse_data["text"],
+        verse_ref=verse_ref,
+        verse_text=verse_text_val,
         version=version,
-        max_players=body.max_players
+        max_players=body.max_players,
+        mode=lobby_mode,
+        total_rounds=body.total_rounds if lobby_mode == "quiz" else 1,
     )
     db.add(lobby)
 
@@ -1025,14 +1106,16 @@ async def create_lobby(
     db.add(player)
 
     db.commit()
-    logger.info(f"Lobby created: {join_code} by {user.username}")
+    logger.info(f"Lobby created: {join_code} by {user.username} (mode={lobby_mode})")
 
     return {
         "id": lobby_id,
         "join_code": join_code,
         "verse_ref": lobby.verse_ref,
         "verse_text": lobby.verse_text,
-        "max_players": lobby.max_players
+        "max_players": lobby.max_players,
+        "mode": lobby.mode,
+        "total_rounds": lobby.total_rounds,
     }
 
 
@@ -1079,6 +1162,8 @@ async def get_lobby(
         "version": lobby.version,
         "status": lobby.status,
         "max_players": lobby.max_players,
+        "mode": lobby.mode or "race",
+        "total_rounds": lobby.total_rounds or 1,
         "players": players,
         "created_at": lobby.created_at.isoformat(),
         "started_at": lobby.started_at.isoformat() if lobby.started_at else None
@@ -1397,6 +1482,257 @@ async def websocket_race(
             "user_id": user.id,
             "username": user.username
         })
+
+# ==============================================
+# WEBSOCKET FOR MULTIPLAYER QUIZ
+# ==============================================
+
+@app.websocket("/ws/quiz/{lobby_id}")
+async def websocket_quiz(
+    websocket: WebSocket,
+    lobby_id: str,
+    token: str = Query(...),
+    db: DBSession = Depends(get_db)
+):
+    """
+    WebSocket endpoint for multiplayer quiz rounds.
+
+    Client -> Server: {"type": "ready"}, {"type": "answer", "ref": "John 3:16"}
+    Server -> Client: quiz_start, question, player_locked_out, round_result, quiz_end
+    """
+    # Authenticate (same as race WS)
+    session = db.query(UserSession).filter(
+        UserSession.token == token,
+        UserSession.expires_at > datetime.utcnow()
+    ).first()
+    if not session:
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+
+    user = db.query(User).filter(User.id == session.user_id).first()
+    if not user:
+        await websocket.close(code=4001, reason="User not found")
+        return
+
+    lobby = db.query(RaceLobby).filter(RaceLobby.id == lobby_id).first()
+    if not lobby:
+        await websocket.close(code=4004, reason="Lobby not found")
+        return
+
+    player = db.query(LobbyPlayer).filter(
+        LobbyPlayer.lobby_id == lobby_id,
+        LobbyPlayer.user_id == user.id
+    ).first()
+    if not player:
+        await websocket.close(code=4003, reason="Not in lobby")
+        return
+
+    await ws_manager.connect(lobby_id, user.id, websocket)
+
+    # Notify others
+    await ws_manager.broadcast_to_lobby(lobby_id, {
+        "type": "player_joined",
+        "user_id": user.id,
+        "username": user.username,
+        "avatar_id": user.avatar_id
+    })
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            msg_type = data.get("type")
+
+            if msg_type == "ready":
+                player.ready = not player.ready
+                db.commit()
+
+                await ws_manager.broadcast_to_lobby(lobby_id, {
+                    "type": "player_ready",
+                    "user_id": user.id,
+                    "ready": player.ready
+                })
+
+                # Check if all players ready (need >= 2)
+                all_players = db.query(LobbyPlayer).filter(
+                    LobbyPlayer.lobby_id == lobby_id
+                ).all()
+
+                if len(all_players) >= 2 and all(p.ready for p in all_players):
+                    lobby.status = "countdown"
+                    db.commit()
+
+                    total_rounds = lobby.total_rounds or 5
+
+                    # Initialize quiz state
+                    player_ids = [p.user_id for p in all_players]
+                    ws_manager.quiz_state[lobby_id] = {
+                        "round": 0,
+                        "total_rounds": total_rounds,
+                        "scores": {pid: 0 for pid in player_ids},
+                        "locked_out": set(),
+                        "correct_ref": None,
+                    }
+
+                    # Countdown
+                    for i in [3, 2, 1]:
+                        await ws_manager.broadcast_to_lobby(lobby_id, {
+                            "type": "countdown", "seconds": i
+                        })
+                        await asyncio.sleep(1)
+
+                    lobby.status = "racing"  # reuse status
+                    lobby.started_at = datetime.utcnow()
+                    db.commit()
+
+                    await ws_manager.broadcast_to_lobby(lobby_id, {
+                        "type": "quiz_start",
+                        "total_rounds": total_rounds,
+                    })
+
+                    # Start first round
+                    await _send_quiz_round(lobby_id, lobby.version or "WEB")
+
+            elif msg_type == "answer":
+                qs = ws_manager.quiz_state.get(lobby_id)
+                if not qs:
+                    continue
+
+                ref = data.get("ref", "")
+
+                # Already locked out this round?
+                if user.id in qs["locked_out"]:
+                    continue
+
+                if ref == qs["correct_ref"]:
+                    # Correct! Award point, broadcast round result
+                    qs["scores"][user.id] = qs["scores"].get(user.id, 0) + 1
+
+                    await ws_manager.broadcast_to_lobby(lobby_id, {
+                        "type": "round_result",
+                        "round": qs["round"],
+                        "correct_ref": qs["correct_ref"],
+                        "winner_id": user.id,
+                        "winner_username": user.username,
+                        "scores": qs["scores"],
+                    })
+
+                    # Next round or end
+                    await asyncio.sleep(3)
+                    if qs["round"] >= qs["total_rounds"]:
+                        await _end_quiz(lobby_id, lobby, db)
+                    else:
+                        await _send_quiz_round(lobby_id, lobby.version or "WEB")
+                else:
+                    # Wrong — lock out this player for the round
+                    qs["locked_out"].add(user.id)
+                    await ws_manager.broadcast_to_lobby(lobby_id, {
+                        "type": "player_locked_out",
+                        "user_id": user.id,
+                    })
+
+                    # Check if ALL players are locked out
+                    connected = ws_manager.get_connected_users(lobby_id)
+                    if all(uid in qs["locked_out"] for uid in connected):
+                        # Nobody got it right
+                        await ws_manager.broadcast_to_lobby(lobby_id, {
+                            "type": "round_result",
+                            "round": qs["round"],
+                            "correct_ref": qs["correct_ref"],
+                            "winner_id": None,
+                            "winner_username": None,
+                            "scores": qs["scores"],
+                        })
+                        await asyncio.sleep(3)
+                        if qs["round"] >= qs["total_rounds"]:
+                            await _end_quiz(lobby_id, lobby, db)
+                        else:
+                            await _send_quiz_round(lobby_id, lobby.version or "WEB")
+
+            elif msg_type == "rematch":
+                new_join_code = data.get("join_code", "")
+                if new_join_code:
+                    await ws_manager.broadcast_to_lobby(lobby_id, {
+                        "type": "rematch",
+                        "join_code": new_join_code,
+                        "user_id": user.id,
+                        "username": user.username
+                    })
+
+    except WebSocketDisconnect:
+        pass
+    finally:
+        ws_manager.disconnect(lobby_id, user.id)
+        await ws_manager.broadcast_to_lobby(lobby_id, {
+            "type": "player_left",
+            "user_id": user.id,
+            "username": user.username
+        })
+
+
+async def _send_quiz_round(lobby_id: str, version: str):
+    """Generate and broadcast a new quiz question."""
+    qs = ws_manager.quiz_state.get(lobby_id)
+    if not qs:
+        return
+
+    qs["round"] += 1
+    qs["locked_out"] = set()
+
+    try:
+        question = await generate_quiz_question(version)
+    except Exception as e:
+        logger.error(f"Quiz question generation failed: {e}")
+        # Fallback: send a simple question
+        question = {
+            "correct_ref": "John 3:16",
+            "verse_text": "For God so loved the world...",
+            "options": ["John 3:16", "Romans 8:28", "Psalm 23:1", "Genesis 1:1"],
+        }
+
+    qs["correct_ref"] = question["correct_ref"]
+
+    await ws_manager.broadcast_to_lobby(lobby_id, {
+        "type": "question",
+        "round": qs["round"],
+        "total_rounds": qs["total_rounds"],
+        "verse_text": question["verse_text"],
+        "options": question["options"],
+    })
+
+
+async def _end_quiz(lobby_id: str, lobby, db):
+    """End the quiz and broadcast final results."""
+    qs = ws_manager.quiz_state.get(lobby_id)
+    if not qs:
+        return
+
+    lobby.status = "finished"
+    lobby.finished_at = datetime.utcnow()
+    db.commit()
+
+    # Build sorted results
+    scores = qs["scores"]
+    sorted_players = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+    # Get usernames
+    results = []
+    for place, (uid, score) in enumerate(sorted_players, 1):
+        u = db.query(User).filter(User.id == uid).first()
+        results.append({
+            "user_id": uid,
+            "username": u.username if u else "Unknown",
+            "score": score,
+            "place": place,
+        })
+
+    await ws_manager.broadcast_to_lobby(lobby_id, {
+        "type": "quiz_end",
+        "results": results,
+    })
+
+    # Clean up quiz state
+    ws_manager.quiz_state.pop(lobby_id, None)
+
 
 # ---------- Serve static frontend files ----------
 # Mount LAST so API routes take priority over file paths

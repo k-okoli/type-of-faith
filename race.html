@@ -31,6 +31,7 @@
     h2 { margin: 8px 0 16px; font-weight: 600; color: var(--ink); }
     #meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
     #banner { font-size: 14px; color: var(--accent); margin: 6px 0 10px; padding: 6px 8px; border-radius: 6px; background: var(--banner-bg); display:none; }
+    #banner.error { color: var(--err); background: color-mix(in srgb, var(--err) 10%, var(--panel)); }
     #verse { font-size: 20px; line-height: 1.6; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 3.5em; }
     #typed { color: var(--ok); }
     #incorrect { color: #fff; background: var(--err); border-radius: 2px; padding: 0 1px; }
@@ -43,6 +44,18 @@
     }
     #input { width: 100%; font-size: 20px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--panel); color: var(--ink); margin-bottom: 12px; }
     .copyline { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+
+    /* ---------- Mode tabs ---------- */
+    .mode-tabs { display:flex; gap:0; margin-bottom:12px; }
+    .mode-tab {
+      flex:1; padding:10px 16px; text-align:center; cursor:pointer;
+      border:1px solid var(--btn-border); background:var(--panel);
+      font-weight:600; transition:background .15s, color .15s;
+    }
+    .mode-tab:first-child { border-radius:8px 0 0 8px; }
+    .mode-tab:last-child { border-radius:0 8px 8px 0; border-left:none; }
+    .mode-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .mode-tab:not(.active):hover { background:var(--border); }
 
     /* ---------- Race arena ---------- */
     .race-arena { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; padding: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
@@ -76,122 +89,76 @@
 
     /* ---------- Countdown overlay ---------- */
     .countdown-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s, visibility 0.2s;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+      opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
     }
-    .countdown-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
-    .countdown-number {
-      font-size: 150px;
-      font-weight: 800;
-      color: #fff;
-      text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
-      animation: countdownPulse 0.8s ease-out;
-    }
-    .countdown-number.go {
-      color: #6ee7a0;
-      text-shadow: 0 0 60px rgba(110, 231, 160, 0.8);
-    }
-    @keyframes countdownPulse {
-      0% { transform: scale(2); opacity: 0; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    .countdown-overlay.show { opacity: 1; visibility: visible; }
+    .countdown-number { font-size: 150px; font-weight: 800; color: #fff; text-shadow: 0 0 40px rgba(255, 215, 0, 0.5); animation: countdownPulse 0.8s ease-out; }
+    .countdown-number.go { color: #6ee7a0; text-shadow: 0 0 60px rgba(110, 231, 160, 0.8); }
+    @keyframes countdownPulse { 0% { transform: scale(2); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
-    /* ---------- Race win celebration ---------- */
-    .celebration-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 999;
-      overflow: hidden;
-    }
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      opacity: 0;
-    }
-    .confetti.animate {
-      animation: confettiFall 3s ease-out forwards;
-    }
-    @keyframes confettiFall {
-      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
+    /* ---------- Celebration ---------- */
+    .celebration-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+    .confetti { position: absolute; width: 10px; height: 10px; opacity: 0; }
+    .confetti.animate { animation: confettiFall 3s ease-out forwards; }
+    @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    .trophy-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; z-index: 1001; opacity: 0; pointer-events: none; }
+    .trophy-popup.show { animation: trophyBounce 1.5s ease-out forwards; }
+    @keyframes trophyBounce { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+    .achievement-toast { position: fixed; top: 80px; right: -400px; background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%); color: #1a1a1a; padding: 16px 24px; border-radius: 12px; box-shadow: 0 8px 32px rgba(255, 215, 0, 0.4); z-index: 1002; display: flex; align-items: center; gap: 12px; font-weight: 600; transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+    .achievement-toast.show { right: 24px; }
+    .achievement-toast img { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #fff; }
+    .achievement-toast .toast-content { display: flex; flex-direction: column; gap: 2px; }
+    .achievement-toast .toast-title { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .achievement-toast .toast-name { font-size: 16px; }
 
-    /* ---------- Trophy animation ---------- */
-    .trophy-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      font-size: 100px;
-      z-index: 1001;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .trophy-popup.show {
-      animation: trophyBounce 1.5s ease-out forwards;
-    }
-    @keyframes trophyBounce {
-      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-      30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
-      50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; }
-      70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
-    }
+    /* ---------- Multiplayer views ---------- */
+    .view { display:none; }
+    .view.active { display:block; }
+    .lobby-actions { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    .lobby-list { display:flex; flex-direction:column; gap:8px; }
+    .lobby-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
+    .lobby-item .lobby-info { flex:1; }
+    .lobby-item .lobby-verse { font-weight:600; }
+    .lobby-item .lobby-meta { font-size:12px; color:var(--muted); }
+    .lobby-item .lobby-players { font-size:13px; color:var(--muted); }
+    .empty-msg { text-align:center; color:var(--muted); padding:20px; }
+    .join-code-form { display:flex; gap:12px; align-items:flex-end; }
+    .join-code-form input { width:150px; text-transform:uppercase; font-family:monospace; font-size:20px; letter-spacing:2px; }
+    .waiting-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
+    .join-code-display { font-family:monospace; font-size:24px; font-weight:700; color:var(--accent); background:var(--banner-bg); padding:8px 16px; border-radius:8px; }
+    .player-list { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+    .player-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 16px; background:var(--panel); border:2px solid var(--border); border-radius:12px; min-width:100px; }
+    .player-card.ready { border-color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, var(--panel)); }
+    .player-card img { width:48px; height:48px; border-radius:50%; }
+    .player-card .player-name { font-weight:600; font-size:14px; }
+    .player-card .player-status { font-size:11px; color:var(--muted); }
+    .waiting-verse { background:var(--banner-bg); padding:12px; border-radius:8px; margin-bottom:16px; }
+    .waiting-verse .verse-ref { font-weight:600; margin-bottom:4px; }
+    .waiting-verse .verse-text { color:var(--muted); font-size:14px; }
+    .waiting-actions { display:flex; gap:12px; }
 
-    /* ---------- Achievement toast ---------- */
-    .achievement-toast {
-      position: fixed;
-      top: 80px;
-      right: -400px;
-      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-      color: #1a1a1a;
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(255, 215, 0, 0.4);
-      z-index: 1002;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 600;
-      transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-    .achievement-toast.show {
-      right: 24px;
-    }
-    .achievement-toast img {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 3px solid #fff;
-    }
-    .achievement-toast .toast-content {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .achievement-toast .toast-title {
-      font-size: 12px;
-      opacity: 0.8;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .achievement-toast .toast-name {
-      font-size: 16px;
-    }
+    /* MP race view */
+    .mp-race-arena { margin-bottom:16px; }
+    .mp-race-lane { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .mp-lane-label { width:100px; font-size:13px; font-weight:600; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mp-track { flex:1; height:40px; background:color-mix(in srgb, var(--border) 50%, transparent); border-radius:20px; position:relative; overflow:hidden; }
+    .mp-track .mp-avatar { position:absolute; top:2px; left:0; width:36px; height:36px; border-radius:50%; transition:left 0.15s ease-out; }
+    .mp-track .mp-finish-line { position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--ink) 0 4px, var(--panel) 4px 8px); }
+    .mp-track .mp-pct { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:12px; font-weight:600; color:var(--muted); }
+    #mpRaceVerse { font-size:20px; line-height:1.6; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:12px; }
+    #mpRaceVerse .mp-typed { color:var(--ok); }
+    #mpRaceVerse .mp-incorrect { color:#fff; background:var(--err); border-radius:2px; padding:0 1px; }
+    #mpRaceVerse .mp-remaining { color:var(--muted); }
+    #mpRaceInput { width:100%; font-size:20px; padding:12px; border-radius:8px; border:1px solid var(--input-border); background:var(--panel); color:var(--ink); }
+    #mpRaceInput:disabled { opacity:0.5; }
+    .mp-race-status { text-align:center; font-size:14px; color:var(--muted); margin-top:12px; }
+
+    /* MP countdown */
+    .mp-countdown-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .mp-countdown-number { font-size:150px; font-weight:800; color:#fff; text-shadow:0 0 40px rgba(255,215,0,0.5); animation:countdownPulse 0.8s ease-out; }
+    .mp-countdown-number.go { color:#6ee7a0; text-shadow:0 0 60px rgba(110,231,160,0.8); }
   </style>
 </head>
 <body>
@@ -201,108 +168,204 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
+  <script src="shared/leaderboard.js"></script>
   <script src="shared/streak.js"></script>
   <script src="shared/offline.js"></script>
   <script src="shared/shortcuts.js"></script>
   <script src="shared/settings.js"></script>
 
-  <h2>Race Mode</h2>
-
-  <div class="controls">
-    <div class="control-group">
-      <label for="category">Category</label>
-      <select id="category">
-        <option value="all">All</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="length">Verse length</label>
-      <select id="length">
-        <option value="any">Any</option>
-        <option value="short">Short</option>
-        <option value="medium">Medium</option>
-        <option value="long">Long</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="version">Version</label>
-      <select id="version">
-        <option value="WEB" selected>WEB</option>
-        <option value="KJV">KJV</option>
-        <option value="FBV">FBV</option>
-        <option value="ESV">ESV</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="aiMode">AI Mode</label>
-      <select id="aiMode">
-        <option value="fixed">Fixed</option>
-        <option value="personality">Personality</option>
-        <option value="adaptive">Adaptive</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="opponents">Opponents</label>
-      <select id="opponents">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3" selected>3</option>
-      </select>
-    </div>
-
-    <button class="primary" id="startBtn">Start Race</button>
-    <button id="newVerseBtn">New Verse</button>
+  <!-- Mode tabs: Solo / Multiplayer -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="soloTab">Solo</div>
+    <div class="mode-tab" id="multiTab">Multiplayer</div>
   </div>
 
-  <div id="meta"></div>
-  <div id="banner"></div>
+  <!-- ===== SOLO SECTION ===== -->
+  <div id="soloSection">
+    <h2>Race Mode</h2>
 
-  <div id="verse">
-    <span id="typed"></span><span id="incorrect"></span><span id="remaining"></span>
-  </div>
-
-  <div class="copyline" id="copyline"></div>
-
-  <div class="race-arena" id="raceArena"></div>
-
-  <input id="input" placeholder="Type the verse here..." autocomplete="off" spellcheck="false" disabled />
-
-  <div class="results-panel" id="resultsPanel">
-    <h3>Race Results</h3>
-    <table class="results-table">
-      <thead>
-        <tr>
-          <th>Place</th>
-          <th>Racer</th>
-          <th>Time</th>
-          <th>WPM</th>
-        </tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
-    </table>
-  </div>
-
-  <div class="panels">
-    <div class="card">
-      <strong>Live Metrics</strong>
-      <div id="status" class="stat">WPM: 0 | Accuracy: 100% | Time: 0.0s</div>
+    <div class="controls">
+      <div class="control-group">
+        <label for="category">Category</label>
+        <select id="category"><option value="all">All</option></select>
+      </div>
+      <div class="control-group">
+        <label for="length">Verse length</label>
+        <select id="length">
+          <option value="any">Any</option><option value="short">Short</option>
+          <option value="medium">Medium</option><option value="long">Long</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="version">Version</label>
+        <select id="version">
+          <option value="WEB" selected>WEB</option><option value="KJV">KJV</option>
+          <option value="FBV">FBV</option><option value="ESV">ESV</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="aiMode">AI Mode</label>
+        <select id="aiMode">
+          <option value="fixed">Fixed</option><option value="personality">Personality</option>
+          <option value="adaptive">Adaptive</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="opponents">Opponents</label>
+        <select id="opponents">
+          <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
+        </select>
+      </div>
+      <button class="primary" id="startBtn">Start Race</button>
+      <button id="newVerseBtn">New Verse</button>
     </div>
-    <div class="card">
-      <strong>Your Stats</strong>
-      <div id="playerStats" class="stat">Races: 0 | Avg WPM: --</div>
+
+    <div id="meta"></div>
+    <div id="banner"></div>
+
+    <div id="verse">
+      <span id="typed"></span><span id="incorrect"></span><span id="remaining"></span>
+    </div>
+    <div class="copyline" id="copyline"></div>
+    <div class="race-arena" id="raceArena"></div>
+    <input id="input" placeholder="Type the verse here..." autocomplete="off" spellcheck="false" disabled />
+
+    <div class="results-panel" id="resultsPanel">
+      <h3>Race Results</h3>
+      <table class="results-table">
+        <thead><tr><th>Place</th><th>Racer</th><th>Time</th><th>WPM</th></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panels">
+      <div class="card"><strong>Live Metrics</strong><div id="status" class="stat">WPM: 0 | Accuracy: 100% | Time: 0.0s</div></div>
+      <div class="card"><strong>Your Stats</strong><div id="playerStats" class="stat">Races: 0 | Avg WPM: --</div></div>
     </div>
   </div>
 
-  <!-- Countdown overlay -->
+  <!-- ===== MULTIPLAYER SECTION ===== -->
+  <div id="multiSection" style="display:none;">
+
+    <!-- MP: Login Required -->
+    <div id="mpLoginView" class="view">
+      <div class="card" style="max-width:400px; margin:40px auto; text-align:center;">
+        <h3>Login Required</h3>
+        <p style="color:var(--muted); margin-bottom:16px;">You need an account to play multiplayer races.</p>
+        <button class="primary" id="mpLoginBtn">Create Account</button>
+      </div>
+    </div>
+
+    <!-- MP: Lobby Browser -->
+    <div id="mpBrowserView" class="view">
+      <h2>Multiplayer Races</h2>
+      <div class="lobby-actions">
+        <button class="primary" id="mpCreateLobbyBtn">Create Lobby</button>
+        <button id="mpRefreshBtn">Refresh</button>
+      </div>
+      <div class="card">
+        <h3>Join by Code</h3>
+        <div class="join-code-form">
+          <input type="text" id="mpJoinCodeInput" placeholder="ABC123" maxlength="6" />
+          <button id="mpJoinByCodeBtn">Join</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h3>Available Race Lobbies</h3>
+        <div id="mpLobbyList" class="lobby-list"><div class="empty-msg">Loading lobbies...</div></div>
+      </div>
+    </div>
+
+    <!-- MP: Create Lobby -->
+    <div id="mpCreateView" class="view">
+      <h2>Create Race Lobby</h2>
+      <div class="card" style="max-width:500px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Verse Reference</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="mpVerseRefInput" placeholder="John 3:16" style="flex:1;" />
+            <button type="button" id="mpRandomVerseBtn" title="Pick a random verse">Random</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label>Version</label>
+            <select id="mpVersionSelect"><option value="WEB" selected>WEB</option><option value="KJV">KJV</option></select>
+          </div>
+          <div class="form-group">
+            <label>Max Players</label>
+            <select id="mpMaxPlayersSelect">
+              <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
+              <option value="6">6</option><option value="8">8</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <button id="mpCancelCreateBtn">Cancel</button>
+          <button class="primary" id="mpConfirmCreateBtn">Create Lobby</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP: Waiting Room -->
+    <div id="mpWaitingView" class="view">
+      <h2>Waiting Room</h2>
+      <div class="card">
+        <div class="waiting-header">
+          <div>
+            <div style="font-size:12px; color:var(--muted);">JOIN CODE</div>
+            <div class="join-code-display" id="mpWaitingJoinCode">ABC123</div>
+          </div>
+          <button id="mpCopyCodeBtn">Copy Code</button>
+        </div>
+        <div class="waiting-verse">
+          <div class="verse-ref" id="mpWaitingVerseRef">John 3:16</div>
+          <div class="verse-text" id="mpWaitingVerseText">Loading verse...</div>
+        </div>
+        <h4 style="margin:0 0 8px;">Players</h4>
+        <div class="player-list" id="mpPlayerList"></div>
+        <div class="waiting-actions">
+          <button id="mpLeaveBtn">Leave</button>
+          <button class="primary" id="mpReadyBtn">Ready</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP: Race View -->
+    <div id="mpRaceView" class="view">
+      <div class="mp-race-arena" id="mpRaceArena"></div>
+      <div id="mpRaceVerse">
+        <span class="mp-typed"></span><span class="mp-incorrect"></span><span class="mp-remaining"></span>
+      </div>
+      <input type="text" id="mpRaceInput" placeholder="Type when race starts..." disabled autocomplete="off" spellcheck="false" />
+      <div class="mp-race-status" id="mpRaceStatus">Waiting for race to start...</div>
+    </div>
+
+    <!-- MP: Results View -->
+    <div id="mpResultsView" class="view">
+      <div class="card" style="text-align:center;">
+        <h2>Race Complete!</h2>
+        <table class="results-table">
+          <thead><tr><th>Place</th><th>Player</th><th>Time</th><th>WPM</th></tr></thead>
+          <tbody id="mpResultsBody"></tbody>
+        </table>
+        <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+          <button id="mpBackToLobbiesBtn">Back to Lobbies</button>
+          <button class="primary" id="mpRaceAgainBtn">Race Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP Countdown -->
+    <div class="mp-countdown-overlay" id="mpCountdownOverlay" style="display:none;">
+      <div class="mp-countdown-number" id="mpCountdownNumber">3</div>
+    </div>
+  </div>
+
+  <!-- Shared overlays -->
   <div class="countdown-overlay" id="countdownOverlay">
     <div class="countdown-number" id="countdownNumber">3</div>
   </div>
-
-  <!-- Celebration elements -->
   <div class="celebration-overlay" id="celebrationOverlay"></div>
   <div class="trophy-popup" id="trophyPopup"></div>
   <div class="achievement-toast" id="achievementToast">
@@ -314,7 +377,26 @@
   </div>
 
   <script>
-    // ======= Constants =======
+    // ================================================================
+    // TOP-LEVEL MODE SWITCHING
+    // ================================================================
+    let raceTopMode = 'solo';
+
+    function setRaceTopMode(mode) {
+      raceTopMode = mode;
+      document.getElementById('soloTab').classList.toggle('active', mode === 'solo');
+      document.getElementById('multiTab').classList.toggle('active', mode === 'multi');
+      document.getElementById('soloSection').style.display = mode === 'solo' ? '' : 'none';
+      document.getElementById('multiSection').style.display = mode === 'multi' ? '' : 'none';
+      if (mode === 'multi') mpInit();
+    }
+
+    document.getElementById('soloTab').addEventListener('click', () => setRaceTopMode('solo'));
+    document.getElementById('multiTab').addEventListener('click', () => setRaceTopMode('multi'));
+
+    // ================================================================
+    // SOLO RACE (existing logic, unchanged)
+    // ================================================================
     const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
 
     const AVATARS = [
@@ -328,20 +410,14 @@
     ];
 
     const AI_FIXED_SPEEDS = [20, 40, 60];
-
     const AI_PERSONALITY = [
-      { id: "moses", base: 30, variance: 0.3 },
-      { id: "david", base: 45, variance: 0.35 },
-      { id: "elijah", base: 50, variance: 0.25 },
-      { id: "jonah", base: 35, variance: 0.4 },
-      { id: "noahs-ark", base: 25, variance: 0.2 },
-      { id: "burning-bush", base: 55, variance: 0.3 },
+      { id: "moses", base: 30, variance: 0.3 }, { id: "david", base: 45, variance: 0.35 },
+      { id: "elijah", base: 50, variance: 0.25 }, { id: "jonah", base: 35, variance: 0.4 },
+      { id: "noahs-ark", base: 25, variance: 0.2 }, { id: "burning-bush", base: 55, variance: 0.3 },
       { id: "ten-commandments", base: 40, variance: 0.15 },
     ];
-
     const AI_ADAPTIVE_OFFSETS = [-5, 0, +8];
 
-    // ======= DOM refs =======
     const categoryEl = document.getElementById("category");
     const lengthEl = document.getElementById("length");
     const versionEl = document.getElementById("version");
@@ -362,7 +438,6 @@
     const statusEl = document.getElementById("status");
     const playerStatsEl = document.getElementById("playerStats");
 
-    // ======= State =======
     let verseText = "";
     let reference = "";
     let raceActive = false;
@@ -377,84 +452,37 @@
     let errorKeystrokes = 0;
     let errorPositions = new Set();
     let prevValue = "";
-
-    // Race history for adaptive mode
     let raceHistory = JSON.parse(localStorage.getItem("tof_race_history") || "[]");
 
-    // ======= Utility functions =======
     function normalizeQuotes(s) {
       return (s || "").replace(/['\u2018\u2019\u201A\u201B]/g, "'").replace(/["\u201C\u201D\u201E\u201F]/g, '"');
     }
-
     function classifyLengthByChars(text) {
       const len = text.trim().length;
       if (len <= LEN_THRESHOLDS.shortMax) return "short";
       if (len <= LEN_THRESHOLDS.mediumMax) return "medium";
       return "long";
     }
-
     function getRandomRefAndCategory(category) {
       if (category && category !== "all") {
         const list = VERSE_CATEGORIES[category] || [];
-        const ref = list[Math.floor(Math.random() * list.length)];
-        return { ref, cat: category };
+        return { ref: list[Math.floor(Math.random() * list.length)], cat: category };
       }
       const ref = ALL_REFERENCES[Math.floor(Math.random() * ALL_REFERENCES.length)];
-      const cat = REF_TO_CATEGORY[ref] || "all";
-      return { ref, cat };
+      return { ref, cat: REF_TO_CATEGORY[ref] || "all" };
     }
-
     function shuffleArray(arr) {
       const copy = [...arr];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
+      for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; }
       return copy;
     }
+    function getSelectedAvatar() { const saved = localStorage.getItem("tof_avatar"); return AVATARS.find(a => a.id === saved) || AVATARS[0]; }
+    function getPlayerAvgWPM() { if (raceHistory.length === 0) return 35; return Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / raceHistory.length); }
+    function saveRaceResult(wpm, mode) { raceHistory.push({ wpm, mode, date: new Date().toISOString() }); if (raceHistory.length > 10) raceHistory = raceHistory.slice(-10); localStorage.setItem("tof_race_history", JSON.stringify(raceHistory)); updatePlayerStats(); }
+    function updatePlayerStats() { const count = raceHistory.length; const avg = count > 0 ? Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / count) : "--"; playerStatsEl.textContent = `Races: ${count} | Avg WPM: ${avg}`; }
+    function populateCategoryDropdown() { for (const cat of Object.keys(VERSE_CATEGORIES).sort()) { const opt = document.createElement("option"); opt.value = cat; opt.textContent = titleCase(cat); categoryEl.appendChild(opt); } }
 
-    function getSelectedAvatar() {
-      const saved = localStorage.getItem("tof_avatar");
-      return AVATARS.find(a => a.id === saved) || AVATARS[0];
-    }
-
-    function getPlayerAvgWPM() {
-      if (raceHistory.length === 0) return 35;
-      const sum = raceHistory.reduce((acc, r) => acc + r.wpm, 0);
-      return Math.round(sum / raceHistory.length);
-    }
-
-    function saveRaceResult(wpm, mode) {
-      raceHistory.push({ wpm, mode, date: new Date().toISOString() });
-      if (raceHistory.length > 10) raceHistory = raceHistory.slice(-10);
-      localStorage.setItem("tof_race_history", JSON.stringify(raceHistory));
-      updatePlayerStats();
-    }
-
-    function updatePlayerStats() {
-      const count = raceHistory.length;
-      const avg = count > 0 ? Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / count) : "--";
-      playerStatsEl.textContent = `Races: ${count} | Avg WPM: ${avg}`;
-    }
-
-    // ======= Category dropdown population =======
-    function populateCategoryDropdown() {
-      const cats = Object.keys(VERSE_CATEGORIES).sort();
-      for (const cat of cats) {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = titleCase(cat);
-        categoryEl.appendChild(opt);
-      }
-    }
-
-    // ======= Providers =======
-    function withTimeout(ms) {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), ms);
-      return { signal: ctrl.signal, cancel: () => clearTimeout(t) };
-    }
-
+    function withTimeout(ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms); return { signal: ctrl.signal, cancel: () => clearTimeout(t) }; }
     function classifyError(err, res = null, bodyText = "") {
       const detail = (err && err.message) ? err.message : "";
       if (!res) return { code: "NETWORK", user: "Cannot reach the verse server.", hint: "If using FBV/ESV, start FastAPI.", detail };
@@ -465,586 +493,306 @@
       if (s === 502 || s === 503 || s === 504) return { code: "UPSTREAM", user: "Upstream provider unavailable.", hint: "Wait and try again.", detail: bodyText };
       return { code: "SERVER", user: "The verse server hit an error.", hint: "Try again or switch to KJV/WEB.", detail: bodyText };
     }
-
     async function fetchViaProxy(ref, versionCode) {
-      const base = TofConfig.API_BASE;
-      const url = `${base}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
+      const url = `${TofConfig.API_BASE}/verse?ref=${encodeURIComponent(ref)}&version=${encodeURIComponent(versionCode)}`;
       const { signal, cancel } = withTimeout(9000);
-      try {
-        const res = await fetch(url, { signal });
-        const text = await res.text();
-        if (!res.ok) throw { __http: true, res, text };
-        return JSON.parse(text);
-      } catch (e) {
-        const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e);
-        const err = new Error(c.user);
-        err._ui = c;
-        throw err;
-      } finally {
-        cancel();
-      }
+      try { const res = await fetch(url, { signal }); const text = await res.text(); if (!res.ok) throw { __http: true, res, text }; return JSON.parse(text); }
+      catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui = c; throw err; }
+      finally { cancel(); }
     }
-
     async function fetchViaBibleApi(ref, versionCode) {
       const t = (versionCode || "WEB").toLowerCase();
       const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
       const { signal, cancel } = withTimeout(9000);
-      try {
-        const res = await fetch(url, { signal });
-        const text = await res.text();
-        if (!res.ok) throw { __http: true, res, text };
-        const data = JSON.parse(text);
-        const verseText = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || "");
-        return { reference: data.reference || ref, text: verseText.replace(/\s+/g, " ").trim(), version: (versionCode || "WEB").toUpperCase(), fallback: true };
-      } catch (e) {
-        const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e);
-        const err = new Error(c.user);
-        err._ui = c;
-        throw err;
-      } finally {
-        cancel();
-      }
+      try { const res = await fetch(url, { signal }); const text = await res.text(); if (!res.ok) throw { __http: true, res, text }; const data = JSON.parse(text); const vt = Array.isArray(data.verses) && data.verses.length ? data.verses.map(v => v.text.trim()).join(" ") : (data.text || ""); return { reference: data.reference || ref, text: vt.replace(/\s+/g, " ").trim(), version: (versionCode || "WEB").toUpperCase(), fallback: true }; }
+      catch (e) { const c = e.__http ? classifyError(null, e.res, e.text) : classifyError(e); const err = new Error(c.user); err._ui = c; throw err; }
+      finally { cancel(); }
     }
-
     async function fetchVerseUnified(ref, versionCode) {
-      try {
-        return await fetchViaProxy(ref, versionCode);
-      } catch (e) {
-        const info = e._ui || {};
-        const pub = ["KJV", "WEB"];
-        if (pub.includes(versionCode)) {
-          showBanner("warn", `${info.user || "Proxy unavailable."} Falling back to public provider for ${versionCode}...`);
-          try {
-            return await fetchViaBibleApi(ref, versionCode);
-          } catch (e2) {
-            const i2 = e2._ui || {};
-            showBanner("error", `${i2.user || "Failed to fetch verse."} ${i2.hint ? "Hint: " + i2.hint : ""}`);
-            throw e2;
-          }
-        }
-        showBanner("error", `${info.user || "Verse proxy error."} ${info.hint ? "Hint: " + info.hint : ""}`);
-        throw e;
-      }
+      try { return await fetchViaProxy(ref, versionCode); }
+      catch (e) { const info = e._ui || {}; if (["KJV", "WEB"].includes(versionCode)) { showBanner("warn", `${info.user || "Proxy unavailable."} Falling back...`); try { return await fetchViaBibleApi(ref, versionCode); } catch (e2) { const i2 = e2._ui || {}; showBanner("error", `${i2.user || "Failed."} ${i2.hint || ""}`); throw e2; } } showBanner("error", `${info.user || "Verse proxy error."} ${info.hint || ""}`); throw e; }
     }
-
     async function fetchVerseMatchingLength(category, lengthPref, versionCode) {
-      if (lengthPref === "any") {
-        const pick = getRandomRefAndCategory(category);
-        const got = await fetchVerseUnified(pick.ref, versionCode);
-        return { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
-      }
-      const MAX_TRIES = 8;
-      let last = null;
-      for (let i = 0; i < MAX_TRIES; i++) {
-        const pick = getRandomRefAndCategory(category);
-        const got = await fetchVerseUnified(pick.ref, versionCode);
-        const cls = classifyLengthByChars(got.text);
-        last = { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version };
-        if (cls === lengthPref) return last;
-      }
+      if (lengthPref === "any") { const pick = getRandomRefAndCategory(category); const got = await fetchVerseUnified(pick.ref, versionCode); return { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version }; }
+      const MAX_TRIES = 8; let last = null;
+      for (let i = 0; i < MAX_TRIES; i++) { const pick = getRandomRefAndCategory(category); const got = await fetchVerseUnified(pick.ref, versionCode); last = { reference: got.reference, text: got.text, cat: REF_TO_CATEGORY[pick.ref] || category, copyright: got.copyright, version: got.version }; if (classifyLengthByChars(got.text) === lengthPref) return last; }
       return last;
     }
 
-    // ======= Race lane rendering =======
-    function createLaneHTML(label, avatarSrc, id) {
-      return `
-        <div class="race-lane" id="lane-${id}">
-          <span class="lane-label">${label}</span>
-          <div class="track-lane">
-            <img class="race-avatar" id="avatar-${id}" src="${avatarSrc}" alt="${label}" />
-            <span class="race-pct" id="pct-${id}">0%</span>
-            <div class="finish-line"></div>
-          </div>
-        </div>
-      `;
-    }
-
+    function createLaneHTML(label, avatarSrc, id) { return `<div class="race-lane" id="lane-${id}"><span class="lane-label">${label}</span><div class="track-lane"><img class="race-avatar" id="avatar-${id}" src="${avatarSrc}" alt="${label}" /><span class="race-pct" id="pct-${id}">0%</span><div class="finish-line"></div></div></div>`; }
     function renderRaceArena() {
-      const playerAvatar = getSelectedAvatar();
-      player = {
-        id: "player",
-        name: "You",
-        avatar: playerAvatar,
-        progress: 0,
-        finished: false,
-        finishTime: null,
-        wpm: 0
-      };
-
-      const numOpponents = parseInt(opponentsEl.value, 10);
-      const availableAvatars = AVATARS.filter(a => a.id !== playerAvatar.id);
-      const shuffled = shuffleArray(availableAvatars).slice(0, numOpponents);
-
-      aiRacers = shuffled.map((av, i) => {
-        const personality = AI_PERSONALITY.find(p => p.id === av.id) || { base: 40, variance: 0.25 };
-        return {
-          id: `ai-${i}`,
-          name: av.name,
-          avatar: av,
-          progress: 0,
-          finished: false,
-          finishTime: null,
-          wpm: 0,
-          personality,
-          assignedWPM: 0
-        };
+      const pa = getSelectedAvatar();
+      player = { id: "player", name: "You", avatar: pa, progress: 0, finished: false, finishTime: null, wpm: 0 };
+      const numO = parseInt(opponentsEl.value, 10);
+      aiRacers = shuffleArray(AVATARS.filter(a => a.id !== pa.id)).slice(0, numO).map((av, i) => {
+        const p = AI_PERSONALITY.find(x => x.id === av.id) || { base: 40, variance: 0.25 };
+        return { id: `ai-${i}`, name: av.name, avatar: av, progress: 0, finished: false, finishTime: null, wpm: 0, personality: p, assignedWPM: 0 };
       });
-
-      // Assign AI speeds based on mode
-      const mode = aiModeEl.value;
-      const shuffledSpeeds = shuffleArray(AI_FIXED_SPEEDS);
-      const playerAvg = getPlayerAvgWPM();
-
-      aiRacers.forEach((ai, i) => {
-        if (mode === "fixed") {
-          ai.assignedWPM = shuffledSpeeds[i % shuffledSpeeds.length];
-        } else if (mode === "personality") {
-          ai.assignedWPM = ai.personality.base;
-        } else if (mode === "adaptive") {
-          const offset = AI_ADAPTIVE_OFFSETS[i % AI_ADAPTIVE_OFFSETS.length];
-          ai.assignedWPM = Math.max(10, playerAvg + offset);
-        }
-      });
-
-      // Build arena HTML
-      let html = createLaneHTML("You", playerAvatar.src, "player");
-      for (const ai of aiRacers) {
-        html += createLaneHTML(ai.name, ai.avatar.src, ai.id);
-      }
-      raceArenaEl.innerHTML = html;
+      const mode = aiModeEl.value; const ss = shuffleArray(AI_FIXED_SPEEDS); const avg = getPlayerAvgWPM();
+      aiRacers.forEach((ai, i) => { if (mode === "fixed") ai.assignedWPM = ss[i % ss.length]; else if (mode === "personality") ai.assignedWPM = ai.personality.base; else ai.assignedWPM = Math.max(10, avg + AI_ADAPTIVE_OFFSETS[i % AI_ADAPTIVE_OFFSETS.length]); });
+      let html = createLaneHTML("You", pa.src, "player"); for (const ai of aiRacers) html += createLaneHTML(ai.name, ai.avatar.src, ai.id); raceArenaEl.innerHTML = html;
     }
-
     function updateLanePosition(id, progress, totalChars) {
-      const lane = document.querySelector(`#lane-${id} .track-lane`);
-      const avatar = document.getElementById(`avatar-${id}`);
-      const pctEl = document.getElementById(`pct-${id}`);
+      const lane = document.querySelector(`#lane-${id} .track-lane`); const avatar = document.getElementById(`avatar-${id}`); const pctEl = document.getElementById(`pct-${id}`);
       if (!lane || !avatar || !pctEl) return;
-
-      const ratio = Math.min(1, progress / totalChars);
-      const pct = Math.round(ratio * 100);
-      const maxLeft = lane.offsetWidth - avatar.offsetWidth;
-      avatar.style.left = Math.round(ratio * maxLeft) + "px";
-      pctEl.textContent = pct + "%";
+      const ratio = Math.min(1, progress / totalChars); avatar.style.left = Math.round(ratio * (lane.offsetWidth - avatar.offsetWidth)) + "px"; pctEl.textContent = Math.round(ratio * 100) + "%";
     }
-
-    // ======= Race flow =======
     function resetRace() {
-      raceActive = false;
-      finishOrder = [];
-      started = false;
-      totalKeystrokes = 0;
-      errorKeystrokes = 0;
-      errorPositions.clear();
-      prevValue = "";
-      inputEl.value = "";
-      inputEl.disabled = true;
-      inputEl.classList.remove("error-state");
-      incorrectEl.textContent = "";
-      resultsPanel.classList.remove("show");
-      if (aiInterval) {
-        clearInterval(aiInterval);
-        aiInterval = null;
-      }
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-      }
+      raceActive = false; finishOrder = []; started = false; totalKeystrokes = 0; errorKeystrokes = 0; errorPositions.clear(); prevValue = "";
+      inputEl.value = ""; inputEl.disabled = true; inputEl.classList.remove("error-state"); incorrectEl.textContent = ""; resultsPanel.classList.remove("show");
+      if (aiInterval) { clearInterval(aiInterval); aiInterval = null; } if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
     }
-
     async function loadVerse() {
-      resetRace();
-      const category = categoryEl.value;
-      const lenPref = lengthEl.value;
-      const versionCode = versionEl.value.toUpperCase();
-      metaEl.textContent = "Loading verse...";
-      copylineEl.textContent = "";
-      showBanner("info", "Contacting verse providers...");
-
-      try {
-        const got = await fetchVerseMatchingLength(category, lenPref, versionCode);
-        if (!got || !got.text) throw new Error("Empty verse text");
-        verseText = got.text;
-        reference = got.reference;
-        typedEl.textContent = "";
-        remainingEl.textContent = verseText;
-        const cls = classifyLengthByChars(got.text);
-        metaEl.textContent = `${reference} (${(got.version || versionCode).toUpperCase()}) | ${titleCase(cls)}${got.fallback ? " | (fallback source)" : ""}`;
-        if (got.copyright) copylineEl.textContent = got.copyright;
-        showBanner("success", "Verse loaded. Click 'Start Race' when ready!");
-        renderRaceArena();
-      } catch (err) {
-        const ui = err._ui || {};
-        showBanner("error", `${ui.user || "Could not load verse."} ${ui.hint ? "Hint: " + ui.hint : ""}`);
-        console.error("Verse load failed:", ui.detail || err);
-      }
+      resetRace(); const cat = categoryEl.value; const len = lengthEl.value; const ver = versionEl.value.toUpperCase();
+      metaEl.textContent = "Loading verse..."; copylineEl.textContent = ""; showBanner("info", "Contacting verse providers...");
+      try { const got = await fetchVerseMatchingLength(cat, len, ver); if (!got || !got.text) throw new Error("Empty"); verseText = got.text; reference = got.reference; typedEl.textContent = ""; remainingEl.textContent = verseText; metaEl.textContent = `${reference} (${(got.version || ver).toUpperCase()}) | ${titleCase(classifyLengthByChars(got.text))}${got.fallback ? " | (fallback)" : ""}`; if (got.copyright) copylineEl.textContent = got.copyright; showBanner("success", "Verse loaded. Click 'Start Race' when ready!"); renderRaceArena(); }
+      catch (err) { const ui = err._ui || {}; showBanner("error", `${ui.user || "Could not load verse."} ${ui.hint || ""}`); }
     }
-
     function startCountdown() {
-      const overlay = document.getElementById("countdownOverlay");
-      const numberEl = document.getElementById("countdownNumber");
-      let count = 3;
-
-      // Show overlay and first number
-      overlay.classList.add("show");
-      numberEl.textContent = count;
-      numberEl.classList.remove("go");
-      // Reset animation
-      numberEl.style.animation = "none";
-      numberEl.offsetHeight; // Trigger reflow
-      numberEl.style.animation = "";
-      TofAudio.playCountdown();
-
-      countdownInterval = setInterval(() => {
-        count--;
-        if (count > 0) {
-          numberEl.textContent = count;
-          numberEl.style.animation = "none";
-          numberEl.offsetHeight;
-          numberEl.style.animation = "";
-          TofAudio.playCountdown();
-        } else if (count === 0) {
-          numberEl.textContent = "GO!";
-          numberEl.classList.add("go");
-          numberEl.style.animation = "none";
-          numberEl.offsetHeight;
-          numberEl.style.animation = "";
-          TofAudio.playGo();
-        } else {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          overlay.classList.remove("show");
-          startRace();
-        }
-      }, 1000);
+      const overlay = document.getElementById("countdownOverlay"); const numberEl = document.getElementById("countdownNumber"); let count = 3;
+      overlay.classList.add("show"); numberEl.textContent = count; numberEl.classList.remove("go"); numberEl.style.animation = "none"; numberEl.offsetHeight; numberEl.style.animation = ""; TofAudio.playCountdown();
+      countdownInterval = setInterval(() => { count--; if (count > 0) { numberEl.textContent = count; numberEl.style.animation = "none"; numberEl.offsetHeight; numberEl.style.animation = ""; TofAudio.playCountdown(); } else if (count === 0) { numberEl.textContent = "GO!"; numberEl.classList.add("go"); numberEl.style.animation = "none"; numberEl.offsetHeight; numberEl.style.animation = ""; TofAudio.playGo(); } else { clearInterval(countdownInterval); countdownInterval = null; overlay.classList.remove("show"); startRace(); } }, 1000);
     }
-
-    // ======= Celebration animations =======
-    function showConfetti() {
-      const overlay = document.getElementById("celebrationOverlay");
-      overlay.innerHTML = "";
-      const colors = ["#ffd700", "#ff6b6b", "#6ee7a0", "#87b3ff", "#ff9ff3", "#feca57"];
-
-      for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement("div");
-        confetti.className = "confetti";
-        confetti.style.left = Math.random() * 100 + "%";
-        confetti.style.top = "-20px";
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-        confetti.style.width = (Math.random() * 8 + 6) + "px";
-        confetti.style.height = (Math.random() * 8 + 6) + "px";
-        confetti.style.animationDelay = (Math.random() * 0.5) + "s";
-        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + "s";
-        overlay.appendChild(confetti);
-
-        // Trigger animation
-        requestAnimationFrame(() => confetti.classList.add("animate"));
-      }
-
-      // Clean up after animation
-      setTimeout(() => { overlay.innerHTML = ""; }, 4000);
-    }
-
-    function showTrophy(place) {
-      const trophy = document.getElementById("trophyPopup");
-      const emoji = place === 1 ? "🏆" : place === 2 ? "🥈" : place === 3 ? "🥉" : "🎉";
-      trophy.textContent = emoji;
-      trophy.classList.add("show");
-
-      setTimeout(() => trophy.classList.remove("show"), 1500);
-    }
-
-    function showAchievementToast(avatarId, avatarName) {
-      const toast = document.getElementById("achievementToast");
-      const avatar = document.getElementById("toastAvatar");
-      const name = document.getElementById("toastName");
-
-      avatar.src = `assets/avatars/${avatarId}-2d.png`;
-      avatar.alt = avatarName;
-      name.textContent = `${avatarName} Unlocked!`;
-
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 4000);
-    }
+    function showConfetti() { const o = document.getElementById("celebrationOverlay"); o.innerHTML = ""; const colors = ["#ffd700","#ff6b6b","#6ee7a0","#87b3ff","#ff9ff3","#feca57"]; for (let i = 0; i < 50; i++) { const c = document.createElement("div"); c.className = "confetti"; c.style.left = Math.random()*100+"%"; c.style.top = "-20px"; c.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)]; c.style.borderRadius = Math.random()>0.5?"50%":"2px"; c.style.width = (Math.random()*8+6)+"px"; c.style.height = (Math.random()*8+6)+"px"; c.style.animationDelay = (Math.random()*0.5)+"s"; c.style.animationDuration = (Math.random()*1+2.5)+"s"; o.appendChild(c); requestAnimationFrame(() => c.classList.add("animate")); } setTimeout(() => { o.innerHTML = ""; }, 4000); }
+    function showTrophy(place) { const t = document.getElementById("trophyPopup"); t.textContent = place===1?"🏆":place===2?"🥈":place===3?"🥉":"🎉"; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1500); }
+    function showAchievementToast(avatarId, avatarName) { const t = document.getElementById("achievementToast"); document.getElementById("toastAvatar").src = `assets/avatars/${avatarId}-2d.png`; document.getElementById("toastName").textContent = `${avatarName} Unlocked!`; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 4000); }
 
     function startRace() {
-      raceActive = true;
-      raceStartTime = performance.now();
-      inputEl.disabled = false;
-      inputEl.focus();
-      showBanner("info", "Race in progress...");
-
-      // Start AI simulation (50ms tick)
+      raceActive = true; raceStartTime = performance.now(); inputEl.disabled = false; inputEl.focus(); showBanner("info", "Race in progress...");
       const totalChars = verseText.length;
-      aiInterval = setInterval(() => {
-        if (!raceActive) return;
-        const elapsed = (performance.now() - raceStartTime) / 1000;
-        const mode = aiModeEl.value;
-
-        for (const ai of aiRacers) {
-          if (ai.finished) continue;
-
-          let wpm;
-          if (mode === "fixed") {
-            wpm = ai.assignedWPM;
-          } else if (mode === "personality") {
-            const variance = ai.personality.variance;
-            const factor = 1 + (Math.random() * 2 - 1) * variance;
-            wpm = ai.personality.base * factor;
-          } else if (mode === "adaptive") {
-            wpm = ai.assignedWPM;
-          }
-
-          // chars per tick: (wpm * 5 chars/word) / 60 seconds / 20 ticks per second
-          const charsPerTick = (wpm * 5) / 1200;
-          ai.progress += charsPerTick;
-
-          if (ai.progress >= totalChars) {
-            ai.progress = totalChars;
-            ai.finished = true;
-            ai.finishTime = elapsed;
-            ai.wpm = Math.round((totalChars / 5) / (elapsed / 60));
-            finishOrder.push(ai);
-          }
-
-          updateLanePosition(ai.id, ai.progress, totalChars);
-        }
+      aiInterval = setInterval(() => { if (!raceActive) return; const elapsed = (performance.now() - raceStartTime) / 1000; const mode = aiModeEl.value;
+        for (const ai of aiRacers) { if (ai.finished) continue; let wpm; if (mode === "fixed") wpm = ai.assignedWPM; else if (mode === "personality") wpm = ai.personality.base * (1 + (Math.random()*2-1)*ai.personality.variance); else wpm = ai.assignedWPM;
+          ai.progress += (wpm * 5) / 1200; if (ai.progress >= totalChars) { ai.progress = totalChars; ai.finished = true; ai.finishTime = elapsed; ai.wpm = Math.round((totalChars/5)/(elapsed/60)); finishOrder.push(ai); } updateLanePosition(ai.id, ai.progress, totalChars); }
       }, 50);
     }
-
     function endRace(playerTime, playerWPM) {
-      raceActive = false;
-      TofAudio.playRaceFinish();
-      if (aiInterval) {
-        clearInterval(aiInterval);
-        aiInterval = null;
-      }
-
-      player.finished = true;
-      player.finishTime = playerTime;
-      player.wpm = playerWPM;
-
-      // Calculate stats for unfinished AI based on their progress
-      for (const ai of aiRacers) {
-        if (!ai.finished) {
-          ai.finishTime = Infinity;
-          const minutes = playerTime / 60;
-          ai.wpm = minutes > 0 ? Math.round((ai.progress / 5) / minutes) : 0;
-          ai.finalProgress = ai.progress;
-        }
-      }
-
-      // Add player to finish order at correct position
-      const allRacers = [player, ...aiRacers];
-      allRacers.sort((a, b) => a.finishTime - b.finishTime);
-
-      // Save race result
-      saveRaceResult(playerWPM, aiModeEl.value);
-
-      // Check if player won (finished 1st)
-      const playerPlace = allRacers.findIndex(r => r.id === "player") + 1;
-
-      // Trigger celebration animations
-      if (playerPlace <= 3) {
-        showTrophy(playerPlace);
-        if (playerPlace === 1) {
-          showConfetti();
-        }
-      }
-
-      if (playerPlace === 1) {
-        const newUnlocks = TofAchievements.recordRaceWin();
-        if (newUnlocks && newUnlocks.length > 0) {
-          // Delay achievement toast so it doesn't overlap with trophy
-          setTimeout(() => {
-            newUnlocks.forEach((avatar, i) => {
-              setTimeout(() => showAchievementToast(avatar.id, avatar.name), i * 4500);
-            });
-          }, 2000);
-        }
-      }
-
-      // Show results
-      showResults(allRacers);
-      showBanner("success", playerPlace === 1 ? "You won the race!" : playerPlace <= 3 ? `You placed ${playerPlace === 2 ? "2nd" : "3rd"}!` : "Race complete!");
-
-      // Record streak activity
-      TofStreak.recordActivity();
+      raceActive = false; TofAudio.playRaceFinish(); if (aiInterval) { clearInterval(aiInterval); aiInterval = null; }
+      player.finished = true; player.finishTime = playerTime; player.wpm = playerWPM;
+      for (const ai of aiRacers) { if (!ai.finished) { ai.finishTime = Infinity; ai.wpm = playerTime > 0 ? Math.round((ai.progress/5)/(playerTime/60)) : 0; } }
+      const all = [player, ...aiRacers].sort((a,b) => a.finishTime - b.finishTime); saveRaceResult(playerWPM, aiModeEl.value);
+      const place = all.findIndex(r => r.id === "player") + 1;
+      if (place <= 3) { showTrophy(place); if (place === 1) showConfetti(); }
+      if (place === 1) { const u = TofAchievements.recordRaceWin(); if (u && u.length) setTimeout(() => u.forEach((a,i) => setTimeout(() => showAchievementToast(a.id, a.name), i*4500)), 2000); }
+      showResults(all); showBanner("success", place === 1 ? "You won the race!" : place <= 3 ? `You placed ${place === 2 ? "2nd" : "3rd"}!` : "Race complete!"); TofStreak.recordActivity();
     }
-
-    function showResults(sortedRacers) {
-      resultsBody.innerHTML = "";
-      const totalChars = verseText.length;
-      sortedRacers.forEach((racer, i) => {
-        const place = i + 1;
-        const placeClass = place === 1 ? "place-1" : place === 2 ? "place-2" : place === 3 ? "place-3" : "place-4";
-        const placeText = place === 1 ? "1st" : place === 2 ? "2nd" : place === 3 ? "3rd" : "4th";
-
-        let timeText;
-        if (racer.finishTime === Infinity) {
-          const pct = Math.round((racer.progress / totalChars) * 100);
-          timeText = `DNF (${pct}%)`;
-        } else {
-          timeText = racer.finishTime.toFixed(2) + "s";
-        }
-        const wpmText = racer.wpm || 0;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="${placeClass}">${placeText}</td>
-          <td>
-            <div class="avatar-cell">
-              <img src="${racer.avatar.src}" alt="${racer.name}" />
-              ${racer.name}${racer.id === "player" ? " (You)" : ""}
-            </div>
-          </td>
-          <td>${timeText}</td>
-          <td>${wpmText}</td>
-        `;
-        resultsBody.appendChild(tr);
-      });
+    function showResults(sorted) {
+      resultsBody.innerHTML = ""; const tc = verseText.length;
+      sorted.forEach((r, i) => { const p = i+1; const pc = p===1?"place-1":p===2?"place-2":p===3?"place-3":"place-4"; const pt = p===1?"1st":p===2?"2nd":p===3?"3rd":"4th";
+        const tt = r.finishTime === Infinity ? `DNF (${Math.round((r.progress/tc)*100)}%)` : r.finishTime.toFixed(2)+"s";
+        const tr = document.createElement("tr"); tr.innerHTML = `<td class="${pc}">${pt}</td><td><div class="avatar-cell"><img src="${r.avatar.src}" />${r.name}${r.id==="player"?" (You)":""}</div></td><td>${tt}</td><td>${r.wpm||0}</td>`; resultsBody.appendChild(tr); });
       resultsPanel.classList.add("show");
     }
-
-    // ======= Input handling =======
     function updateLiveMetrics() {
-      const elapsedSec = started ? (performance.now() - raceStartTime) / 1000 : 0;
-      const minutes = elapsedSec / 60;
-      const vtNorm = normalizeQuotes(verseText);
-      const ctNorm = normalizeQuotes(inputEl.value || "");
-      let correctChars = 0;
-      for (let i = 0; i < ctNorm.length; i++) {
-        if (ctNorm[i] === vtNorm[i]) correctChars++;
-      }
-      const grossWPM = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
-      const acc = totalKeystrokes > 0 ? Math.max(0, 1 - (errorKeystrokes / totalKeystrokes)) : 1;
-      statusEl.textContent = `WPM: ${grossWPM} | Accuracy: ${Math.round(acc * 100)}% | Time: ${elapsedSec.toFixed(1)}s`;
+      const sec = started ? (performance.now() - raceStartTime) / 1000 : 0; const min = sec / 60;
+      const vn = normalizeQuotes(verseText); const cn = normalizeQuotes(inputEl.value || ""); let cc = 0; for (let i = 0; i < cn.length; i++) { if (cn[i] === vn[i]) cc++; }
+      statusEl.textContent = `WPM: ${min > 0 ? Math.round((cc/5)/min) : 0} | Accuracy: ${Math.round((totalKeystrokes > 0 ? Math.max(0,1-errorKeystrokes/totalKeystrokes) : 1)*100)}% | Time: ${sec.toFixed(1)}s`;
     }
-
     inputEl.addEventListener("input", () => {
       if (!raceActive) return;
-
-      const newVal = inputEl.value;
-      const vtNorm = normalizeQuotes(verseText);
-      const newNorm = normalizeQuotes(newVal);
-      const prevNorm = normalizeQuotes(prevValue);
-
-      // Track keystrokes for accuracy
-      if (newVal.length > prevValue.length) {
-        const added = newNorm.slice(prevNorm.length);
-        let hasErrorThisInput = false;
-        for (let i = 0; i < added.length; i++) {
-          const idx = prevNorm.length + i;
-          const ch = added[i];
-          totalKeystrokes++;
-          if (ch !== vtNorm[idx]) {
-            errorKeystrokes++;
-            errorPositions.add(idx); // Track position where error occurred
-            hasErrorThisInput = true;
-          }
-        }
-        // Play audio feedback
-        if (hasErrorThisInput) {
-          TofAudio.playError();
-        } else {
-          TofAudio.playCorrect();
-        }
-      }
-      prevValue = newVal;
-
-      if (!started && newVal.length > 0) {
-        started = true;
-      }
-
-      // Find first error position
-      let correctCount = 0;
-      for (let i = 0; i < newNorm.length; i++) {
-        if (newNorm[i] === vtNorm[i]) correctCount++;
-        else break;
-      }
-      const hasError = correctCount < newVal.length;
-      const errorCount = newVal.length - correctCount;
-
-      // Update verse display: correct (green), corrected (yellow), incorrect (red), remaining (muted)
-      let typedHtml = '';
-      for (let k = 0; k < correctCount; k++) {
-        if (errorPositions.has(k)) {
-          typedHtml += `<span class="corrected">${verseText[k]}</span>`;
-        } else {
-          typedHtml += verseText[k];
-        }
-      }
-      typedEl.innerHTML = typedHtml;
-      incorrectEl.textContent = verseText.substring(correctCount, correctCount + errorCount);
-      remainingEl.textContent = verseText.substring(correctCount + errorCount);
-
-      // Update input error state
-      if (hasError) {
-        inputEl.classList.add("error-state");
-      } else {
-        inputEl.classList.remove("error-state");
-      }
-
-      // Update player lane (only moves forward on correct chars)
-      player.progress = correctCount;
-      updateLanePosition("player", correctCount, verseText.length);
-
-      // Check for completion
-      if (newVal.length === verseText.length && !hasError) {
-        const elapsedSec = (performance.now() - raceStartTime) / 1000;
-        const wpm = Math.round((verseText.length / 5) / (elapsedSec / 60));
-        inputEl.disabled = true;
-        endRace(elapsedSec, wpm);
-      }
-
+      const nv = inputEl.value; const vn = normalizeQuotes(verseText); const nn = normalizeQuotes(nv); const pn = normalizeQuotes(prevValue);
+      if (nv.length > prevValue.length) { const added = nn.slice(pn.length); let hasErr = false; for (let i = 0; i < added.length; i++) { totalKeystrokes++; if (added[i] !== vn[pn.length+i]) { errorKeystrokes++; errorPositions.add(pn.length+i); hasErr = true; } } if (hasErr) TofAudio.playError(); else TofAudio.playCorrect(); }
+      prevValue = nv; if (!started && nv.length > 0) started = true;
+      let cc = 0; for (let i = 0; i < nn.length; i++) { if (nn[i] === vn[i]) cc++; else break; }
+      const hasErr = cc < nv.length; const ec = nv.length - cc;
+      let html = ''; for (let k = 0; k < cc; k++) html += errorPositions.has(k) ? `<span class="corrected">${verseText[k]}</span>` : verseText[k];
+      typedEl.innerHTML = html; incorrectEl.textContent = verseText.substring(cc, cc+ec); remainingEl.textContent = verseText.substring(cc+ec);
+      inputEl.classList.toggle("error-state", hasErr); player.progress = cc; updateLanePosition("player", cc, verseText.length);
+      if (nv.length === verseText.length && !hasErr) { const s = (performance.now()-raceStartTime)/1000; inputEl.disabled = true; endRace(s, Math.round((verseText.length/5)/(s/60))); }
       updateLiveMetrics();
     });
-
-    // ======= Button handlers =======
-    startBtn.addEventListener("click", () => {
-      if (!verseText) {
-        showBanner("warn", "Load a verse first!");
-        return;
-      }
-      if (raceActive) return;
-      resetRace();
-      renderRaceArena();
-      typedEl.textContent = "";
-      incorrectEl.textContent = "";
-      remainingEl.textContent = verseText;
-      startCountdown();
-    });
-
+    startBtn.addEventListener("click", () => { if (!verseText) { showBanner("warn", "Load a verse first!"); return; } if (raceActive) return; resetRace(); renderRaceArena(); typedEl.textContent = ""; incorrectEl.textContent = ""; remainingEl.textContent = verseText; startCountdown(); });
     newVerseBtn.addEventListener("click", loadVerse);
     categoryEl.addEventListener("change", loadVerse);
     lengthEl.addEventListener("change", loadVerse);
     versionEl.addEventListener("change", loadVerse);
 
-    // ======= Keyboard shortcuts =======
     document.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "m") {
-        e.preventDefault();
-        loadVerse();
-      } else if (e.ctrlKey && e.key.toLowerCase() === "j") {
-        e.preventDefault();
-        const modes = ["auto", "light", "dark"];
-        const cur = localStorage.getItem(THEME_KEY) || "auto";
-        const idx = (modes.indexOf(cur) + 1) % modes.length;
-        applyTheme(modes[idx]);
+      if (e.ctrlKey && e.key.toLowerCase() === "m") { e.preventDefault(); loadVerse(); }
+      else if (e.ctrlKey && e.key.toLowerCase() === "j") { e.preventDefault(); const modes = ["auto","light","dark"]; const cur = localStorage.getItem(THEME_KEY)||"auto"; applyTheme(modes[(modes.indexOf(cur)+1)%modes.length]); }
+    });
+
+    // ================================================================
+    // MULTIPLAYER RACE (from lobby.html)
+    // ================================================================
+    const MP_API = TofConfig.API_BASE;
+    const MP_WS = TofConfig.WS_BASE;
+
+    let mpLobby = null, mpPlayers = {}, mpWs = null, mpIsReady = false;
+    let mpVerseText = '', mpRaceStartTime = 0, mpFinishedCount = 0;
+    let mpTotalKeystrokes = 0, mpErrorKeystrokes = 0, mpPrevInput = '', mpLastProgressSend = 0;
+
+    function mpShowBanner(msg, isError) { const el = document.getElementById('banner'); el.textContent = msg||''; el.style.display = msg?'block':'none'; el.className = isError?'error':''; }
+
+    const mpViewIds = ['mpLoginView','mpBrowserView','mpCreateView','mpWaitingView','mpRaceView','mpResultsView'];
+    function mpShowView(id) { mpViewIds.forEach(v => { const el = document.getElementById(v); if(el) el.classList.toggle('active', v === id); }); }
+
+    async function mpApiCall(endpoint, options = {}) {
+      const token = localStorage.getItem('tof_auth_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const r = await fetch(`${MP_API}${endpoint}`, { ...options, headers });
+      const d = await r.json();
+      if (!r.ok) throw { status: r.status, detail: d.detail || 'Request failed' };
+      return d;
+    }
+
+    async function mpLoadLobbies() {
+      const list = document.getElementById('mpLobbyList');
+      try {
+        const data = await mpApiCall('/lobbies?mode=race');
+        if (data.lobbies.length === 0) { list.innerHTML = '<div class="empty-msg">No race lobbies available. Create one!</div>'; return; }
+        list.innerHTML = data.lobbies.map(l => `<div class="lobby-item"><div class="lobby-info"><div class="lobby-verse">${l.verse_ref}</div><div class="lobby-meta">Host: ${l.host_username} · Code: ${l.join_code}</div></div><div class="lobby-players">${l.player_count}/${l.max_players}</div><button onclick="mpJoinLobby('${l.join_code}')">Join</button></div>`).join('');
+      } catch { list.innerHTML = '<div class="empty-msg">Could not load lobbies</div>'; }
+    }
+
+    async function mpJoinLobby(code) {
+      try { mpShowBanner('Joining lobby...'); const r = await mpApiCall(`/lobbies/join/${code}`, { method: 'POST' }); mpLobby = { id: r.id }; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
+      catch (e) { mpShowBanner(e.detail || 'Could not join lobby', true); }
+    }
+
+    async function mpCreateLobby() {
+      const ref = document.getElementById('mpVerseRefInput').value.trim() || ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
+      const ver = document.getElementById('mpVersionSelect').value;
+      const max = parseInt(document.getElementById('mpMaxPlayersSelect').value);
+      try { mpShowBanner('Creating lobby...'); const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) }); mpLobby = r; mpVerseText = r.verse_text; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
+      catch (e) { mpShowBanner(e.detail || 'Could not create lobby', true); }
+    }
+
+    async function mpLoadLobbyDetails(id) {
+      const d = await mpApiCall(`/lobbies/${id}`); mpLobby = d; mpVerseText = d.verse_text;
+      document.getElementById('mpWaitingJoinCode').textContent = d.join_code;
+      document.getElementById('mpWaitingVerseRef').textContent = d.verse_ref;
+      document.getElementById('mpWaitingVerseText').textContent = d.verse_text;
+      const uid = TofLeaderboard.getCurrentUser()?.user_id; mpPlayers = {};
+      d.players.forEach(p => { mpPlayers[p.user_id] = p; if (p.user_id === uid) mpIsReady = p.ready; });
+      document.getElementById('mpReadyBtn').textContent = mpIsReady ? 'Not Ready' : 'Ready';
+      mpRenderPlayers();
+    }
+
+    function mpRenderPlayers() {
+      const uid = TofLeaderboard.getCurrentUser()?.user_id;
+      document.getElementById('mpPlayerList').innerHTML = Object.values(mpPlayers).map(p => `<div class="player-card ${p.ready?'ready':''}"><img src="assets/avatars/${p.avatar_id||'moses'}-2d.png" /><div class="player-name">${p.username}${p.user_id===uid?' (You)':''}</div><div class="player-status">${p.ready?'Ready!':'Waiting...'}</div></div>`).join('');
+    }
+
+    function mpConnectWS(lobbyId) {
+      const token = localStorage.getItem('tof_auth_token');
+      mpWs = new WebSocket(`${MP_WS}/ws/race/${lobbyId}?token=${token}`);
+      mpWs.onmessage = (e) => mpHandleMsg(JSON.parse(e.data));
+      mpWs.onclose = () => { mpWs = null; };
+      mpWs.onerror = () => mpShowBanner('Connection error', true);
+    }
+
+    function mpHandleMsg(msg) {
+      const uid = TofLeaderboard.getCurrentUser()?.user_id;
+      switch (msg.type) {
+        case 'player_joined': mpPlayers[msg.user_id] = { user_id: msg.user_id, username: msg.username, avatar_id: msg.avatar_id, ready: false }; mpRenderPlayers(); break;
+        case 'player_left': delete mpPlayers[msg.user_id]; mpRenderPlayers(); break;
+        case 'player_ready':
+          if (mpPlayers[msg.user_id]) mpPlayers[msg.user_id].ready = msg.ready;
+          if (msg.user_id === uid) { mpIsReady = msg.ready; document.getElementById('mpReadyBtn').textContent = mpIsReady ? 'Not Ready' : 'Ready'; }
+          mpRenderPlayers(); break;
+        case 'countdown': mpShowCountdown(msg.seconds); break;
+        case 'race_start': mpStartRace(msg.verse_text, msg.start_time); break;
+        case 'progress': mpUpdateProgress(msg.user_id, msg.chars, msg.wpm); break;
+        case 'player_finished': mpUpdateProgress(msg.user_id, mpVerseText.length, msg.wpm); mpFinishedCount++;
+          if (msg.user_id === uid) { showTrophy(mpFinishedCount); if (mpFinishedCount === 1) { showConfetti(); TofAudio.playRaceFinish(); } else TofAudio.playComplete(); } break;
+        case 'race_end': mpShowResults(msg.results); break;
+        case 'rematch': if (msg.user_id !== uid) mpJoinLobby(msg.join_code); break;
+      }
+    }
+
+    function mpShowCountdown(s) {
+      const o = document.getElementById('mpCountdownOverlay'); const n = document.getElementById('mpCountdownNumber');
+      o.style.display = 'flex'; n.style.animation = 'none'; n.offsetHeight; n.style.animation = '';
+      if (s === 0) { n.textContent = 'GO!'; n.classList.add('go'); TofAudio.playGo(); setTimeout(() => { o.style.display = 'none'; n.classList.remove('go'); }, 500); }
+      else { n.textContent = s; n.classList.remove('go'); TofAudio.playCountdown(); }
+    }
+
+    function mpStartRace(text, startTime) {
+      mpVerseText = text; mpRaceStartTime = startTime; mpFinishedCount = 0;
+      mpTotalKeystrokes = 0; mpErrorKeystrokes = 0; mpPrevInput = ''; mpLastProgressSend = 0;
+      mpShowView('mpRaceView'); document.getElementById('mpCountdownOverlay').style.display = 'none';
+      document.getElementById('mpRaceArena').innerHTML = Object.values(mpPlayers).map(p => `<div class="mp-race-lane" data-user="${p.user_id}"><div class="mp-lane-label">${p.username}</div><div class="mp-track"><img class="mp-avatar" src="assets/avatars/${p.avatar_id||'moses'}-2d.png" style="left:0;" /><div class="mp-finish-line"></div><div class="mp-pct">0%</div></div></div>`).join('');
+      document.querySelector('.mp-typed').textContent = ''; document.querySelector('.mp-incorrect').textContent = ''; document.querySelector('.mp-remaining').textContent = mpVerseText;
+      const inp = document.getElementById('mpRaceInput'); inp.disabled = false; inp.value = ''; inp.focus();
+      document.getElementById('mpRaceStatus').textContent = 'Type the verse!'; TofAudio.playGo();
+    }
+
+    function mpUpdateProgress(userId, chars, wpm) {
+      const lane = document.querySelector(`.mp-race-lane[data-user="${userId}"]`); if (!lane) return;
+      const pct = Math.min(chars / mpVerseText.length, 1); const track = lane.querySelector('.mp-track'); const av = lane.querySelector('.mp-avatar'); const p = lane.querySelector('.mp-pct');
+      av.style.left = `${pct * (track.offsetWidth - av.offsetWidth)}px`; p.textContent = `${Math.round(pct * 100)}%`;
+    }
+
+    document.getElementById('mpRaceInput').addEventListener('input', (e) => {
+      const inp = e.target; const cur = inp.value; const nc = normalizeQuotes(cur); const nv = normalizeQuotes(mpVerseText);
+      if (cur.length > mpPrevInput.length) { const added = nc.slice(mpPrevInput.length); for (let i = 0; i < added.length; i++) { mpTotalKeystrokes++; if (added[i] !== nv[mpPrevInput.length+i]) { mpErrorKeystrokes++; TofAudio.playError(); } else TofAudio.playCorrect(); } }
+      mpPrevInput = cur;
+      let cc = 0; for (let i = 0; i < nc.length; i++) { if (nc[i] === nv[i]) cc++; else break; }
+      const ec = cur.length - cc;
+      document.querySelector('.mp-typed').textContent = mpVerseText.substring(0, cc);
+      document.querySelector('.mp-incorrect').textContent = mpVerseText.substring(cc, cc + ec);
+      document.querySelector('.mp-remaining').textContent = mpVerseText.substring(cc + ec);
+      const elapsed = (Date.now() - mpRaceStartTime) / 1000 / 60;
+      const wpm = elapsed > 0 ? Math.round((cc / 5) / elapsed) : 0;
+      const now = Date.now();
+      if (now - mpLastProgressSend > 200) { mpLastProgressSend = now; if (mpWs && mpWs.readyState === WebSocket.OPEN) mpWs.send(JSON.stringify({ type: 'progress', chars: cc, wpm })); }
+      const uid = TofLeaderboard.getCurrentUser()?.user_id; if (uid) mpUpdateProgress(uid, cc, wpm);
+      if (cc === mpVerseText.length && cc === cur.length) {
+        const ft = (Date.now() - mpRaceStartTime) / 1000; const acc = mpTotalKeystrokes > 0 ? Math.round((1 - mpErrorKeystrokes / mpTotalKeystrokes) * 100) : 100;
+        inp.disabled = true; document.getElementById('mpRaceStatus').textContent = `Finished! ${ft.toFixed(2)}s · ${wpm} WPM`;
+        if (mpWs && mpWs.readyState === WebSocket.OPEN) mpWs.send(JSON.stringify({ type: 'finished', time: ft, wpm, accuracy: acc }));
       }
     });
 
-    // ======= Init =======
+    function mpShowResults(results) {
+      mpShowView('mpResultsView');
+      document.getElementById('mpResultsBody').innerHTML = results.map(r => {
+        const p = mpPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'moses' };
+        const pc = r.place===1?'place-1':r.place===2?'place-2':r.place===3?'place-3':'';
+        const pt = r.place===1?'1st':r.place===2?'2nd':r.place===3?'3rd':`${r.place}th`;
+        return `<tr><td class="${pc}">${pt}</td><td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id||'moses'}-2d.png" />${p.username}</div></td><td>${r.time?r.time.toFixed(2)+'s':'DNF'}</td><td>${r.wpm||0}</td></tr>`;
+      }).join('');
+    }
+
+    async function mpInit() {
+      const user = await TofLeaderboard.checkAuth();
+      if (!user) { mpShowView('mpLoginView'); return; }
+      mpShowView('mpBrowserView'); mpLoadLobbies();
+    }
+
+    // MP Event listeners
+    document.getElementById('mpLoginBtn').addEventListener('click', async () => { try { await TofLeaderboard.showAuthModal(); mpInit(); } catch {} });
+    document.getElementById('mpCreateLobbyBtn').addEventListener('click', () => mpShowView('mpCreateView'));
+    document.getElementById('mpRefreshBtn').addEventListener('click', mpLoadLobbies);
+    document.getElementById('mpCancelCreateBtn').addEventListener('click', () => { mpShowView('mpBrowserView'); mpShowBanner(''); });
+    document.getElementById('mpConfirmCreateBtn').addEventListener('click', mpCreateLobby);
+    document.getElementById('mpRandomVerseBtn').addEventListener('click', () => { document.getElementById('mpVerseRefInput').value = ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)]; });
+    document.getElementById('mpJoinByCodeBtn').addEventListener('click', () => { const c = document.getElementById('mpJoinCodeInput').value.trim(); if (c) mpJoinLobby(c); });
+    document.getElementById('mpJoinCodeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') { const c = e.target.value.trim(); if (c) mpJoinLobby(c); } });
+    document.getElementById('mpReadyBtn').addEventListener('click', () => { if (mpWs && mpWs.readyState === WebSocket.OPEN) mpWs.send(JSON.stringify({ type: 'ready' })); });
+    document.getElementById('mpLeaveBtn').addEventListener('click', async () => { if (mpWs) mpWs.close(); if (mpLobby) try { await mpApiCall(`/lobbies/${mpLobby.id}/leave`, { method: 'POST' }); } catch {} mpLobby = null; mpPlayers = {}; mpIsReady = false; mpShowView('mpBrowserView'); mpLoadLobbies(); });
+    document.getElementById('mpCopyCodeBtn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('mpWaitingJoinCode').textContent); mpShowBanner('Code copied!'); setTimeout(() => mpShowBanner(''), 2000); });
+    document.getElementById('mpBackToLobbiesBtn').addEventListener('click', () => { mpLobby = null; mpPlayers = {}; mpShowView('mpBrowserView'); mpLoadLobbies(); });
+    document.getElementById('mpRaceAgainBtn').addEventListener('click', async () => {
+      const ref = mpLobby?.verse_ref || ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
+      const ver = mpLobby?.version || 'WEB'; const max = mpLobby?.max_players || 4; const old = mpWs;
+      mpPlayers = {}; mpIsReady = false;
+      try { mpShowBanner('Creating new lobby...'); const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) });
+        if (old && old.readyState === WebSocket.OPEN) { old.send(JSON.stringify({ type: 'rematch', join_code: r.join_code })); setTimeout(() => old.close(), 500); }
+        mpLobby = r; mpVerseText = r.verse_text; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
+      catch (e) { mpShowBanner(e.detail || 'Could not create lobby', true); if (old) old.close(); }
+    });
+
+    // ================================================================
+    // INIT
+    // ================================================================
     (async () => {
       initTheme();
       TofStreak.initBadge();
-      TofShortcuts.registerShortcuts([
-        { keys: "Ctrl+M", desc: "New verse" }
-      ]);
+      TofShortcuts.registerShortcuts([{ keys: "Ctrl+M", desc: "New verse" }]);
       populateCategoryDropdown();
       updatePlayerStats();
-
-      // offline.js handles the banner automatically
       await TofOffline.checkHealth();
       loadVerse();
     })();

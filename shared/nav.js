@@ -5,7 +5,6 @@
     { label: "Lessons",  href: "lessons.html" },
     { label: "Quiz",     href: "quiz.html" },
     { label: "Race",     href: "race.html" },
-    { label: "Multiplayer", href: "lobby.html" },
     { label: "Profile",  href: "profile.html" }
   ];
 

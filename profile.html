@@ -65,6 +65,7 @@
     .daily-table th, .daily-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
     .daily-table th { font-weight: 600; color: var(--muted); font-size: 12px; }
     .daily-table .no-data { text-align: center; color: var(--muted); padding: 16px; }
+    .table-scroll { overflow-x: auto; }
 
     /* Avatar collection */
     .avatar-grid {
@@ -163,17 +164,84 @@
       </div>
     `;
 
+    // ===== Load history data =====
+    const practiceHistory = JSON.parse(localStorage.getItem("tof_practice_history") || "[]");
+    const raceHistory = JSON.parse(localStorage.getItem("tof_race_history") || "[]");
+
+    const bestAccuracy = practiceHistory.length > 0
+      ? Math.max(...practiceHistory.map(e => e.accuracy)) + "%"
+      : "—";
+    const versesAttempted = practiceHistory.length;
+    const quizzesCompleted = achievements.quizzes_completed || 0;
+
     // ===== Stats Grid =====
     html += `
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val">${bestWPM}</div><div class="stat-label">Best WPM</div></div>
+        <div class="stat-card"><div class="stat-val">${bestAccuracy}</div><div class="stat-label">Best Accuracy</div></div>
         <div class="stat-card"><div class="stat-val">${totalRaces}</div><div class="stat-label">Total Races</div></div>
         <div class="stat-card"><div class="stat-val">${racesWon}</div><div class="stat-label">Races Won</div></div>
         <div class="stat-card"><div class="stat-val">${practiceSessions}</div><div class="stat-label">Practice Sessions</div></div>
+        <div class="stat-card"><div class="stat-val">${versesAttempted}</div><div class="stat-label">Verses Attempted</div></div>
         <div class="stat-card"><div class="stat-val">${streak.current}</div><div class="stat-label">Current Streak</div></div>
         <div class="stat-card"><div class="stat-val">${dailyChallenges}</div><div class="stat-label">Daily Challenges</div></div>
+        <div class="stat-card"><div class="stat-val">${quizzesCompleted}</div><div class="stat-label">Quizzes Completed</div></div>
       </div>
     `;
+
+    // ===== Practice History =====
+    html += `<div class="profile-section"><h3>Practice History</h3>`;
+    if (practiceHistory.length > 0) {
+      const recent = practiceHistory.slice(-20).reverse();
+      html += `<div class="table-scroll"><table class="daily-table"><thead><tr><th>Date</th><th>Verse</th><th>Category</th><th>WPM</th><th>Accuracy</th><th>Time</th><th>Mode</th></tr></thead><tbody>`;
+      for (const r of recent) {
+        const d = new Date(r.date).toLocaleDateString();
+        html += `<tr><td>${d}</td><td>${r.reference}</td><td>${r.category}</td><td>${r.wpm}</td><td>${r.accuracy}%</td><td>${r.seconds}s</td><td>${r.mode}</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+    } else {
+      html += `<div class="daily-table no-data">Complete a practice session to see your history here.</div>`;
+    }
+    html += `</div>`;
+
+    // ===== Race History =====
+    html += `<div class="profile-section"><h3>Race History</h3>`;
+    if (raceHistory.length > 0) {
+      const recentRaces = raceHistory.slice().reverse();
+      html += `<div class="table-scroll"><table class="daily-table"><thead><tr><th>Date</th><th>WPM</th><th>Mode</th></tr></thead><tbody>`;
+      for (const r of recentRaces) {
+        const d = new Date(r.date).toLocaleDateString();
+        html += `<tr><td>${d}</td><td>${r.wpm}</td><td>${r.mode || "—"}</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+    } else {
+      html += `<div class="daily-table no-data">Complete a race to see your history here.</div>`;
+    }
+    html += `</div>`;
+
+    // ===== Top Verses =====
+    html += `<div class="profile-section"><h3>Top Verses</h3>`;
+    if (practiceHistory.length > 0) {
+      const verseMap = {};
+      for (const r of practiceHistory) {
+        if (!verseMap[r.reference]) verseMap[r.reference] = { attempts: 0, bestWpm: 0, bestAcc: 0 };
+        const v = verseMap[r.reference];
+        v.attempts++;
+        if (r.wpm > v.bestWpm) v.bestWpm = r.wpm;
+        if (r.accuracy > v.bestAcc) v.bestAcc = r.accuracy;
+      }
+      const topVerses = Object.entries(verseMap)
+        .sort((a, b) => b[1].attempts - a[1].attempts)
+        .slice(0, 5);
+      html += `<div class="table-scroll"><table class="daily-table"><thead><tr><th>Verse</th><th>Attempts</th><th>Best WPM</th><th>Best Accuracy</th></tr></thead><tbody>`;
+      for (const [ref, v] of topVerses) {
+        html += `<tr><td>${ref}</td><td>${v.attempts}</td><td>${v.bestWpm}</td><td>${v.bestAcc}%</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+    } else {
+      html += `<div class="daily-table no-data">Practice some verses to see your top verses here.</div>`;
+    }
+    html += `</div>`;
 
     // ===== Daily Challenge History (last 14 days) =====
     html += `<div class="profile-section"><h3>Daily Challenge History</h3>`;

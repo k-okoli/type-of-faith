@@ -65,26 +65,33 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 - **Retry system**: Clear feedback when accuracy not met
 
 ### Quiz Page (quiz.html)
-- **Verse identification**: Guess the reference from verse text
-- **Multiple choice**: 4 options per question
-- **Study Mode**: Browse verses before quizzing
-- **Streak tracking**: Track consecutive correct answers
+- **Solo / Multiplayer toggle**: Switch between solo and multiplayer modes
+- **Solo Mode**:
+  - **Quiz**: Guess the verse reference from text, multiple choice (4 options)
+  - **Study**: Browse verses before quizzing
+  - **Streak tracking**: Track consecutive correct answers
+- **Multiplayer Mode**:
+  - **Real-time quiz rounds**: First to pick the correct verse reference wins the point
+  - **Lobby system**: Create or join lobbies with 6-character codes
+  - **Configurable rounds**: 5, 10, or 15 rounds per match
+  - **Live scoreboard**: See all players' scores and lock-out status
+  - **Play Again**: Rematch support after quiz ends
 
 ### Race Page (race.html)
-- **AI opponents**: Race against 1-3 AI racers
-- **Three AI modes**:
-  - **Fixed**: Constant speeds (20, 40, 60 WPM)
-  - **Personality**: Character-specific typing patterns
-  - **Adaptive**: Adjusts to your recent performance
-- **Countdown with audio**: 3, 2, 1, GO!
-- **Results panel**: Final standings with times and WPM
-
-### Multiplayer Page (lobby.html)
-- **Real-time racing**: Race against other players via WebSocket
-- **Lobby system**: Create or join lobbies with 6-character codes
-- **Username-only auth**: Simple sign-up (username + auto-generated token)
-- **Live progress sync**: See all players' progress in real-time
-- **Results & standings**: Final positions with WPM for each player
+- **Solo / Multiplayer toggle**: Switch between solo and multiplayer modes
+- **Solo Mode**:
+  - **AI opponents**: Race against 1-3 AI racers
+  - **Three AI modes**:
+    - **Fixed**: Constant speeds (20, 40, 60 WPM)
+    - **Personality**: Character-specific typing patterns
+    - **Adaptive**: Adjusts to your recent performance
+  - **Countdown with audio**: 3, 2, 1, GO!
+  - **Results panel**: Final standings with times and WPM
+- **Multiplayer Mode**:
+  - **Real-time racing**: Race against other players via WebSocket
+  - **Lobby system**: Create or join lobbies with 6-character codes
+  - **Live progress sync**: See all players' progress in real-time
+  - **Results & standings**: Final positions with WPM for each player
 
 ### Audio & Feedback
 - **Sound effects**: Correct/error keystrokes, completion, countdown
@@ -120,7 +127,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 ├─ lessons.html           # Touch-typing lessons with keyboard map
 ├─ quiz.html              # Verse identification quiz
 ├─ race.html              # Race mode — compete against AI
-├─ lobby.html             # Multiplayer — real-time WebSocket racing
+├─ lobby.html             # Legacy multiplayer page (redirects to race/quiz)
 ├─ shared/
 │  ├─ nav.js              # Navigation bar injection
 │  ├─ nav.css             # Navigation styles
@@ -182,7 +189,7 @@ Restart the server and add the version to the `<select>` dropdown.
 
 - [ ] 3D avatar toggle (assets ready)
 - [x] Avatar unlocking through achievements
-- [x] Multiplayer lobbies / real-time racing
+- [x] Multiplayer lobbies / real-time racing & quiz
 - [x] Global leaderboard for daily challenges
 - [x] Celebration animations (confetti, trophies, toasts)
 - [ ] More Bible translations (NIV, CSB, NLT)

@@ -30,6 +30,11 @@
 ## Quiz Page (quiz.html)
 - [x] Game mode where verse text pops up and you have to select the correct verse location
 - [x] Enhance experience — allow users to browse verses before attempting quiz (Study Mode)
+- [x] Solo / Multiplayer toggle tabs
+- [x] Multiplayer quiz mode — real-time rounds, first to pick correct reference wins a point
+- [x] Configurable round count (5, 10, 15)
+- [x] Live scoreboard with lock-out status
+- [x] Play Again / rematch support
 
 ## Race Page (race.html)
 - [x] Race mode page — compete against 1-3 AI opponents
@@ -37,10 +42,12 @@
 - [x] Full-screen countdown overlay (3, 2, 1, GO!) with animations
 - [x] Results panel with standings
 - [x] Trophy/confetti celebrations for wins
+- [x] Solo / Multiplayer toggle tabs
+- [x] Multiplayer race moved from lobby.html into race.html
 
 ## Shared / Infrastructure
 - [x] Extracted shared modules (nav, theme, data, audio)
-- [x] Nav bar across all pages with mute button
+- [x] Nav bar across all pages with mute button (Multiplayer link removed, integrated into Race & Quiz)
 - [x] FastAPI backend proxy (server.py)
 - [x] Audio cues (correct/error keystrokes, complete, countdown, race finish)
 - [x] Corrected character highlighting (yellow) across all pages
@@ -54,10 +61,22 @@
 - [x] Avatar unlocking through achievements (7 avatars with unlock conditions)
 
 ## Future Features
-- [x] Multiplayer mode / lobbies (Phase 2 complete — WebSocket real-time racing)
+- [x] Multiplayer mode / lobbies (WebSocket real-time racing & quiz, integrated into Race & Quiz pages)
 - [x] Leaderboard (global daily challenge scores) — Phase 1 complete (auth + daily leaderboard)
 - [x] Seasonal events — Christmas & Easter/Holy Week (banners, themed verses, CSS accents, snowfall effect)
 - [ ] More seasonal events (Lent, Pentecost)
-- [ ] User profiles and analytics
+- [x] User profiles and analytics
 - [ ] More Bible translations (NIV, CSB, NLT, etc.)
 - [x] Animations for completion/achievements (confetti, trophy, milestone toasts, achievement unlocks)
+
+## Release Checklist
+- [ ] Secure API key — ensure .env is not in git history, rotate key if exposed
+- [ ] Lock down CORS — set ALLOWED_ORIGINS to production domain in server.py
+- [ ] Test Render deployment end-to-end (WebSockets, PostgreSQL, Bible API proxy)
+- [ ] Commit new avatar images (lost-sheep, prodigal-son, water-into-wine)
+- [ ] Add PWA manifest + basic service worker for mobile install support
+- [ ] Add social meta tags (og:title, og:description, og:image) for link sharing
+- [ ] Register a custom domain
+- [ ] Add lightweight analytics (Plausible or server-side logging)
+- [ ] Add first-time user onboarding/welcome flow
+- [ ] Surface "Start Here" suggestions for new typists

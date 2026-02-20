@@ -51,8 +51,10 @@
     .opt{
       text-align:left; border:1px solid var(--opt-border); background:var(--btn);
       padding:12px; border-radius:10px; transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      cursor:pointer;
     }
-    .opt:hover{ transform: translateY(-1px); }
+    .opt:hover:not(:disabled){ transform: translateY(-1px); }
+    .opt:disabled{ cursor:default; opacity:0.7; }
     .opt.correct{ background:var(--opt-correct); border-color:var(--opt-correct-br); }
     .opt.wrong{ background:var(--opt-wrong); border-color:var(--opt-wrong-br); }
 
@@ -60,7 +62,7 @@
     .stat{ font-variant-numeric: tabular-nums; }
     .muted{ color:var(--muted) }
 
-    /* Mode tabs */
+    /* Top-level tabs: Solo / Multiplayer */
     .mode-tabs{ display:flex; gap:0; margin-bottom:12px; }
     .mode-tab{
       flex:1; padding:10px 16px; text-align:center; cursor:pointer;
@@ -72,12 +74,19 @@
     .mode-tab.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
     .mode-tab:not(.active):hover{ background:var(--border); }
 
-    /* Study mode */
-    #studyPanel{ display:none; }
-    #studyPanel.show{ display:block; }
-    #quizPanel{ display:block; }
-    #quizPanel.hide{ display:none; }
+    /* Sub-tabs for Quiz/Study within Solo */
+    .sub-tabs{ display:flex; gap:0; margin-bottom:12px; max-width:300px; }
+    .sub-tab{
+      flex:1; padding:8px 12px; text-align:center; cursor:pointer;
+      border:1px solid var(--opt-border); background:var(--btn);
+      font-size:14px; font-weight:600; transition:background .15s, color .15s;
+    }
+    .sub-tab:first-child{ border-radius:6px 0 0 6px; }
+    .sub-tab:last-child{ border-radius:0 6px 6px 0; border-left:none; }
+    .sub-tab.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+    .sub-tab:not(.active):hover{ background:var(--border); }
 
+    /* Study mode */
     .verse-list{ display:flex; flex-direction:column; gap:8px; max-height:500px; overflow-y:auto; }
     .verse-item{
       padding:12px; border:1px solid var(--border); border-radius:8px;
@@ -101,6 +110,60 @@
     .streak-dot.filled { background:var(--ok); border-color:var(--ok); }
     .streak-dot.current { border-color:var(--accent); box-shadow:0 0 6px var(--accent); }
     .streak-label { font-size:13px; color:var(--muted); margin-left:8px; }
+
+    /* ---------- Multiplayer views ---------- */
+    .view{ display:none; }
+    .view.active{ display:block; }
+
+    .lobby-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    .lobby-list{ display:flex; flex-direction:column; gap:8px; }
+    .lobby-item{ display:flex; align-items:center; gap:12px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
+    .lobby-item .lobby-info{ flex:1; }
+    .lobby-item .lobby-verse{ font-weight:600; }
+    .lobby-item .lobby-meta{ font-size:12px; color:var(--muted); }
+    .lobby-item .lobby-players{ font-size:13px; color:var(--muted); }
+    .empty-msg{ text-align:center; color:var(--muted); padding:20px; }
+
+    .join-code-form{ display:flex; gap:12px; align-items:flex-end; }
+    .join-code-form input{ width:150px; text-transform:uppercase; font-family:monospace; font-size:20px; letter-spacing:2px; }
+
+    .waiting-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
+    .join-code-display{ font-family:monospace; font-size:24px; font-weight:700; color:var(--accent); background:var(--banner-ok-bg); padding:8px 16px; border-radius:8px; }
+    .player-list{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+    .player-card{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 16px; background:var(--panel); border:2px solid var(--border); border-radius:12px; min-width:100px; }
+    .player-card.ready{ border-color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, var(--panel)); }
+    .player-card img{ width:48px; height:48px; border-radius:50%; }
+    .player-card .player-name{ font-weight:600; font-size:14px; }
+    .player-card .player-status{ font-size:11px; color:var(--muted); }
+    .waiting-actions{ display:flex; gap:12px; }
+
+    /* Quiz game view */
+    .mp-round-label{ font-size:14px; color:var(--muted); margin-bottom:8px; font-weight:600; }
+    .mp-verse-text{ font-size:20px; line-height:1.6; min-height:3em; margin-bottom:14px; }
+    .mp-scoreboard{ margin-top:16px; }
+    .mp-scoreboard h4{ margin:0 0 8px; }
+    .mp-score-row{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); }
+    .mp-score-row img{ width:24px; height:24px; border-radius:50%; }
+    .mp-score-row .mp-score-name{ flex:1; font-weight:600; font-size:14px; }
+    .mp-score-row .mp-score-pts{ font-weight:700; color:var(--accent); }
+    .mp-score-row.locked-out{ opacity:0.4; }
+    .mp-status{ text-align:center; font-size:14px; color:var(--muted); margin-top:12px; }
+
+    /* Results */
+    .results-panel{ text-align:center; }
+    .results-table{ width:100%; border-collapse:collapse; margin-top:16px; }
+    .results-table th, .results-table td{ padding:12px; text-align:left; border-bottom:1px solid var(--border); }
+    .results-table .place-1{ color:#ffd700; font-weight:700; }
+    .results-table .place-2{ color:#c0c0c0; font-weight:700; }
+    .results-table .place-3{ color:#cd7f32; font-weight:700; }
+    .avatar-cell{ display:flex; align-items:center; gap:8px; }
+    .avatar-cell img{ width:28px; height:28px; border-radius:50%; }
+
+    /* Countdown */
+    .countdown-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .countdown-number{ font-size:150px; font-weight:800; color:#fff; text-shadow:0 0 40px rgba(255,215,0,0.5); animation:countdownPulse 0.8s ease-out; }
+    .countdown-number.go{ color:#6ee7a0; text-shadow:0 0 60px rgba(110,231,160,0.8); }
+    @keyframes countdownPulse{ 0%{transform:scale(2);opacity:0;} 50%{transform:scale(1.1);opacity:1;} 100%{transform:scale(1);opacity:1;} }
   </style>
 </head>
 <body>
@@ -110,70 +173,218 @@
   <script src="shared/theme.js"></script>
   <script src="shared/audio.js"></script>
   <script src="shared/achievements.js"></script>
+  <script src="shared/leaderboard.js"></script>
   <script src="shared/streak.js"></script>
   <script src="shared/offline.js"></script>
   <script src="shared/shortcuts.js"></script>
   <script src="shared/settings.js"></script>
 
-  <!-- Mode tabs -->
+  <!-- Top tabs: Solo / Multiplayer -->
   <div class="mode-tabs">
-    <div class="mode-tab active" id="quizTab">Quiz Mode</div>
-    <div class="mode-tab" id="studyTab">Study Mode</div>
+    <div class="mode-tab active" id="soloTab">Solo</div>
+    <div class="mode-tab" id="multiTab">Multiplayer</div>
   </div>
 
-  <div class="controls">
-    <div class="control-group">
-      <label for="category">Category</label>
-      <select id="category"></select>
+  <!-- ===== SOLO SECTION ===== -->
+  <div id="soloSection">
+    <!-- Sub-tabs: Quiz / Study -->
+    <div class="sub-tabs">
+      <div class="sub-tab active" id="quizSubTab">Quiz</div>
+      <div class="sub-tab" id="studySubTab">Study</div>
     </div>
-    <div class="control-group">
-      <label for="version">Version</label>
-      <select id="version">
-        <option value="WEB" selected>WEB (World English Bible)</option>
-        <option value="KJV">KJV (bible-api.com)</option>
-        <option value="FBV">FBV (api.bible via proxy)</option>
-        <option value="ESV">ESV (Crossway via proxy)</option>
-      </select>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="category">Category</label>
+        <select id="category"></select>
+      </div>
+      <div class="control-group">
+        <label for="version">Version</label>
+        <select id="version">
+          <option value="WEB" selected>WEB (World English Bible)</option>
+          <option value="KJV">KJV (bible-api.com)</option>
+          <option value="FBV">FBV (api.bible via proxy)</option>
+          <option value="ESV">ESV (Crossway via proxy)</option>
+        </select>
+      </div>
+      <span id="quizControls">
+        <button class="primary" id="newBtn">New Question</button>
+        <button id="revealBtn">Reveal Answer</button>
+      </span>
+      <div class="right stat muted" id="score">Score: 0 / 0 · Streak: 0</div>
     </div>
-    <span id="quizControls">
-      <button class="primary" id="newBtn">New Question</button>
-      <button id="revealBtn">Reveal Answer</button>
-    </span>
-    <div class="right stat muted" id="score">Score: 0 / 0 · Streak: 0</div>
+
+    <div id="banner"></div>
+
+    <!-- Study Panel -->
+    <div id="studyPanel" style="display:none;" class="card">
+      <div class="study-hint">Click a verse reference to load and view its text. Study these before taking the quiz!</div>
+      <div class="verse-list" id="verseList"></div>
+    </div>
+
+    <!-- Quiz Panel -->
+    <div id="quizPanel" class="card">
+      <div id="categoryTitle">All</div>
+      <div id="verseBox"></div>
+      <div id="meta"></div>
+
+      <div class="options" id="options"></div>
+
+      <div class="row" style="margin-top:14px">
+        <div id="feedback" class="stat">—</div>
+      </div>
+
+      <div class="streak-bar" id="streakBar">
+        <span class="streak-dot" data-idx="0"></span>
+        <span class="streak-dot" data-idx="1"></span>
+        <span class="streak-dot" data-idx="2"></span>
+        <span class="streak-dot" data-idx="3"></span>
+        <span class="streak-dot" data-idx="4"></span>
+        <span class="streak-label">Streak: <span id="streakNum">0</span></span>
+      </div>
+    </div>
   </div>
 
-  <div id="banner"></div>
+  <!-- ===== MULTIPLAYER SECTION ===== -->
+  <div id="multiSection" style="display:none;">
 
-  <!-- Study Panel -->
-  <div id="studyPanel" class="card">
-    <div class="study-hint">Click a verse reference to load and view its text. Study these before taking the quiz!</div>
-    <div class="verse-list" id="verseList"></div>
-  </div>
-
-  <!-- Quiz Panel -->
-  <div id="quizPanel" class="card">
-    <div id="categoryTitle">All</div>
-    <div id="verseBox"></div>
-    <div id="meta"></div>
-
-    <div class="options" id="options"></div>
-
-    <div class="row" style="margin-top:14px">
-      <div id="feedback" class="stat">—</div>
+    <!-- MP: Login Required -->
+    <div id="mpLoginView" class="view">
+      <div class="card" style="max-width:400px; margin:40px auto; text-align:center;">
+        <h3>Login Required</h3>
+        <p style="color:var(--muted); margin-bottom:16px;">You need an account to play multiplayer quiz.</p>
+        <button class="primary" id="mpLoginBtn">Create Account</button>
+      </div>
     </div>
 
-    <div class="streak-bar" id="streakBar">
-      <span class="streak-dot" data-idx="0"></span>
-      <span class="streak-dot" data-idx="1"></span>
-      <span class="streak-dot" data-idx="2"></span>
-      <span class="streak-dot" data-idx="3"></span>
-      <span class="streak-dot" data-idx="4"></span>
-      <span class="streak-label">Streak: <span id="streakNum">0</span></span>
+    <!-- MP: Lobby Browser -->
+    <div id="mpBrowserView" class="view">
+      <h2>Multiplayer Quiz</h2>
+      <div class="lobby-actions">
+        <button class="primary" id="mpCreateLobbyBtn">Create Lobby</button>
+        <button id="mpRefreshBtn">Refresh</button>
+      </div>
+      <div class="card">
+        <h3>Join by Code</h3>
+        <div class="join-code-form">
+          <input type="text" id="mpJoinCodeInput" placeholder="ABC123" maxlength="6" />
+          <button id="mpJoinByCodeBtn">Join</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h3>Available Quiz Lobbies</h3>
+        <div id="mpLobbyList" class="lobby-list">
+          <div class="empty-msg">Loading lobbies...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP: Create Lobby -->
+    <div id="mpCreateView" class="view">
+      <h2>Create Quiz Lobby</h2>
+      <div class="card" style="max-width:500px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Rounds</label>
+          <select id="mpRoundsSelect">
+            <option value="5" selected>5 Rounds</option>
+            <option value="10">10 Rounds</option>
+            <option value="15">15 Rounds</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label>Version</label>
+            <select id="mpVersionSelect">
+              <option value="WEB" selected>WEB</option>
+              <option value="KJV">KJV</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Max Players</label>
+            <select id="mpMaxPlayersSelect">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="6">6</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <button id="mpCancelCreateBtn">Cancel</button>
+          <button class="primary" id="mpConfirmCreateBtn">Create Lobby</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP: Waiting Room -->
+    <div id="mpWaitingView" class="view">
+      <h2>Waiting Room</h2>
+      <div class="card">
+        <div class="waiting-header">
+          <div>
+            <div style="font-size:12px; color:var(--muted);">JOIN CODE</div>
+            <div class="join-code-display" id="mpWaitingJoinCode">ABC123</div>
+          </div>
+          <button id="mpCopyCodeBtn">Copy Code</button>
+        </div>
+        <div style="margin-bottom:12px; color:var(--muted); font-size:14px;">
+          Quiz Mode · <span id="mpWaitingRounds">5</span> Rounds
+        </div>
+        <h4 style="margin:0 0 8px;">Players</h4>
+        <div class="player-list" id="mpPlayerList"></div>
+        <div class="waiting-actions">
+          <button id="mpLeaveBtn">Leave</button>
+          <button class="primary" id="mpReadyBtn">Ready</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MP: Quiz Game -->
+    <div id="mpGameView" class="view">
+      <div class="card">
+        <div class="mp-round-label" id="mpRoundLabel">Round 1 / 5</div>
+        <div class="mp-verse-text" id="mpVerseText">Loading question...</div>
+        <div class="options" id="mpOptions"></div>
+        <div class="mp-status" id="mpStatus"></div>
+      </div>
+      <div class="card mp-scoreboard" style="margin-top:12px;">
+        <h4>Scoreboard</h4>
+        <div id="mpScoreboard"></div>
+      </div>
+    </div>
+
+    <!-- MP: Quiz Results -->
+    <div id="mpResultsView" class="view">
+      <div class="card results-panel">
+        <h2>Quiz Complete!</h2>
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Place</th>
+              <th>Player</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="mpResultsBody"></tbody>
+        </table>
+        <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+          <button id="mpBackToLobbiesBtn">Back to Lobbies</button>
+          <button class="primary" id="mpPlayAgainBtn">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown-overlay" id="mpCountdownOverlay" style="display:none;">
+      <div class="countdown-number" id="mpCountdownNumber">3</div>
     </div>
   </div>
 
 <script>
-/* ---------- Quiz-specific banner (class-based for quiz styling) ---------- */
+/* ================================================================
+   SOLO QUIZ (unchanged logic, wrapped in soloQuiz namespace)
+   ================================================================ */
 const CAT_NAMES = ["all", ...Object.keys(VERSE_CATEGORIES).sort((a,b)=>a.localeCompare(b))];
 const ALL_REFS = ALL_REFERENCES;
 
@@ -184,37 +395,33 @@ function showQuizBanner(type,msg){
   el.style.display = msg?'block':'none';
 }
 
-/* ---------- DOM ---------- */
+/* DOM */
 const categoryEl = document.getElementById('category');
 const versionEl  = document.getElementById('version');
 const newBtn     = document.getElementById('newBtn');
 const revealBtn  = document.getElementById('revealBtn');
 const verseBox   = document.getElementById('verseBox');
 const optionsBox = document.getElementById('options');
-const bannerEl   = document.getElementById('banner');
 const metaEl     = document.getElementById('meta');
 const feedbackEl = document.getElementById('feedback');
 const scoreEl    = document.getElementById('score');
 const catTitleEl = document.getElementById('categoryTitle');
-const quizTab    = document.getElementById('quizTab');
-const studyTab   = document.getElementById('studyTab');
 const quizPanel  = document.getElementById('quizPanel');
 const studyPanel = document.getElementById('studyPanel');
 const verseList  = document.getElementById('verseList');
 const quizControls = document.getElementById('quizControls');
 
-/* ---------- State ---------- */
+/* State */
 let correctRef = null;
 let allowAnswer = false;
 let score = 0, total = 0, streak = 0;
-let currentMode = 'quiz';
-let loadedVerses = {}; // Cache for study mode
+let soloSubMode = 'quiz';
+let loadedVerses = {};
 
-/* ---------- Helpers ---------- */
+/* Helpers */
 function setScore(){ scoreEl.textContent = `Score: ${score} / ${total} · Streak: ${streak}`; }
-
 function updateStreakBar(){
-  const dots = document.querySelectorAll('.streak-dot');
+  const dots = document.querySelectorAll('#streakBar .streak-dot');
   const streakNum = document.getElementById('streakNum');
   streakNum.textContent = streak;
   dots.forEach((dot, idx) => {
@@ -232,7 +439,7 @@ function sampleDistinct(pool, k, avoidSet){
   return out;
 }
 
-/* ---------- Fetching verses ---------- */
+/* Fetching */
 async function fetchViaBibleApi(ref, versionCode){
   const t = (versionCode||'WEB').toLowerCase();
   const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(t)}`;
@@ -266,7 +473,7 @@ async function getVerse(ref, versionCode){
   }
 }
 
-/* ---------- Quiz logic ---------- */
+/* Quiz logic */
 async function newQuestion(){
   allowAnswer = false;
   feedbackEl.textContent = '—';
@@ -309,7 +516,7 @@ function checkAnswer(btn, ref){
   if (!allowAnswer) return;
   allowAnswer = false; total += 1;
 
-  const buttons = Array.from(document.querySelectorAll('.opt'));
+  const buttons = Array.from(optionsBox.querySelectorAll('.opt'));
   for (const b of buttons){
     b.disabled = true;
     if (b.textContent.trim() === correctRef) b.classList.add('correct');
@@ -317,12 +524,12 @@ function checkAnswer(btn, ref){
 
   if (ref === correctRef){
     score += 1; streak += 1;
-    feedbackEl.textContent = '✅ Correct!';
+    feedbackEl.textContent = 'Correct!';
     TofAudio.playComplete();
     TofStreak.recordActivity();
   } else {
     streak = 0;
-    feedbackEl.textContent = `❌ Incorrect. Correct answer: ${correctRef}`;
+    feedbackEl.textContent = `Incorrect. Correct answer: ${correctRef}`;
     btn.classList.add('wrong');
     TofAudio.playError();
   }
@@ -331,21 +538,21 @@ function checkAnswer(btn, ref){
   metaEl.style.visibility = 'visible';
 }
 
-/* ---------- Mode switching ---------- */
-function setMode(mode){
-  currentMode = mode;
+/* Solo sub-mode switching */
+function setSoloSubMode(mode){
+  soloSubMode = mode;
   if(mode === 'quiz'){
-    quizTab.classList.add('active');
-    studyTab.classList.remove('active');
-    quizPanel.classList.remove('hide');
-    studyPanel.classList.remove('show');
+    document.getElementById('quizSubTab').classList.add('active');
+    document.getElementById('studySubTab').classList.remove('active');
+    quizPanel.style.display = '';
+    studyPanel.style.display = 'none';
     quizControls.style.display = '';
     scoreEl.style.display = '';
   } else {
-    studyTab.classList.add('active');
-    quizTab.classList.remove('active');
-    quizPanel.classList.add('hide');
-    studyPanel.classList.add('show');
+    document.getElementById('studySubTab').classList.add('active');
+    document.getElementById('quizSubTab').classList.remove('active');
+    quizPanel.style.display = 'none';
+    studyPanel.style.display = '';
     quizControls.style.display = 'none';
     scoreEl.style.display = 'none';
     renderStudyList();
@@ -353,16 +560,14 @@ function setMode(mode){
   showQuizBanner('','');
 }
 
-/* ---------- Study mode ---------- */
+/* Study mode */
 function renderStudyList(){
   const cat = categoryEl.value;
   const verses = (cat === 'all') ? ALL_REFS : (VERSE_CATEGORIES[cat] || []);
-
   if(!verses.length){
     verseList.innerHTML = '<div class="muted">No verses in this category.</div>';
     return;
   }
-
   verseList.innerHTML = verses.map(ref => {
     const cached = loadedVerses[ref];
     const textContent = cached
@@ -373,8 +578,6 @@ function renderStudyList(){
       ${textContent}
     </div>`;
   }).join('');
-
-  // Add click handlers
   verseList.querySelectorAll('.verse-item').forEach(item => {
     item.addEventListener('click', () => toggleVerseItem(item));
   });
@@ -383,20 +586,13 @@ function renderStudyList(){
 async function toggleVerseItem(item){
   const ref = item.dataset.ref;
   const wasExpanded = item.classList.contains('expanded');
-
-  // Collapse all others
   verseList.querySelectorAll('.verse-item').forEach(el => el.classList.remove('expanded'));
-
-  if(wasExpanded) return; // Just collapse
-
+  if(wasExpanded) return;
   item.classList.add('expanded');
-
-  // Load verse if not cached
   if(!loadedVerses[ref]){
     const textEl = item.querySelector('.verse-text');
     textEl.textContent = 'Loading...';
     textEl.classList.add('verse-loading');
-
     try {
       const ver = (versionEl.value || 'WEB').toUpperCase();
       const data = await getVerse(ref, ver);
@@ -410,37 +606,444 @@ async function toggleVerseItem(item){
   }
 }
 
-/* ---------- Init ---------- */
+/* ================================================================
+   TOP-LEVEL MODE SWITCHING (Solo / Multiplayer)
+   ================================================================ */
+let topMode = 'solo'; // 'solo' or 'multi'
+
+function setTopMode(mode){
+  topMode = mode;
+  document.getElementById('soloTab').classList.toggle('active', mode === 'solo');
+  document.getElementById('multiTab').classList.toggle('active', mode === 'multi');
+  document.getElementById('soloSection').style.display = mode === 'solo' ? '' : 'none';
+  document.getElementById('multiSection').style.display = mode === 'multi' ? '' : 'none';
+
+  if(mode === 'multi'){
+    mpInit();
+  }
+}
+
+/* ================================================================
+   MULTIPLAYER QUIZ
+   ================================================================ */
+const API_BASE = TofConfig.API_BASE;
+const WS_BASE = TofConfig.WS_BASE;
+
+let mpLobby = null;
+let mpPlayers = {};
+let mpWs = null;
+let mpIsReady = false;
+let mpScores = {};
+let mpLockedOut = new Set();
+let mpMyLockedOut = false;
+
+function mpShowBanner(msg, isError){
+  const el = document.getElementById('banner');
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+  el.className = isError ? 'err' : 'ok';
+}
+
+/* View management */
+const mpViews = ['mpLoginView','mpBrowserView','mpCreateView','mpWaitingView','mpGameView','mpResultsView'];
+function mpShowView(viewId){
+  mpViews.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('active', id === viewId);
+  });
+}
+
+/* API helper */
+async function mpApiCall(endpoint, options = {}){
+  const token = localStorage.getItem('tof_auth_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if(token) headers['Authorization'] = `Bearer ${token}`;
+  const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+  const data = await response.json();
+  if(!response.ok) throw { status: response.status, detail: data.detail || 'Request failed' };
+  return data;
+}
+
+/* Lobby browser */
+async function mpLoadLobbies(){
+  const list = document.getElementById('mpLobbyList');
+  try {
+    const data = await mpApiCall('/lobbies?mode=quiz');
+    if(data.lobbies.length === 0){
+      list.innerHTML = '<div class="empty-msg">No quiz lobbies available. Create one!</div>';
+      return;
+    }
+    list.innerHTML = data.lobbies.map(l => `
+      <div class="lobby-item">
+        <div class="lobby-info">
+          <div class="lobby-verse">${l.total_rounds || 5} Rounds</div>
+          <div class="lobby-meta">Host: ${l.host_username} · Code: ${l.join_code}</div>
+        </div>
+        <div class="lobby-players">${l.player_count}/${l.max_players}</div>
+        <button onclick="mpJoinLobby('${l.join_code}')">Join</button>
+      </div>
+    `).join('');
+  } catch(e){
+    list.innerHTML = '<div class="empty-msg">Could not load lobbies</div>';
+  }
+}
+
+async function mpJoinLobby(code){
+  try {
+    mpShowBanner('Joining lobby...');
+    const result = await mpApiCall(`/lobbies/join/${code}`, { method: 'POST' });
+    mpLobby = { id: result.id };
+    await mpLoadLobbyDetails(result.id);
+    mpConnectWebSocket(result.id);
+    mpShowView('mpWaitingView');
+    mpShowBanner('');
+  } catch(e){
+    mpShowBanner(e.detail || 'Could not join lobby', true);
+  }
+}
+
+/* Create lobby */
+async function mpCreateLobby(){
+  const totalRounds = parseInt(document.getElementById('mpRoundsSelect').value);
+  const version = document.getElementById('mpVersionSelect').value;
+  const maxPlayers = parseInt(document.getElementById('mpMaxPlayersSelect').value);
+
+  try {
+    mpShowBanner('Creating lobby...');
+    const result = await mpApiCall('/lobbies/create', {
+      method: 'POST',
+      body: JSON.stringify({ mode: 'quiz', total_rounds: totalRounds, version, max_players: maxPlayers })
+    });
+    mpLobby = result;
+    await mpLoadLobbyDetails(result.id);
+    mpConnectWebSocket(result.id);
+    mpShowView('mpWaitingView');
+    mpShowBanner('');
+  } catch(e){
+    mpShowBanner(e.detail || 'Could not create lobby', true);
+  }
+}
+
+/* Waiting room */
+async function mpLoadLobbyDetails(lobbyId){
+  const data = await mpApiCall(`/lobbies/${lobbyId}`);
+  mpLobby = data;
+
+  document.getElementById('mpWaitingJoinCode').textContent = data.join_code;
+  document.getElementById('mpWaitingRounds').textContent = data.total_rounds || 5;
+
+  const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+  mpPlayers = {};
+  data.players.forEach(p => {
+    mpPlayers[p.user_id] = p;
+    if(p.user_id === currentUserId) mpIsReady = p.ready;
+  });
+  document.getElementById('mpReadyBtn').textContent = mpIsReady ? 'Not Ready' : 'Ready';
+  mpRenderPlayerList();
+}
+
+function mpRenderPlayerList(){
+  const list = document.getElementById('mpPlayerList');
+  const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+  list.innerHTML = Object.values(mpPlayers).map(p => `
+    <div class="player-card ${p.ready ? 'ready' : ''}">
+      <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" alt="${p.username}" />
+      <div class="player-name">${p.username}${p.user_id === currentUserId ? ' (You)' : ''}</div>
+      <div class="player-status">${p.ready ? 'Ready!' : 'Waiting...'}</div>
+    </div>
+  `).join('');
+}
+
+function mpToggleReady(){
+  if(mpWs && mpWs.readyState === WebSocket.OPEN){
+    mpWs.send(JSON.stringify({ type: 'ready' }));
+  }
+}
+
+async function mpLeaveLobby(){
+  if(mpWs) mpWs.close();
+  if(mpLobby){
+    try { await mpApiCall(`/lobbies/${mpLobby.id}/leave`, { method: 'POST' }); } catch{}
+  }
+  mpLobby = null;
+  mpPlayers = {};
+  mpIsReady = false;
+  mpShowView('mpBrowserView');
+  mpLoadLobbies();
+}
+
+/* WebSocket */
+function mpConnectWebSocket(lobbyId){
+  const token = localStorage.getItem('tof_auth_token');
+  mpWs = new WebSocket(`${WS_BASE}/ws/quiz/${lobbyId}?token=${token}`);
+  mpWs.onopen = () => console.log('Quiz WS connected');
+  mpWs.onmessage = (event) => mpHandleWsMessage(JSON.parse(event.data));
+  mpWs.onclose = () => { console.log('Quiz WS disconnected'); mpWs = null; };
+  mpWs.onerror = () => mpShowBanner('Connection error', true);
+}
+
+function mpHandleWsMessage(msg){
+  const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
+
+  switch(msg.type){
+    case 'player_joined':
+      mpPlayers[msg.user_id] = { user_id: msg.user_id, username: msg.username, avatar_id: msg.avatar_id, ready: false };
+      mpRenderPlayerList();
+      break;
+
+    case 'player_left':
+      delete mpPlayers[msg.user_id];
+      mpRenderPlayerList();
+      break;
+
+    case 'player_ready':
+      if(mpPlayers[msg.user_id]) mpPlayers[msg.user_id].ready = msg.ready;
+      if(msg.user_id === currentUserId){
+        mpIsReady = msg.ready;
+        document.getElementById('mpReadyBtn').textContent = mpIsReady ? 'Not Ready' : 'Ready';
+      }
+      mpRenderPlayerList();
+      break;
+
+    case 'countdown':
+      mpShowCountdown(msg.seconds);
+      break;
+
+    case 'quiz_start':
+      mpScores = {};
+      Object.keys(mpPlayers).forEach(uid => mpScores[uid] = 0);
+      mpShowView('mpGameView');
+      document.getElementById('mpCountdownOverlay').style.display = 'none';
+      document.getElementById('mpStatus').textContent = 'Get ready...';
+      break;
+
+    case 'question':
+      mpLockedOut = new Set();
+      mpMyLockedOut = false;
+      document.getElementById('mpRoundLabel').textContent = `Round ${msg.round} / ${msg.total_rounds}`;
+      document.getElementById('mpVerseText').textContent = msg.verse_text;
+      document.getElementById('mpStatus').textContent = 'Pick the correct reference!';
+
+      const optsEl = document.getElementById('mpOptions');
+      optsEl.innerHTML = '';
+      for(const ref of msg.options){
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.textContent = ref;
+        btn.addEventListener('click', () => mpSubmitAnswer(ref, btn));
+        optsEl.appendChild(btn);
+      }
+      mpRenderScoreboard();
+      break;
+
+    case 'player_locked_out':
+      mpLockedOut.add(msg.user_id);
+      if(msg.user_id === currentUserId){
+        mpMyLockedOut = true;
+        document.getElementById('mpStatus').textContent = 'Wrong answer! Locked out this round.';
+        // Disable remaining buttons
+        document.querySelectorAll('#mpOptions .opt:not(.wrong)').forEach(b => b.disabled = true);
+      }
+      mpRenderScoreboard();
+      break;
+
+    case 'round_result':
+      mpScores = msg.scores || mpScores;
+      // Highlight correct answer
+      document.querySelectorAll('#mpOptions .opt').forEach(b => {
+        b.disabled = true;
+        if(b.textContent.trim() === msg.correct_ref) b.classList.add('correct');
+      });
+      if(msg.winner_id){
+        const winnerName = msg.winner_username || 'Someone';
+        document.getElementById('mpStatus').textContent = msg.winner_id === currentUserId
+          ? 'You got it right!'
+          : `${winnerName} got it right!`;
+        if(msg.winner_id === currentUserId) TofAudio.playComplete();
+      } else {
+        document.getElementById('mpStatus').textContent = 'Nobody got it right!';
+      }
+      mpRenderScoreboard();
+      break;
+
+    case 'quiz_end':
+      mpShowResults(msg.results);
+      break;
+
+    case 'rematch':
+      if(msg.user_id !== currentUserId){
+        mpJoinLobby(msg.join_code);
+      }
+      break;
+  }
+}
+
+function mpShowCountdown(seconds){
+  const overlay = document.getElementById('mpCountdownOverlay');
+  const number = document.getElementById('mpCountdownNumber');
+  overlay.style.display = 'flex';
+  number.style.animation = 'none';
+  number.offsetHeight;
+  number.style.animation = '';
+  if(seconds === 0){
+    number.textContent = 'GO!';
+    number.classList.add('go');
+    TofAudio.playGo();
+    setTimeout(() => { overlay.style.display = 'none'; number.classList.remove('go'); }, 500);
+  } else {
+    number.textContent = seconds;
+    number.classList.remove('go');
+    TofAudio.playCountdown();
+  }
+}
+
+function mpSubmitAnswer(ref, btn){
+  if(mpMyLockedOut) return;
+  if(mpWs && mpWs.readyState === WebSocket.OPEN){
+    mpWs.send(JSON.stringify({ type: 'answer', ref }));
+    btn.classList.add('wrong'); // Visually mark as chosen; server will confirm
+    btn.disabled = true;
+  }
+}
+
+function mpRenderScoreboard(){
+  const container = document.getElementById('mpScoreboard');
+  const sorted = Object.entries(mpScores).sort((a,b) => b[1] - a[1]);
+  container.innerHTML = sorted.map(([uid, pts]) => {
+    const p = mpPlayers[uid] || { username: 'Unknown', avatar_id: 'moses' };
+    const lockedClass = mpLockedOut.has(uid) ? ' locked-out' : '';
+    return `<div class="mp-score-row${lockedClass}">
+      <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />
+      <span class="mp-score-name">${p.username}</span>
+      <span class="mp-score-pts">${pts}</span>
+    </div>`;
+  }).join('');
+}
+
+function mpShowResults(results){
+  mpShowView('mpResultsView');
+  const tbody = document.getElementById('mpResultsBody');
+  tbody.innerHTML = results.map(r => {
+    const placeClass = r.place === 1 ? 'place-1' : r.place === 2 ? 'place-2' : r.place === 3 ? 'place-3' : '';
+    const placeText = r.place === 1 ? '1st' : r.place === 2 ? '2nd' : r.place === 3 ? '3rd' : `${r.place}th`;
+    const p = mpPlayers[r.user_id] || { username: r.username, avatar_id: 'moses' };
+    return `<tr>
+      <td class="${placeClass}">${placeText}</td>
+      <td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />${r.username}</div></td>
+      <td>${r.score}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* MP Init */
+async function mpInit(){
+  const user = await TofLeaderboard.checkAuth();
+  if(!user){
+    mpShowView('mpLoginView');
+    return;
+  }
+  mpShowView('mpBrowserView');
+  mpLoadLobbies();
+}
+
+/* ================================================================
+   EVENT LISTENERS
+   ================================================================ */
+
+/* Top tabs */
+document.getElementById('soloTab').addEventListener('click', () => setTopMode('solo'));
+document.getElementById('multiTab').addEventListener('click', () => setTopMode('multi'));
+
+/* Solo sub-tabs */
+document.getElementById('quizSubTab').addEventListener('click', () => setSoloSubMode('quiz'));
+document.getElementById('studySubTab').addEventListener('click', () => setSoloSubMode('study'));
+
+/* Solo quiz controls */
+newBtn.addEventListener('click', newQuestion);
+revealBtn.addEventListener('click', () => {
+  if(!correctRef) return;
+  Array.from(optionsBox.querySelectorAll('.opt')).forEach(b => {
+    b.disabled = true;
+    if(b.textContent.trim() === correctRef) b.classList.add('correct');
+  });
+  metaEl.style.visibility = 'visible';
+  allowAnswer = false;
+});
+categoryEl.addEventListener('change', () => {
+  if(soloSubMode === 'quiz') newQuestion();
+  else renderStudyList();
+});
+versionEl.addEventListener('change', () => {
+  loadedVerses = {};
+  if(soloSubMode === 'quiz') newQuestion();
+  else renderStudyList();
+});
+
+/* Multiplayer event listeners */
+document.getElementById('mpLoginBtn').addEventListener('click', async () => {
+  try { await TofLeaderboard.showAuthModal(); mpInit(); } catch{}
+});
+document.getElementById('mpCreateLobbyBtn').addEventListener('click', () => mpShowView('mpCreateView'));
+document.getElementById('mpRefreshBtn').addEventListener('click', mpLoadLobbies);
+document.getElementById('mpCancelCreateBtn').addEventListener('click', () => { mpShowView('mpBrowserView'); mpShowBanner(''); });
+document.getElementById('mpConfirmCreateBtn').addEventListener('click', mpCreateLobby);
+document.getElementById('mpJoinByCodeBtn').addEventListener('click', () => {
+  const code = document.getElementById('mpJoinCodeInput').value.trim();
+  if(code) mpJoinLobby(code);
+});
+document.getElementById('mpJoinCodeInput').addEventListener('keypress', (e) => {
+  if(e.key === 'Enter'){ const code = e.target.value.trim(); if(code) mpJoinLobby(code); }
+});
+document.getElementById('mpReadyBtn').addEventListener('click', mpToggleReady);
+document.getElementById('mpLeaveBtn').addEventListener('click', mpLeaveLobby);
+document.getElementById('mpCopyCodeBtn').addEventListener('click', () => {
+  const code = document.getElementById('mpWaitingJoinCode').textContent;
+  navigator.clipboard.writeText(code);
+  mpShowBanner('Code copied!');
+  setTimeout(() => mpShowBanner(''), 2000);
+});
+document.getElementById('mpBackToLobbiesBtn').addEventListener('click', () => {
+  mpLobby = null; mpPlayers = {}; mpScores = {};
+  mpShowView('mpBrowserView');
+  mpLoadLobbies();
+});
+document.getElementById('mpPlayAgainBtn').addEventListener('click', async () => {
+  const totalRounds = mpLobby?.total_rounds || 5;
+  const version = mpLobby?.version || 'WEB';
+  const maxPlayers = mpLobby?.max_players || 4;
+  const oldWs = mpWs;
+  mpPlayers = {}; mpScores = {}; mpIsReady = false;
+
+  try {
+    mpShowBanner('Creating new lobby...');
+    const result = await mpApiCall('/lobbies/create', {
+      method: 'POST',
+      body: JSON.stringify({ mode: 'quiz', total_rounds: totalRounds, version, max_players: maxPlayers })
+    });
+    if(oldWs && oldWs.readyState === WebSocket.OPEN){
+      oldWs.send(JSON.stringify({ type: 'rematch', join_code: result.join_code }));
+      setTimeout(() => oldWs.close(), 500);
+    }
+    mpLobby = result;
+    await mpLoadLobbyDetails(result.id);
+    mpConnectWebSocket(result.id);
+    mpShowView('mpWaitingView');
+    mpShowBanner('');
+  } catch(e){
+    mpShowBanner(e.detail || 'Could not create lobby', true);
+    if(oldWs) oldWs.close();
+  }
+});
+
+/* ================================================================
+   INIT
+   ================================================================ */
 (function init(){
   initTheme();
   TofStreak.initBadge();
 
   categoryEl.innerHTML = CAT_NAMES.map(c => `<option value="${c}">${c==='all'?'All':titleCase(c)}</option>`).join('');
   setScore(); setCategoryTitle(); updateStreakBar();
-
-  // Mode tab listeners
-  quizTab.addEventListener('click', () => setMode('quiz'));
-  studyTab.addEventListener('click', () => setMode('study'));
-
-  newBtn.addEventListener('click', newQuestion);
-  revealBtn.addEventListener('click', ()=>{
-    if (!correctRef) return;
-    Array.from(document.querySelectorAll('.opt')).forEach(b=>{
-      b.disabled = true;
-      if (b.textContent.trim()===correctRef) b.classList.add('correct');
-    });
-    metaEl.style.visibility='visible';
-    allowAnswer=false;
-  });
-  categoryEl.addEventListener('change', () => {
-    if(currentMode === 'quiz') newQuestion();
-    else renderStudyList();
-  });
-  versionEl.addEventListener('change', () => {
-    loadedVerses = {}; // Clear cache when version changes
-    if(currentMode === 'quiz') newQuestion();
-    else renderStudyList();
-  });
   newQuestion();
 })();
 </script>
