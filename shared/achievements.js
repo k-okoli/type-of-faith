@@ -14,6 +14,7 @@
   // ============================================
 
   const AVATAR_UNLOCK_CONDITIONS = {
+    // --- Free (unlocked from start) ---
     'cross': {
       name: 'The Cross',
       src: 'assets/avatars/cross-2d.png',
@@ -35,12 +36,42 @@
       requirement: null,
       description: 'Unlocked from start'
     },
+    'noahs-ark': {
+      name: "Noah's Ark",
+      src: 'assets/avatars/noahs-ark-2d.png',
+      unlocked: true,
+      requirement: null,
+      description: 'Unlocked from start'
+    },
+    // --- Easy-Medium ---
+    'water-into-wine': {
+      name: 'Water Into Wine',
+      src: 'assets/avatars/water-into-wine-2d.png',
+      unlocked: false,
+      requirement: { type: 'quizzes_completed', value: 5 },
+      description: 'Complete 5 quizzes'
+    },
+    'burning-bush': {
+      name: 'Burning Bush',
+      src: 'assets/avatars/burning-bush-2d.png',
+      unlocked: false,
+      requirement: { type: 'perfect_accuracy', value: 1 },
+      description: 'Achieve 100% accuracy'
+    },
     'elijah': {
       name: 'Elijah',
       src: 'assets/avatars/elijah-2d.png',
       unlocked: false,
       requirement: { type: 'max_wpm', value: 60 },
       description: 'Reach 60 WPM'
+    },
+    // --- Medium ---
+    'five-loaves-two-fish': {
+      name: 'Loaves & Fish',
+      src: 'assets/avatars/five-loaves-two-fish-2d.png',
+      unlocked: false,
+      requirement: { type: 'races_won', value: 5 },
+      description: 'Win 5 races'
     },
     'jonah': {
       name: 'Jonah',
@@ -49,19 +80,13 @@
       requirement: { type: 'daily_challenges', value: 10 },
       description: 'Complete 10 daily challenges'
     },
-    'noahs-ark': {
-      name: "Noah's Ark",
-      src: 'assets/avatars/noahs-ark-2d.png',
-      unlocked: true,
-      requirement: null,
-      description: 'Unlocked from start'
-    },
-    'burning-bush': {
-      name: 'Burning Bush',
-      src: 'assets/avatars/burning-bush-2d.png',
+    // --- Hard ---
+    'daniel-in-lions-den': {
+      name: "Daniel & Lions",
+      src: 'assets/avatars/daniel-in-lions-den-2d.png',
       unlocked: false,
-      requirement: { type: 'perfect_accuracy', value: 1 },
-      description: 'Achieve 100% accuracy'
+      requirement: { type: 'lessons_completed', value: 10 },
+      description: 'Complete all 10 lessons'
     },
     'ten-commandments': {
       name: 'Commandments',
