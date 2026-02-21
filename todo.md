@@ -75,8 +75,16 @@
 - [ ] Test Render deployment end-to-end (WebSockets, PostgreSQL, Bible API proxy)
 - [ ] Commit new avatar images (lost-sheep, prodigal-son, water-into-wine)
 - [ ] Add PWA manifest + basic service worker for mobile install support
-- [ ] Add social meta tags (og:title, og:description, og:image) for link sharing
+- [x] Add social meta tags (og:title, og:description, og:image) for link sharing
+- [x] Landing page with feature cards and player stats (index.html)
+- [x] Shareable results (practice + race share buttons with clipboard fallback)
+- [x] Mobile keyboard fix for lessons page
 - [ ] Register a custom domain
 - [ ] Add lightweight analytics (Plausible or server-side logging)
 - [ ] Add first-time user onboarding/welcome flow
 - [ ] Surface "Start Here" suggestions for new typists
+
+## Monetization
+- [ ] Add Google AdSense (non-intrusive banner placements)
+- [ ] Add Ko-fi or Buy Me a Coffee donation link
+- [ ] Premium tier — ad-free experience, extra avatars, advanced stats

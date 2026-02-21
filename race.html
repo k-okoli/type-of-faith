@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <title>Race Mode — Type of Faith</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Race against friends or AI typing Bible verses. Compete in real-time multiplayer or solo races on Type of Faith." />
+  <meta property="og:title" content="Race Mode — Type of Faith" />
+  <meta property="og:description" content="Race against friends or AI typing Bible verses. Compete in real-time multiplayer or solo races." />
+  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Race Mode — Type of Faith" />
+  <meta name="twitter:description" content="Race against friends or AI typing Bible verses on Type of Faith." />
+  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%81%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -65,6 +74,24 @@
     .race-avatar { position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; z-index: 2; transition: left 0.15s ease-out; }
     .finish-line { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right: 2px solid var(--ok); z-index: 1; }
     .race-pct { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--muted); z-index: 3; pointer-events: none; }
+
+    /* ---------- Share button + toast ---------- */
+    .share-btn {
+      display: none; font-size: 13px; padding: 6px 16px; margin-top: 12px;
+      border: 1px solid var(--btn-border); border-radius: 6px;
+      background: var(--panel); color: var(--ink); cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .share-btn:hover { background: var(--border); border-color: var(--accent); }
+    .share-btn.visible { display: inline-block; }
+    .share-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff; padding: 10px 20px;
+      border-radius: 8px; font-size: 14px; z-index: 9999;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
 
     /* ---------- Results panel ---------- */
     .results-panel { display: none; margin-top: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
@@ -236,6 +263,7 @@
         <thead><tr><th>Place</th><th>Racer</th><th>Time</th><th>WPM</th></tr></thead>
         <tbody id="resultsBody"></tbody>
       </table>
+      <button class="share-btn" id="raceShareBtn" title="Share your race result">Share Result</button>
     </div>
 
     <div class="panels">
@@ -435,6 +463,7 @@
     const inputEl = document.getElementById("input");
     const resultsPanel = document.getElementById("resultsPanel");
     const resultsBody = document.getElementById("resultsBody");
+    const raceShareBtn = document.getElementById("raceShareBtn");
     const statusEl = document.getElementById("status");
     const playerStatsEl = document.getElementById("playerStats");
 
@@ -449,6 +478,7 @@
     let finishOrder = [];
     let started = false;
     let totalKeystrokes = 0;
+    let lastShareText = "";
     let errorKeystrokes = 0;
     let errorPositions = new Set();
     let prevValue = "";
@@ -539,7 +569,7 @@
     }
     function resetRace() {
       raceActive = false; finishOrder = []; started = false; totalKeystrokes = 0; errorKeystrokes = 0; errorPositions.clear(); prevValue = "";
-      inputEl.value = ""; inputEl.disabled = true; inputEl.classList.remove("error-state"); incorrectEl.textContent = ""; resultsPanel.classList.remove("show");
+      inputEl.value = ""; inputEl.disabled = true; inputEl.classList.remove("error-state"); incorrectEl.textContent = ""; resultsPanel.classList.remove("show"); raceShareBtn.classList.remove("visible");
       if (aiInterval) { clearInterval(aiInterval); aiInterval = null; } if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
     }
     async function loadVerse() {
@@ -574,6 +604,10 @@
       if (place <= 3) { showTrophy(place); if (place === 1) showConfetti(); }
       if (place === 1) { const u = TofAchievements.recordRaceWin(); if (u && u.length) setTimeout(() => u.forEach((a,i) => setTimeout(() => showAchievementToast(a.id, a.name), i*4500)), 2000); }
       showResults(all); showBanner("success", place === 1 ? "You won the race!" : place <= 3 ? `You placed ${place === 2 ? "2nd" : "3rd"}!` : "Race complete!"); TofStreak.recordActivity();
+      // Show share button
+      const placeText = place === 1 ? "1st" : place === 2 ? "2nd" : place === 3 ? "3rd" : `${place}th`;
+      lastShareText = `I placed ${placeText} in a typing race with ${playerWPM} WPM on Type of Faith!`;
+      raceShareBtn.classList.add("visible");
     }
     function showResults(sorted) {
       resultsBody.innerHTML = ""; const tc = verseText.length;
@@ -602,6 +636,22 @@
     });
     startBtn.addEventListener("click", () => { if (!verseText) { showBanner("warn", "Load a verse first!"); return; } if (raceActive) return; resetRace(); renderRaceArena(); typedEl.textContent = ""; incorrectEl.textContent = ""; remainingEl.textContent = verseText; startCountdown(); });
     newVerseBtn.addEventListener("click", loadVerse);
+    raceShareBtn.addEventListener("click", async () => {
+      if (!lastShareText) return;
+      const url = location.href.split("?")[0];
+      if (navigator.share) {
+        try { await navigator.share({ text: lastShareText, url }); } catch (e) { /* cancelled */ }
+      } else {
+        try {
+          await navigator.clipboard.writeText(lastShareText + "\n" + url);
+          const toast = document.createElement("div");
+          toast.className = "share-toast";
+          toast.textContent = "Copied to clipboard!";
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 2500);
+        } catch (e) { /* clipboard unavailable */ }
+      }
+    });
     categoryEl.addEventListener("change", loadVerse);
     lengthEl.addEventListener("change", loadVerse);
     versionEl.addEventListener("change", loadVerse);

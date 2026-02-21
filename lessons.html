@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <title>Type of Faith — Lessons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Learn touch typing with Bible-based lessons. Progressive drills from home row to full verses on Type of Faith." />
+  <meta property="og:title" content="Type of Faith — Lessons" />
+  <meta property="og:description" content="Learn touch typing with Bible-based lessons. Progressive drills from home row to full verses." />
+  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Type of Faith — Lessons" />
+  <meta name="twitter:description" content="Learn touch typing with Bible-based lessons on Type of Faith." />
+  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -149,6 +158,15 @@
     .race-avatar { position:absolute; top:50%; transform:translateY(-50%); left:0; width:36px; height:36px; border-radius:50%; object-fit:cover; z-index:2; transition:left 0.3s ease-out; }
     .finish-line { position:absolute; right:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right:2px solid var(--ok); z-index:1; }
     .race-pct { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:600; color:var(--muted); z-index:3; pointer-events:none; }
+
+    /* Responsive keyboard for narrow screens */
+    @media (max-width: 600px) {
+      #keyboard { display: block; width: 100%; overflow-x: auto; padding: 8px; }
+      #keyboard .krow { transform: scale(0.72); transform-origin: center; margin: 2px 0; }
+    }
+    @media (max-width: 420px) {
+      #keyboard .krow { transform: scale(0.58); transform-origin: center; }
+    }
   </style>
 </head>
 <body>

@@ -1,12 +1,219 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=practice.html" />
-  <title>Type of Faith</title>
+  <title>Type of Faith — Learn to Type with Scripture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A free browser-based typing game that helps you practice touch-typing while learning Bible verses. Practice, race, quiz, and learn." />
+  <meta property="og:title" content="Type of Faith — Learn to Type with Scripture" />
+  <meta property="og:description" content="A free typing game that helps you practice touch-typing while learning Bible verses." />
+  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Type of Faith — Learn to Type with Scripture" />
+  <meta name="twitter:description" content="A free typing game that helps you practice touch-typing while learning Bible verses." />
+  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shared/nav.css" />
+  <link rel="stylesheet" href="shared/controls.css" />
+  <style>
+    /* Light theme (default) */
+    :root {
+      --bg:#faf8f5; --ink:#111; --muted:#555;
+      --ok:#0a7a0a; --err:#b00020; --accent:#8b6b3b;
+      --panel:#fff; --border:#eee;
+      --banner-bg:#fff7e6; --link:#1a56db;
+      --input-border:#ddd; --btn-border:#ccc;
+    }
+    /* Dark theme */
+    :root[data-theme="dark"] {
+      --bg:#0f1115; --ink:#e6e6e6; --muted:#a8a8a8;
+      --ok:#6ee7a0; --err:#ff6b81; --accent:#d7c3a0;
+      --panel:#151922; --border:#2a2f3a;
+      --banner-bg:#1d2430; --link:#87b3ff;
+      --input-border:#2b3240; --btn-border:#3a4252;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg); color: var(--ink); margin: 24px;
+    }
+    a { color: var(--link); }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 48px 16px 40px;
+    }
+    .hero-avatar {
+      width: 96px; height: 96px; border-radius: 50%;
+      border: 3px solid var(--accent); margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: 32px; font-weight: 700; margin: 0 0 8px;
+      color: var(--ink);
+    }
+    .hero .tagline {
+      font-size: 18px; color: var(--muted); margin: 0 0 24px;
+      max-width: 500px; margin-left: auto; margin-right: auto;
+    }
+    .hero .cta {
+      display: inline-block; padding: 12px 32px; font-size: 16px;
+      font-weight: 600; color: #fff; background: var(--accent);
+      border: none; border-radius: 8px; text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .hero .cta:hover { opacity: 0.85; }
+
+    /* Feature cards */
+    .features {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px; max-width: 960px; margin: 0 auto 40px;
+    }
+    .feature-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px; text-decoration: none;
+      color: var(--ink); transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .feature-card .feature-icon {
+      font-size: 32px; margin-bottom: 8px; display: block;
+    }
+    .feature-card h3 {
+      margin: 0 0 6px; font-size: 18px; font-weight: 600;
+    }
+    .feature-card p {
+      margin: 0; font-size: 14px; color: var(--muted); line-height: 1.5;
+    }
+
+    /* Stats section */
+    .stats-section {
+      max-width: 960px; margin: 0 auto 40px; text-align: center;
+    }
+    .stats-section h2 {
+      font-size: 20px; font-weight: 600; margin: 0 0 16px;
+    }
+    .stats-row {
+      display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+    }
+    .stat-box {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 24px; min-width: 140px;
+    }
+    .stat-box .stat-val {
+      font-size: 28px; font-weight: 700; color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-box .stat-label {
+      font-size: 13px; color: var(--muted); margin-top: 4px;
+    }
+
+    /* Footer */
+    .landing-footer {
+      text-align: center; color: var(--muted); font-size: 13px;
+      padding: 24px 0; border-top: 1px solid var(--border);
+      max-width: 960px; margin: 0 auto;
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to <a href="practice.html">Type of Faith</a>...</p>
+  <script src="shared/config.js"></script>
+  <script src="shared/nav.js"></script>
+  <script src="shared/theme.js"></script>
+  <script>initTheme();</script>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img src="assets/avatars/moses-2d.png" alt="Type of Faith" class="hero-avatar" />
+    <h1>Type of Faith</h1>
+    <p class="tagline">Improve your typing speed while learning Bible verses. Practice, race, quiz, and master Scripture one keystroke at a time.</p>
+    <a href="practice.html" class="cta">Start Practicing</a>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <a href="practice.html" class="feature-card">
+      <span class="feature-icon">&#9997;</span>
+      <h3>Practice</h3>
+      <p>Type Bible verses at your own pace. Track WPM, accuracy, and challenge yourself with Blind Faith mode.</p>
+    </a>
+    <a href="lessons.html" class="feature-card">
+      <span class="feature-icon">&#127891;</span>
+      <h3>Lessons</h3>
+      <p>Learn touch typing from scratch with 10 progressive lessons, interactive keyboard map, and hand guides.</p>
+    </a>
+    <a href="quiz.html" class="feature-card">
+      <span class="feature-icon">&#10067;</span>
+      <h3>Quiz</h3>
+      <p>Test your Bible knowledge. Identify verse references from text in solo or multiplayer quiz battles.</p>
+    </a>
+    <a href="race.html" class="feature-card">
+      <span class="feature-icon">&#127937;</span>
+      <h3>Race</h3>
+      <p>Compete against AI opponents or race friends in real-time multiplayer typing races.</p>
+    </a>
+  </section>
+
+  <!-- Player stats -->
+  <section class="stats-section" id="statsSection" style="display:none;">
+    <h2>Your Progress</h2>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="statSessions">0</div>
+        <div class="stat-label">Practice Sessions</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statBestWPM">--</div>
+        <div class="stat-label">Best WPM</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statRacesWon">0</div>
+        <div class="stat-label">Races Won</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    Type of Faith &mdash; free and open source. Built with faith and keystrokes.
+  </footer>
+
+  <script>
+    // Show player stats from localStorage if available
+    (function() {
+      try {
+        let hasData = false;
+
+        // Practice sessions from daily history
+        const history = JSON.parse(localStorage.getItem("tof_practice_history") || "[]");
+        if (history.length > 0) {
+          document.getElementById("statSessions").textContent = history.length;
+          hasData = true;
+        }
+
+        // Best WPM from practice history
+        const profileStats = JSON.parse(localStorage.getItem("tof_profile_stats") || "null");
+        if (profileStats && profileStats.bestWPM) {
+          document.getElementById("statBestWPM").textContent = profileStats.bestWPM;
+          hasData = true;
+        }
+
+        // Races won from race stats
+        const raceStats = JSON.parse(localStorage.getItem("tof_race_stats") || "null");
+        if (raceStats && raceStats.wins) {
+          document.getElementById("statRacesWon").textContent = raceStats.wins;
+          hasData = true;
+        }
+
+        if (hasData) {
+          document.getElementById("statsSection").style.display = "";
+        }
+      } catch (e) { /* localStorage unavailable */ }
+    })();
+  </script>
 </body>
 </html>

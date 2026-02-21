@@ -93,6 +93,15 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
   - **Live progress sync**: See all players' progress in real-time
   - **Results & standings**: Final positions with WPM for each player
 
+### Landing Page (index.html)
+- **Feature overview**: Cards linking to Practice, Lessons, Quiz, and Race
+- **Player stats**: Shows practice sessions, best WPM, and races won from localStorage
+- **SEO ready**: Open Graph and Twitter Card meta tags on all pages
+
+### Sharing
+- **Share results**: Share practice results or race placements via `navigator.share()` or clipboard
+- **Social meta tags**: og:title, og:description, og:image on every page for link previews
+
 ### Audio & Feedback
 - **Sound effects**: Correct/error keystrokes, completion, countdown
 - **Mute toggle**: In navigation bar
@@ -122,7 +131,7 @@ It uses a **FastAPI backend proxy** to fetch verses from multiple sources and a 
 .
 ├─ server.py              # FastAPI proxy for verse fetching
 ├─ requirements.txt       # Python dependencies
-├─ index.html             # Redirect to practice.html (for GitHub Pages)
+├─ index.html             # Landing page with feature cards and player stats
 ├─ practice.html          # Practice page — main typing game
 ├─ lessons.html           # Touch-typing lessons with keyboard map
 ├─ quiz.html              # Verse identification quiz
