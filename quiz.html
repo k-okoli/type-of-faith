@@ -783,6 +783,7 @@ async function mpLeaveLobby(){
 
 /* WebSocket */
 function mpConnectWebSocket(lobbyId){
+  if (mpWs) { try { mpWs.onclose = null; mpWs.close(); } catch {} mpWs = null; }
   const token = localStorage.getItem('tof_auth_token');
   mpWs = new WebSocket(`${WS_BASE}/ws/quiz/${lobbyId}?token=${token}`);
   mpWs.onopen = () => console.log('Quiz WS connected');
@@ -881,6 +882,7 @@ function mpHandleWsMessage(msg){
 
     case 'rematch':
       if(msg.user_id !== currentUserId){
+        mpPlayers = {}; mpScores = {}; mpIsReady = false;
         mpJoinLobby(msg.join_code);
       }
       break;
@@ -1031,16 +1033,17 @@ document.getElementById('mpPlayAgainBtn').addEventListener('click', async () => 
     });
     if(oldWs && oldWs.readyState === WebSocket.OPEN){
       oldWs.send(JSON.stringify({ type: 'rematch', join_code: result.join_code }));
-      setTimeout(() => oldWs.close(), 500);
+      oldWs.onclose = null; oldWs.close();
     }
+    mpWs = null;
     mpLobby = result;
-    await mpLoadLobbyDetails(result.id);
     mpConnectWebSocket(result.id);
+    await mpLoadLobbyDetails(result.id);
     mpShowView('mpWaitingView');
     mpShowBanner('');
   } catch(e){
     mpShowBanner(e.detail || 'Could not create lobby', true);
-    if(oldWs) oldWs.close();
+    if(oldWs) { oldWs.onclose = null; oldWs.close(); }
   }
 });
 

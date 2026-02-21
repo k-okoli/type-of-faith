@@ -453,6 +453,7 @@
     // WebSocket
     // ========================================
     function connectWebSocket(lobbyId) {
+      if (ws) { try { ws.onclose = null; ws.close(); } catch {} ws = null; }
       const token = localStorage.getItem('tof_auth_token');
       ws = new WebSocket(`${WS_BASE}/ws/race/${lobbyId}?token=${token}`);
 
@@ -528,6 +529,7 @@
           // Another player created a rematch lobby — auto-join it
           const myId = TofLeaderboard.getCurrentUser()?.user_id;
           if (msg.user_id !== myId) {
+            currentPlayers = {}; isReady = false;
             joinLobby(msg.join_code);
           }
           break;
@@ -847,18 +849,19 @@
         // Broadcast rematch to old lobby so other players auto-join
         if (oldWs && oldWs.readyState === WebSocket.OPEN) {
           oldWs.send(JSON.stringify({ type: 'rematch', join_code: result.join_code }));
-          setTimeout(() => oldWs.close(), 500);
+          oldWs.onclose = null; oldWs.close();
         }
+        ws = null;
 
         currentLobby = result;
         verseText = result.verse_text;
-        await loadLobbyDetails(result.id);
         connectWebSocket(result.id);
+        await loadLobbyDetails(result.id);
         showView('waiting');
         showBanner('');
       } catch (e) {
         showBanner(e.detail || 'Could not create lobby', true);
-        if (oldWs) oldWs.close();
+        if (oldWs) { oldWs.onclose = null; oldWs.close(); }
       }
     });
 

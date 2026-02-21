@@ -775,6 +775,7 @@
     }
 
     function mpConnectWS(lobbyId) {
+      if (mpWs) { try { mpWs.onclose = null; mpWs.close(); } catch {} mpWs = null; }
       const token = localStorage.getItem('tof_auth_token');
       mpWs = new WebSocket(`${MP_WS}/ws/race/${lobbyId}?token=${token}`);
       mpWs.onmessage = (e) => mpHandleMsg(JSON.parse(e.data));
@@ -797,7 +798,7 @@
         case 'player_finished': mpUpdateProgress(msg.user_id, mpVerseText.length, msg.wpm); mpFinishedCount++;
           if (msg.user_id === uid) { showTrophy(mpFinishedCount); if (mpFinishedCount === 1) { showConfetti(); TofAudio.playRaceFinish(); } else TofAudio.playComplete(); } break;
         case 'race_end': mpShowResults(msg.results); break;
-        case 'rematch': if (msg.user_id !== uid) mpJoinLobby(msg.join_code); break;
+        case 'rematch': if (msg.user_id !== uid) { mpPlayers = {}; mpIsReady = false; mpJoinLobby(msg.join_code); } break;
       }
     }
 
@@ -876,12 +877,25 @@
     document.getElementById('mpBackToLobbiesBtn').addEventListener('click', () => { mpLobby = null; mpPlayers = {}; mpShowView('mpBrowserView'); mpLoadLobbies(); });
     document.getElementById('mpRaceAgainBtn').addEventListener('click', async () => {
       const ref = mpLobby?.verse_ref || ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
-      const ver = mpLobby?.version || 'WEB'; const max = mpLobby?.max_players || 4; const old = mpWs;
+      const ver = mpLobby?.version || 'WEB'; const max = mpLobby?.max_players || 4; const oldWs = mpWs;
       mpPlayers = {}; mpIsReady = false;
-      try { mpShowBanner('Creating new lobby...'); const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) });
-        if (old && old.readyState === WebSocket.OPEN) { old.send(JSON.stringify({ type: 'rematch', join_code: r.join_code })); setTimeout(() => old.close(), 500); }
-        mpLobby = r; mpVerseText = r.verse_text; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
-      catch (e) { mpShowBanner(e.detail || 'Could not create lobby', true); if (old) old.close(); }
+      try {
+        mpShowBanner('Creating new lobby...');
+        const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) });
+        // Notify other players on old connection before switching
+        if (oldWs && oldWs.readyState === WebSocket.OPEN) {
+          oldWs.send(JSON.stringify({ type: 'rematch', join_code: r.join_code }));
+          oldWs.onclose = null; oldWs.close();
+        }
+        mpWs = null;
+        mpLobby = r; mpVerseText = r.verse_text;
+        mpConnectWS(r.id);
+        await mpLoadLobbyDetails(r.id);
+        mpShowView('mpWaitingView'); mpShowBanner('');
+      } catch (e) {
+        mpShowBanner(e.detail || 'Could not create lobby', true);
+        if (oldWs) { oldWs.onclose = null; oldWs.close(); }
+      }
     });
 
     // ================================================================
