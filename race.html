@@ -75,6 +75,19 @@
     .finish-line { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(to bottom, var(--ink) 0px, var(--ink) 4px, var(--panel) 4px, var(--panel) 8px); border-right: 2px solid var(--ok); z-index: 1; }
     .race-pct { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--muted); z-index: 3; pointer-events: none; }
 
+    /* ---------- Ghost racer (Holy Spirit mode) ---------- */
+    .race-avatar.ghost {
+      opacity: 0.55;
+      filter: brightness(1.3) saturate(0.5) hue-rotate(200deg);
+      box-shadow: 0 0 12px rgba(135, 179, 255, 0.5);
+      animation: ghostPulse 2s ease-in-out infinite;
+    }
+    @keyframes ghostPulse {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 0.75; }
+    }
+    .lane-label.ghost { color: var(--link); font-style: italic; }
+
     /* ---------- Share button + toast ---------- */
     .share-btn {
       display: none; font-size: 13px; padding: 6px 16px; margin-top: 12px;
@@ -234,7 +247,7 @@
         <label for="aiMode">AI Mode</label>
         <select id="aiMode">
           <option value="fixed">Fixed</option><option value="personality">Personality</option>
-          <option value="adaptive">Adaptive</option>
+          <option value="adaptive">Adaptive</option><option value="holyspirit">Holy Spirit</option>
         </select>
       </div>
       <div class="control-group">
@@ -508,8 +521,39 @@
     }
     function getSelectedAvatar() { const saved = localStorage.getItem("tof_avatar"); return AVATARS.find(a => a.id === saved) || AVATARS[0]; }
     function getPlayerAvgWPM() { if (raceHistory.length === 0) return 35; return Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / raceHistory.length); }
-    function saveRaceResult(wpm, mode) { raceHistory.push({ wpm, mode, date: new Date().toISOString() }); if (raceHistory.length > 10) raceHistory = raceHistory.slice(-10); localStorage.setItem("tof_race_history", JSON.stringify(raceHistory)); updatePlayerStats(); }
+    function saveRaceResult(wpm, mode) { raceHistory.push({ wpm, mode, date: new Date().toISOString() }); if (raceHistory.length > 20) raceHistory = raceHistory.slice(-20); localStorage.setItem("tof_race_history", JSON.stringify(raceHistory)); updatePlayerStats(); }
     function updatePlayerStats() { const count = raceHistory.length; const avg = count > 0 ? Math.round(raceHistory.reduce((a, r) => a + r.wpm, 0) / count) : "--"; playerStatsEl.textContent = `Races: ${count} | Avg WPM: ${avg}`; }
+    function createGhostRacers(numOpponents, playerAvatar) {
+      const wpms = raceHistory.filter(r => r.wpm > 0).map(r => ({ wpm: r.wpm, date: r.date }));
+      const selected = [];
+      if (wpms.length === 0) {
+        const defaults = [30, 40, 50];
+        for (let i = 0; i < numOpponents; i++) selected.push({ wpm: defaults[i] || 35, date: null });
+      } else if (wpms.length <= numOpponents) {
+        selected.push(...wpms);
+        const avg = getPlayerAvgWPM();
+        while (selected.length < numOpponents) selected.push({ wpm: avg, date: null });
+      } else {
+        wpms.sort((a, b) => a.wpm - b.wpm);
+        const step = (wpms.length - 1) / (numOpponents - 1);
+        for (let i = 0; i < numOpponents; i++) selected.push(wpms[Math.round(i * step)]);
+      }
+      return selected.map((s, i) => {
+        let name = "Past Self";
+        if (s.date) {
+          const days = Math.floor((Date.now() - new Date(s.date)) / 86400000);
+          if (days === 0) name += " (Today)";
+          else if (days === 1) name += " (Yesterday)";
+          else if (days < 7) name += ` (${days}d ago)`;
+        }
+        return {
+          id: `ghost-${i}`, name, avatar: playerAvatar,
+          progress: 0, finished: false, finishTime: null,
+          wpm: 0, assignedWPM: s.wpm, isGhost: true,
+          personality: { base: s.wpm, variance: 0 }
+        };
+      });
+    }
     function populateCategoryDropdown() { for (const cat of Object.keys(VERSE_CATEGORIES).sort()) { const opt = document.createElement("option"); opt.value = cat; opt.textContent = titleCase(cat); categoryEl.appendChild(opt); } }
 
     function withTimeout(ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms); return { signal: ctrl.signal, cancel: () => clearTimeout(t) }; }
@@ -549,18 +593,23 @@
       return last;
     }
 
-    function createLaneHTML(label, avatarSrc, id) { return `<div class="race-lane" id="lane-${id}"><span class="lane-label">${label}</span><div class="track-lane"><img class="race-avatar" id="avatar-${id}" src="${avatarSrc}" alt="${label}" /><span class="race-pct" id="pct-${id}">0%</span><div class="finish-line"></div></div></div>`; }
+    function createLaneHTML(label, avatarSrc, id, isGhost) { const gc = isGhost ? ' ghost' : ''; return `<div class="race-lane" id="lane-${id}"><span class="lane-label${gc}">${label}</span><div class="track-lane"><img class="race-avatar${gc}" id="avatar-${id}" src="${avatarSrc}" alt="${label}" /><span class="race-pct" id="pct-${id}">0%</span><div class="finish-line"></div></div></div>`; }
     function renderRaceArena() {
       const pa = getSelectedAvatar();
       player = { id: "player", name: "You", avatar: pa, progress: 0, finished: false, finishTime: null, wpm: 0 };
       const numO = parseInt(opponentsEl.value, 10);
-      aiRacers = shuffleArray(AVATARS.filter(a => a.id !== pa.id)).slice(0, numO).map((av, i) => {
-        const p = AI_PERSONALITY.find(x => x.id === av.id) || { base: 40, variance: 0.25 };
-        return { id: `ai-${i}`, name: av.name, avatar: av, progress: 0, finished: false, finishTime: null, wpm: 0, personality: p, assignedWPM: 0 };
-      });
-      const mode = aiModeEl.value; const ss = shuffleArray(AI_FIXED_SPEEDS); const avg = getPlayerAvgWPM();
-      aiRacers.forEach((ai, i) => { if (mode === "fixed") ai.assignedWPM = ss[i % ss.length]; else if (mode === "personality") ai.assignedWPM = ai.personality.base; else ai.assignedWPM = Math.max(10, avg + AI_ADAPTIVE_OFFSETS[i % AI_ADAPTIVE_OFFSETS.length]); });
-      let html = createLaneHTML("You", pa.src, "player"); for (const ai of aiRacers) html += createLaneHTML(ai.name, ai.avatar.src, ai.id); raceArenaEl.innerHTML = html;
+      const mode = aiModeEl.value;
+      if (mode === "holyspirit") {
+        aiRacers = createGhostRacers(numO, pa);
+      } else {
+        aiRacers = shuffleArray(AVATARS.filter(a => a.id !== pa.id)).slice(0, numO).map((av, i) => {
+          const p = AI_PERSONALITY.find(x => x.id === av.id) || { base: 40, variance: 0.25 };
+          return { id: `ai-${i}`, name: av.name, avatar: av, progress: 0, finished: false, finishTime: null, wpm: 0, personality: p, assignedWPM: 0 };
+        });
+        const ss = shuffleArray(AI_FIXED_SPEEDS); const avg = getPlayerAvgWPM();
+        aiRacers.forEach((ai, i) => { if (mode === "fixed") ai.assignedWPM = ss[i % ss.length]; else if (mode === "personality") ai.assignedWPM = ai.personality.base; else ai.assignedWPM = Math.max(10, avg + AI_ADAPTIVE_OFFSETS[i % AI_ADAPTIVE_OFFSETS.length]); });
+      }
+      let html = createLaneHTML("You", pa.src, "player"); for (const ai of aiRacers) html += createLaneHTML(ai.name, ai.avatar.src, ai.id, ai.isGhost); raceArenaEl.innerHTML = html;
     }
     function updateLanePosition(id, progress, totalChars) {
       const lane = document.querySelector(`#lane-${id} .track-lane`); const avatar = document.getElementById(`avatar-${id}`); const pctEl = document.getElementById(`pct-${id}`);
@@ -591,7 +640,7 @@
       raceActive = true; raceStartTime = performance.now(); inputEl.disabled = false; inputEl.focus(); showBanner("info", "Race in progress...");
       const totalChars = verseText.length;
       aiInterval = setInterval(() => { if (!raceActive) return; const elapsed = (performance.now() - raceStartTime) / 1000; const mode = aiModeEl.value;
-        for (const ai of aiRacers) { if (ai.finished) continue; let wpm; if (mode === "fixed") wpm = ai.assignedWPM; else if (mode === "personality") wpm = ai.personality.base * (1 + (Math.random()*2-1)*ai.personality.variance); else wpm = ai.assignedWPM;
+        for (const ai of aiRacers) { if (ai.finished) continue; let wpm; if (mode === "holyspirit") wpm = ai.assignedWPM * (1 + (Math.random() * 2 - 1) * 0.05); else if (mode === "fixed") wpm = ai.assignedWPM; else if (mode === "personality") wpm = ai.personality.base * (1 + (Math.random()*2-1)*ai.personality.variance); else wpm = ai.assignedWPM;
           ai.progress += (wpm * 5) / 1200; if (ai.progress >= totalChars) { ai.progress = totalChars; ai.finished = true; ai.finishTime = elapsed; ai.wpm = Math.round((totalChars/5)/(elapsed/60)); finishOrder.push(ai); } updateLanePosition(ai.id, ai.progress, totalChars); }
       }, 50);
     }
@@ -655,6 +704,7 @@
     categoryEl.addEventListener("change", loadVerse);
     lengthEl.addEventListener("change", loadVerse);
     versionEl.addEventListener("change", loadVerse);
+    aiModeEl.addEventListener("change", () => { if (aiModeEl.value === "holyspirit") showBanner("info", "Holy Spirit mode \u2014 race against your own past performances!"); });
 
     document.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === "m") { e.preventDefault(); loadVerse(); }
