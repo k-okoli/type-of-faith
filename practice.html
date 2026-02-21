@@ -7,12 +7,12 @@
   <meta name="description" content="Practice typing Bible verses to improve your speed and accuracy while learning Scripture." />
   <meta property="og:title" content="Type of Faith — Practice" />
   <meta property="og:description" content="Practice typing Bible verses to improve your speed and accuracy while learning Scripture." />
-  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:image" content="assets/avatars/cross-2d.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Type of Faith — Practice" />
   <meta name="twitter:description" content="Practice typing Bible verses to improve your speed and accuracy while learning Scripture." />
-  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
+  <meta name="twitter:image" content="assets/avatars/cross-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -998,10 +998,7 @@
     <button id="restartBtn" title="Restart this verse (Ctrl+R)">Restart</button>
   </div>
 
-  <div id="avatarPanel" class="card avatar-panel">
-    <strong>Choose Your Character</strong>
-    <div class="avatar-grid" id="avatarGrid"></div>
-  </div>
+  <!-- Avatar selection available in Settings (gear icon) and Profile page -->
 
   <div class="verse-header">
     <div id="categoryTitle">All</div>
@@ -1227,7 +1224,6 @@
       exportButton: document.getElementById("exportBtn"),
       historyBody: document.getElementById("historyBody"),
       copyline: document.getElementById("copyline"),
-      avatarGrid: document.getElementById("avatarGrid"),
       raceAvatar: document.getElementById("raceAvatar"),
       racePct: document.getElementById("racePct"),
     };
@@ -1269,50 +1265,7 @@
       return selected || avatars.find(a => a.unlocked) || avatars[0];
     }
 
-    function renderAvatarGrid() {
-      const selectedAvatar = getSelectedAvatar();
-      const avatars = getAvatars();
-      elements.avatarGrid.innerHTML = "";
-
-      for (const avatar of avatars) {
-        const div = document.createElement("div");
-        const isSelected = avatar.id === selectedAvatar.id;
-        const isLocked = !avatar.unlocked;
-
-        div.className = "avatar-option" + (isSelected ? " selected" : "") + (isLocked ? " locked" : "");
-        div.style.position = "relative";
-
-        let progressHtml = "";
-        if (isLocked && avatar.progress) {
-          progressHtml = `
-            <div class="progress-bar"><div class="progress-fill" style="width:${avatar.progress.percent}%"></div></div>
-            <span class="progress-text">${avatar.progress.current}/${avatar.progress.required}</span>
-          `;
-        }
-
-        div.innerHTML = `
-          <img src="${avatar.src}" alt="${avatar.name}" />
-          ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}
-          <span>${avatar.name}</span>
-          ${progressHtml}
-        `;
-
-        if (isLocked) {
-          div.title = avatar.progress?.description || "Locked";
-        } else {
-          div.addEventListener("click", () => selectAvatar(avatar.id));
-        }
-
-        elements.avatarGrid.appendChild(div);
-      }
-    }
-
-    function selectAvatar(avatarId) {
-      if (!TofAchievements.isAvatarUnlocked(avatarId)) return;
-      localStorage.setItem("tof_avatar", avatarId);
-      renderAvatarGrid();
-      elements.raceAvatar.src = getSelectedAvatar().src;
-    }
+    // Avatar selection is in Settings modal and Profile page
 
     // ========================================
     // Race Track Functions
@@ -2175,7 +2128,7 @@
         newUnlocks.forEach((avatar, i) => {
           setTimeout(() => showAchievementToast(avatar.id, avatar.name), 3000 + (i * 4500));
         });
-        renderAvatarGrid(); // Refresh to show newly unlocked avatar
+        // Avatar grid is on Profile page
       }
 
       // Record streak activity
@@ -2580,7 +2533,6 @@
         { keys: "Ctrl+Enter", desc: "Submit (Blind Faith)" }
       ]);
       initSeasonalFeatures();
-      renderAvatarGrid();
       elements.raceAvatar.src = getSelectedAvatar().src;
       initDailyChallenge();
 
@@ -2609,7 +2561,6 @@
       // Listen for avatar changes from settings
       document.addEventListener("tof-avatar-changed", () => {
         elements.raceAvatar.src = getSelectedAvatar().src;
-        renderAvatarGrid();
       });
 
       // Load initial verse

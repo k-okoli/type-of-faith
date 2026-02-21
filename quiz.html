@@ -7,12 +7,12 @@
   <meta name="description" content="Test your Bible verse memory with multiple-choice quizzes. Solo or multiplayer on Type of Faith." />
   <meta property="og:title" content="Type of Faith — Verse Memory Quiz" />
   <meta property="og:description" content="Test your Bible verse memory with multiple-choice quizzes. Solo or multiplayer." />
-  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:image" content="assets/avatars/cross-2d.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Type of Faith — Verse Memory Quiz" />
   <meta name="twitter:description" content="Test your Bible verse memory with quizzes on Type of Faith." />
-  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
+  <meta name="twitter:image" content="assets/avatars/cross-2d.png" />
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
   <style>
@@ -756,7 +756,7 @@ function mpRenderPlayerList(){
   const currentUserId = TofLeaderboard.getCurrentUser()?.user_id;
   list.innerHTML = Object.values(mpPlayers).map(p => `
     <div class="player-card ${p.ready ? 'ready' : ''}">
-      <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" alt="${p.username}" />
+      <img src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" alt="${p.username}" />
       <div class="player-name">${p.username}${p.user_id === currentUserId ? ' (You)' : ''}</div>
       <div class="player-status">${p.ready ? 'Ready!' : 'Waiting...'}</div>
     </div>
@@ -921,10 +921,10 @@ function mpRenderScoreboard(){
   const container = document.getElementById('mpScoreboard');
   const sorted = Object.entries(mpScores).sort((a,b) => b[1] - a[1]);
   container.innerHTML = sorted.map(([uid, pts]) => {
-    const p = mpPlayers[uid] || { username: 'Unknown', avatar_id: 'moses' };
+    const p = mpPlayers[uid] || { username: 'Unknown', avatar_id: 'cross' };
     const lockedClass = mpLockedOut.has(uid) ? ' locked-out' : '';
     return `<div class="mp-score-row${lockedClass}">
-      <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />
+      <img src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" />
       <span class="mp-score-name">${p.username}</span>
       <span class="mp-score-pts">${pts}</span>
     </div>`;
@@ -937,10 +937,10 @@ function mpShowResults(results){
   tbody.innerHTML = results.map(r => {
     const placeClass = r.place === 1 ? 'place-1' : r.place === 2 ? 'place-2' : r.place === 3 ? 'place-3' : '';
     const placeText = r.place === 1 ? '1st' : r.place === 2 ? '2nd' : r.place === 3 ? '3rd' : `${r.place}th`;
-    const p = mpPlayers[r.user_id] || { username: r.username, avatar_id: 'moses' };
+    const p = mpPlayers[r.user_id] || { username: r.username, avatar_id: 'cross' };
     return `<tr>
       <td class="${placeClass}">${placeText}</td>
-      <td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />${r.username}</div></td>
+      <td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" />${r.username}</div></td>
       <td>${r.score}</td>
     </tr>`;
   }).join('');

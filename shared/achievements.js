@@ -14,19 +14,26 @@
   // ============================================
 
   const AVATAR_UNLOCK_CONDITIONS = {
+    'cross': {
+      name: 'The Cross',
+      src: 'assets/avatars/cross-2d.png',
+      unlocked: true,
+      requirement: null,
+      description: 'Default character'
+    },
     'moses': {
       name: 'Moses',
       src: 'assets/avatars/moses-2d.png',
-      unlocked: true, // Default avatar
+      unlocked: true,
       requirement: null,
-      description: 'Default character'
+      description: 'Unlocked from start'
     },
     'david': {
       name: 'David & Goliath',
       src: 'assets/avatars/david-and-goliath-2d.png',
-      unlocked: false,
-      requirement: { type: 'races_won', value: 5 },
-      description: 'Win 5 races'
+      unlocked: true,
+      requirement: null,
+      description: 'Unlocked from start'
     },
     'elijah': {
       name: 'Elijah',
@@ -45,9 +52,9 @@
     'noahs-ark': {
       name: "Noah's Ark",
       src: 'assets/avatars/noahs-ark-2d.png',
-      unlocked: false,
-      requirement: { type: 'lessons_completed', value: 10 },
-      description: 'Complete all 10 lessons'
+      unlocked: true,
+      requirement: null,
+      description: 'Unlocked from start'
     },
     'burning-bush': {
       name: 'Burning Bush',
@@ -77,7 +84,7 @@
     perfect_accuracy: 0,
     practice_sessions: 0,
     quizzes_completed: 0,
-    unlocked_avatars: ['moses'] // Moses is always unlocked
+    unlocked_avatars: ['cross', 'moses', 'david', 'noahs-ark']
   };
 
   // ============================================
@@ -90,7 +97,14 @@
       if (stored) {
         const parsed = JSON.parse(stored);
         // Merge with defaults to handle new fields
-        return { ...DEFAULT_ACHIEVEMENTS, ...parsed };
+        const merged = { ...DEFAULT_ACHIEVEMENTS, ...parsed };
+        // Ensure always-unlocked avatars are in the array
+        for (const id of DEFAULT_ACHIEVEMENTS.unlocked_avatars) {
+          if (!merged.unlocked_avatars.includes(id)) {
+            merged.unlocked_avatars.push(id);
+          }
+        }
+        return merged;
       }
     } catch (e) {
       console.warn('Failed to load achievements:', e);
@@ -209,6 +223,8 @@
   }
 
   function isAvatarUnlocked(avatarId) {
+    const config = AVATAR_UNLOCK_CONDITIONS[avatarId];
+    if (config && !config.requirement) return true;
     const achievements = getAchievements();
     return achievements.unlocked_avatars.includes(avatarId);
   }

@@ -63,7 +63,7 @@ class User(Base):
 
     id = Column(String(32), primary_key=True)  # Random hex ID
     username = Column(String(20), unique=True, nullable=False, index=True)
-    avatar_id = Column(String(30), default="moses")
+    avatar_id = Column(String(30), default="cross")
     created_at = Column(DateTime, default=datetime.utcnow)
     last_seen = Column(DateTime, default=datetime.utcnow)
 
@@ -291,6 +291,8 @@ class ConnectionManager:
         self.race_state: Dict[str, Dict[str, dict]] = {}
         # lobby_id -> {"round": int, "scores": {user_id: int}, "locked_out": set, "correct_ref": str}
         self.quiz_state: Dict[str, dict] = {}
+        # lobby_id -> {"round": int, "total_rounds": int, "scores": {user_id: {...}}}
+        self.race_round_state: Dict[str, dict] = {}
 
     async def connect(self, lobby_id: str, user_id: str, websocket: WebSocket):
         await websocket.accept()
@@ -1097,7 +1099,7 @@ async def create_lobby(
         version=version,
         max_players=body.max_players,
         mode=lobby_mode,
-        total_rounds=body.total_rounds if lobby_mode == "quiz" else 1,
+        total_rounds=body.total_rounds,
     )
     db.add(lobby)
 
@@ -1356,6 +1358,18 @@ async def websocket_race(
                     lobby.status = "countdown"
                     db.commit()
 
+                    total_rounds = lobby.total_rounds or 1
+
+                    # Initialize race round state
+                    ws_manager.race_round_state[lobby_id] = {
+                        "round": 1,
+                        "total_rounds": total_rounds,
+                        "scores": {
+                            p.user_id: {"total_time": 0, "total_wpm": 0, "rounds_finished": 0}
+                            for p in all_players
+                        }
+                    }
+
                     # Countdown 3, 2, 1
                     for i in [3, 2, 1]:
                         await ws_manager.broadcast_to_lobby(lobby_id, {
@@ -1369,10 +1383,13 @@ async def websocket_race(
                     lobby.started_at = datetime.utcnow()
                     db.commit()
 
+                    rs = ws_manager.race_round_state.get(lobby_id, {})
                     await ws_manager.broadcast_to_lobby(lobby_id, {
                         "type": "race_start",
                         "verse_text": lobby.verse_text,
-                        "start_time": time.time() * 1000
+                        "start_time": time.time() * 1000,
+                        "round": rs.get("round", 1),
+                        "total_rounds": rs.get("total_rounds", 1)
                     })
 
             elif msg_type == "progress":
@@ -1443,24 +1460,82 @@ async def websocket_race(
                 all_finished = all(p.finished for p in all_players)
 
                 if all_finished:
-                    lobby.status = "finished"
-                    lobby.finished_at = datetime.utcnow()
-                    db.commit()
+                    rs = ws_manager.race_round_state.get(lobby_id)
 
-                    # Send final results
-                    results = sorted(all_players, key=lambda p: p.place or 999)
-                    await ws_manager.broadcast_to_lobby(lobby_id, {
-                        "type": "race_end",
-                        "results": [
-                            {
-                                "user_id": p.user_id,
-                                "place": p.place,
-                                "time": p.finish_time,
-                                "wpm": p.wpm
+                    # Accumulate round scores
+                    if rs:
+                        for p in all_players:
+                            if p.user_id in rs["scores"]:
+                                s = rs["scores"][p.user_id]
+                                s["total_time"] += (p.finish_time or 0)
+                                s["total_wpm"] += (p.wpm or 0)
+                                s["rounds_finished"] += 1
+
+                    if rs and rs["round"] < rs["total_rounds"]:
+                        # Not the final round — broadcast round_end and start next
+                        round_results = sorted(all_players, key=lambda p: p.place or 999)
+                        await ws_manager.broadcast_to_lobby(lobby_id, {
+                            "type": "round_end",
+                            "round": rs["round"],
+                            "total_rounds": rs["total_rounds"],
+                            "results": [
+                                {
+                                    "user_id": p.user_id,
+                                    "place": p.place,
+                                    "time": p.finish_time,
+                                    "wpm": p.wpm
+                                }
+                                for p in round_results
+                            ],
+                            "cumulative": {
+                                uid: {
+                                    "avg_wpm": round(sc["total_wpm"] / sc["rounds_finished"]) if sc["rounds_finished"] > 0 else 0,
+                                    "total_time": round(sc["total_time"], 2)
+                                }
+                                for uid, sc in rs["scores"].items()
                             }
-                            for p in results
-                        ]
-                    })
+                        })
+
+                        rs["round"] += 1
+
+                        # Pick new verse, reset player state
+                        await _start_next_race_round(lobby_id, lobby, db)
+                    else:
+                        # Final round — send race_end with cumulative results
+                        lobby.status = "finished"
+                        lobby.finished_at = datetime.utcnow()
+                        db.commit()
+
+                        results = sorted(all_players, key=lambda p: p.place or 999)
+                        cumulative = {}
+                        if rs:
+                            cumulative = {
+                                uid: {
+                                    "avg_wpm": round(sc["total_wpm"] / sc["rounds_finished"]) if sc["rounds_finished"] > 0 else 0,
+                                    "total_time": round(sc["total_time"], 2)
+                                }
+                                for uid, sc in rs["scores"].items()
+                            }
+                            # Sort final results by cumulative avg_wpm desc
+                            results = sorted(all_players, key=lambda p: cumulative.get(p.user_id, {}).get("avg_wpm", 0), reverse=True)
+
+                        await ws_manager.broadcast_to_lobby(lobby_id, {
+                            "type": "race_end",
+                            "results": [
+                                {
+                                    "user_id": p.user_id,
+                                    "place": i + 1,
+                                    "time": p.finish_time,
+                                    "wpm": p.wpm
+                                }
+                                for i, p in enumerate(results)
+                            ],
+                            "cumulative": cumulative,
+                            "total_rounds": rs["total_rounds"] if rs else 1
+                        })
+
+                        # Clean up
+                        ws_manager.race_round_state.pop(lobby_id, None)
 
             elif msg_type == "rematch":
                 # Broadcast new lobby code so other players can auto-join
@@ -1482,6 +1557,69 @@ async def websocket_race(
             "user_id": user.id,
             "username": user.username
         })
+
+async def _start_next_race_round(lobby_id: str, lobby, db):
+    """Pick a new verse, reset player state, countdown, and start the next round."""
+    # Pick a new random verse
+    new_ref = random.choice(ALL_REFERENCES_PY)
+    cfg = VERSION_MAP.get(lobby.version or "WEB", VERSION_MAP["WEB"])
+
+    try:
+        async with httpx.AsyncClient() as client:
+            if cfg["provider"] == "bibleapi":
+                trans = "kjv" if (lobby.version or "WEB") == "KJV" else (cfg.get("id") or "kjv")
+                verse_data = await fetch_bibleapi(client, new_ref, trans)
+            else:
+                verse_data = await fetch_apibible(client, cfg["id"], new_ref)
+
+        lobby.verse_ref = verse_data.get("reference", new_ref)
+        lobby.verse_text = verse_data.get("text", "")
+    except Exception as e:
+        logger.error(f"Failed to fetch verse for next round: {e}")
+        lobby.verse_ref = new_ref
+        lobby.verse_text = f"Error loading verse: {new_ref}"
+
+    # Reset all player state
+    all_players = db.query(LobbyPlayer).filter(LobbyPlayer.lobby_id == lobby_id).all()
+    for p in all_players:
+        p.progress = 0
+        p.finished = False
+        p.finish_time = None
+        p.wpm = None
+        p.place = None
+
+    # Reset race_state in ws_manager
+    if lobby_id in ws_manager.race_state:
+        for uid in ws_manager.race_state[lobby_id]:
+            ws_manager.race_state[lobby_id][uid] = {
+                "progress": 0, "wpm": 0, "finished": False, "finish_time": None
+            }
+
+    db.commit()
+
+    # Brief pause then countdown
+    await asyncio.sleep(3)
+
+    for i in [3, 2, 1]:
+        await ws_manager.broadcast_to_lobby(lobby_id, {
+            "type": "countdown",
+            "seconds": i
+        })
+        await asyncio.sleep(1)
+
+    lobby.status = "racing"
+    lobby.started_at = datetime.utcnow()
+    db.commit()
+
+    rs = ws_manager.race_round_state.get(lobby_id, {})
+    await ws_manager.broadcast_to_lobby(lobby_id, {
+        "type": "race_start",
+        "verse_text": lobby.verse_text,
+        "start_time": time.time() * 1000,
+        "round": rs.get("round", 1),
+        "total_rounds": rs.get("total_rounds", 1)
+    })
+
 
 # ==============================================
 # WEBSOCKET FOR MULTIPLAYER QUIZ

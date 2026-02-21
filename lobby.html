@@ -7,12 +7,12 @@
   <meta name="description" content="Join multiplayer typing races and Bible quiz battles on Type of Faith." />
   <meta property="og:title" content="Multiplayer — Type of Faith" />
   <meta property="og:description" content="Join multiplayer typing races and Bible quiz battles on Type of Faith." />
-  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:image" content="assets/avatars/cross-2d.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Multiplayer — Type of Faith" />
   <meta name="twitter:description" content="Join multiplayer typing races and Bible quiz battles on Type of Faith." />
-  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
+  <meta name="twitter:image" content="assets/avatars/cross-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%86%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -191,6 +191,14 @@
             <option value="8">8</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>Rounds</label>
+          <select id="roundsSelect">
+            <option value="1" selected>1</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+          </select>
+        </div>
       </div>
       <div style="display: flex; gap: 12px;">
         <button id="cancelCreateBtn">Cancel</button>
@@ -277,6 +285,7 @@
     let raceStartTime = 0;
     let verseText = '';
     let isReady = false;
+    let roundNum = 0, totalRounds = 1;
 
     const API_BASE = TofConfig.API_BASE;
     const WS_BASE = TofConfig.WS_BASE;
@@ -371,12 +380,13 @@
       const verseRef = document.getElementById('verseRefInput').value.trim() || getRandomVerse();
       const version = document.getElementById('versionSelect').value;
       const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
+      const rounds = parseInt(document.getElementById('roundsSelect').value) || 1;
 
       try {
         showBanner('Creating lobby...');
         const result = await apiCall('/lobbies/create', {
           method: 'POST',
-          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers })
+          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers, total_rounds: rounds })
         });
         currentLobby = result;
         verseText = result.verse_text;
@@ -396,9 +406,10 @@
       const data = await apiCall(`/lobbies/${lobbyId}`);
       currentLobby = data;
       verseText = data.verse_text;
+      totalRounds = data.total_rounds || 1;
 
       document.getElementById('waitingJoinCode').textContent = data.join_code;
-      document.getElementById('waitingVerseRef').textContent = data.verse_ref;
+      document.getElementById('waitingVerseRef').textContent = data.verse_ref + (totalRounds > 1 ? ` · ${totalRounds} Rounds` : '');
       document.getElementById('waitingVerseText').textContent = data.verse_text;
 
       // Reset ready state and button for this player
@@ -420,7 +431,7 @@
 
       list.innerHTML = Object.values(currentPlayers).map(p => `
         <div class="player-card ${p.ready ? 'ready' : ''}">
-          <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" alt="${p.username}" />
+          <img src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" alt="${p.username}" />
           <div class="player-name">${p.username}${p.user_id === currentUserId ? ' (You)' : ''}</div>
           <div class="player-status">${p.ready ? 'Ready!' : 'Waiting...'}</div>
         </div>
@@ -510,6 +521,7 @@
           break;
 
         case 'race_start':
+          roundNum = msg.round || 1; totalRounds = msg.total_rounds || 1;
           startRace(msg.verse_text, msg.start_time);
           break;
 
@@ -521,8 +533,12 @@
           handlePlayerFinished(msg);
           break;
 
+        case 'round_end':
+          handleRoundEnd(msg);
+          break;
+
         case 'race_end':
-          showResults(msg.results);
+          showResults(msg.results, msg.cumulative, msg.total_rounds);
           break;
 
         case 'rematch':
@@ -579,7 +595,7 @@
         <div class="race-lane" data-user="${p.user_id}">
           <div class="lane-label">${p.username}</div>
           <div class="track">
-            <img class="avatar" src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" style="left: 0;" />
+            <img class="avatar" src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" style="left: 0;" />
             <div class="finish-line"></div>
             <div class="pct">0%</div>
           </div>
@@ -597,7 +613,8 @@
       input.value = '';
       input.focus();
 
-      document.getElementById('raceStatus').textContent = 'Type the verse!';
+      const roundLabel = totalRounds > 1 ? `Round ${roundNum}/${totalRounds} · ` : '';
+      document.getElementById('raceStatus').textContent = roundLabel + 'Type the verse!';
       TofAudio.playGo();
     }
 
@@ -668,26 +685,39 @@
       setTimeout(() => trophy.classList.remove('show'), 1500);
     }
 
-    function showResults(results) {
+    function handleRoundEnd(msg) {
+      // Show brief round results in status area, wait for next race_start
+      const roundLabel = `Round ${msg.round}/${msg.total_rounds} complete!`;
+      document.getElementById('raceStatus').textContent = roundLabel + ' Next round starting soon...';
+      document.getElementById('raceInput').disabled = true;
+    }
+
+    function showResults(results, cumulative, numRounds) {
       showView('results');
+
+      const isMultiRound = numRounds && numRounds > 1;
+      document.querySelector('#resultsView h2').textContent = isMultiRound ? 'Race Complete! (All Rounds)' : 'Race Complete!';
 
       // Render results table
       const tbody = document.getElementById('resultsBody');
       tbody.innerHTML = results.map((r, i) => {
-        const p = currentPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'moses' };
+        const p = currentPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'cross' };
         const placeClass = r.place === 1 ? 'place-1' : r.place === 2 ? 'place-2' : r.place === 3 ? 'place-3' : '';
         const placeText = r.place === 1 ? '1st' : r.place === 2 ? '2nd' : r.place === 3 ? '3rd' : `${r.place}th`;
+        const cum = cumulative && cumulative[r.user_id];
+        const timeCol = cum ? cum.total_time.toFixed(2) + 's' : (r.time ? r.time.toFixed(2) + 's' : 'DNF');
+        const wpmCol = cum ? cum.avg_wpm + ' avg' : (r.wpm || 0);
         return `
           <tr>
             <td class="${placeClass}">${placeText}</td>
             <td>
               <div class="avatar-cell">
-                <img src="assets/avatars/${p.avatar_id || 'moses'}-2d.png" />
+                <img src="assets/avatars/${p.avatar_id || 'cross'}-2d.png" />
                 ${p.username}
               </div>
             </td>
-            <td>${r.time ? r.time.toFixed(2) + 's' : 'DNF'}</td>
-            <td>${r.wpm || 0}</td>
+            <td>${timeCol}</td>
+            <td>${wpmCol}</td>
           </tr>
         `;
       }).join('');
@@ -827,9 +857,10 @@
     });
 
     document.getElementById('raceAgainBtn').addEventListener('click', async () => {
-      const verseRef = currentLobby?.verse_ref || getRandomVerse();
+      const verseRef = getRandomVerse();
       const version = currentLobby?.version || 'WEB';
       const maxPlayers = currentLobby?.max_players || 4;
+      const rounds = currentLobby?.total_rounds || totalRounds || 1;
       const oldWs = ws;
 
       // Reset state
@@ -843,7 +874,7 @@
         showBanner('Creating new lobby...');
         const result = await apiCall('/lobbies/create', {
           method: 'POST',
-          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers })
+          body: JSON.stringify({ verse_ref: verseRef, version, max_players: maxPlayers, total_rounds: rounds })
         });
 
         // Broadcast rematch to old lobby so other players auto-join

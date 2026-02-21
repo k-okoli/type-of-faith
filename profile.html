@@ -7,12 +7,12 @@
   <meta name="description" content="Track your typing stats and achievements. View your practice history, race results, and avatar collection on Type of Faith." />
   <meta property="og:title" content="Profile — Type of Faith" />
   <meta property="og:description" content="Track your typing stats and achievements on Type of Faith." />
-  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:image" content="assets/avatars/cross-2d.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Profile — Type of Faith" />
   <meta name="twitter:description" content="Track your typing stats and achievements on Type of Faith." />
-  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
+  <meta name="twitter:image" content="assets/avatars/cross-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -83,10 +83,12 @@
     }
     .avatar-item {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
-      padding: 12px 8px; border-radius: 10px; border: 1px solid var(--border);
-      text-align: center;
+      padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border);
+      text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
     }
-    .avatar-item.locked { opacity: 0.45; }
+    .avatar-item:hover:not(.locked) { border-color: var(--accent); }
+    .avatar-item.selected { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--panel)); }
+    .avatar-item.locked { opacity: 0.45; cursor: not-allowed; }
     .avatar-item img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
     .avatar-item .av-name { font-size: 13px; font-weight: 600; }
     .avatar-item .av-desc { font-size: 11px; color: var(--muted); }
@@ -137,7 +139,7 @@
     const achievements = TofAchievements.getAchievements();
     const streak = TofStreak.getStreak();
     const avatars = TofAchievements.getAllAvatarsWithStatus();
-    const currentAvatarId = localStorage.getItem("tof_avatar") || "moses";
+    const currentAvatarId = localStorage.getItem("tof_avatar") || "cross";
     const currentAvatar = avatars.find(a => a.id === currentAvatarId) || avatars[0];
 
     // Try to get server user data
@@ -284,12 +286,13 @@
     html += `</div>`;
 
     // ===== Avatar Collection =====
-    html += `<div class="profile-section"><h3>Avatar Collection</h3><div class="avatar-grid">`;
+    html += `<div class="profile-section"><h3>Avatar Collection</h3><div class="avatar-grid" id="profileAvatarGrid">`;
     for (const av of avatars) {
       const lockedCls = av.unlocked ? "" : "locked";
+      const selectedCls = av.id === currentAvatarId ? "selected" : "";
       const pct = av.progress ? Math.min(100, Math.round((av.progress.current / av.progress.target) * 100)) : (av.unlocked ? 100 : 0);
       html += `
-        <div class="avatar-item ${lockedCls}">
+        <div class="avatar-item ${lockedCls} ${selectedCls}" data-avatar-id="${av.id}">
           <img src="${av.src}" alt="${av.name}" />
           <span class="av-name">${av.name}</span>
           <span class="av-desc">${av.unlocked ? "Unlocked" : av.description}</span>
@@ -318,6 +321,25 @@
     html += `</div></div>`;
 
     container.innerHTML = html;
+
+    // Avatar selection click handlers
+    const avatarGrid = document.getElementById("profileAvatarGrid");
+    if (avatarGrid) {
+      avatarGrid.addEventListener("click", (e) => {
+        const item = e.target.closest(".avatar-item");
+        if (!item || item.classList.contains("locked")) return;
+        const id = item.dataset.avatarId;
+        if (!id) return;
+        localStorage.setItem("tof_avatar", id);
+        avatarGrid.querySelectorAll(".avatar-item").forEach(el => el.classList.remove("selected"));
+        item.classList.add("selected");
+        // Update header avatar
+        const headerImg = document.querySelector(".profile-avatar");
+        const av = avatars.find(a => a.id === id);
+        if (headerImg && av) headerImg.src = av.src;
+        document.dispatchEvent(new CustomEvent("tof-avatar-changed", { detail: { id } }));
+      });
+    }
   })();
   </script>
 </body>

@@ -7,12 +7,12 @@
   <meta name="description" content="Race against friends or AI typing Bible verses. Compete in real-time multiplayer or solo races on Type of Faith." />
   <meta property="og:title" content="Race Mode — Type of Faith" />
   <meta property="og:description" content="Race against friends or AI typing Bible verses. Compete in real-time multiplayer or solo races." />
-  <meta property="og:image" content="assets/avatars/moses-2d.png" />
+  <meta property="og:image" content="assets/avatars/cross-2d.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Race Mode — Type of Faith" />
   <meta name="twitter:description" content="Race against friends or AI typing Bible verses on Type of Faith." />
-  <meta name="twitter:image" content="assets/avatars/moses-2d.png" />
+  <meta name="twitter:image" content="assets/avatars/cross-2d.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%81%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="shared/nav.css" />
   <link rel="stylesheet" href="shared/controls.css" />
@@ -340,6 +340,14 @@
               <option value="6">6</option><option value="8">8</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Rounds</label>
+            <select id="mpRoundsSelect">
+              <option value="1" selected>1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex; gap:12px;">
           <button id="mpCancelCreateBtn">Cancel</button>
@@ -441,6 +449,7 @@
     const LEN_THRESHOLDS = { shortMax: 110, mediumMax: 230 };
 
     const AVATARS = [
+      { id: "cross", name: "The Cross", src: "assets/avatars/cross-2d.png" },
       { id: "moses", name: "Moses", src: "assets/avatars/moses-2d.png" },
       { id: "david", name: "David & Goliath", src: "assets/avatars/david-and-goliath-2d.png" },
       { id: "elijah", name: "Elijah", src: "assets/avatars/elijah-2d.png" },
@@ -452,6 +461,7 @@
 
     const AI_FIXED_SPEEDS = [20, 40, 60];
     const AI_PERSONALITY = [
+      { id: "cross", base: 38, variance: 0.2 },
       { id: "moses", base: 30, variance: 0.3 }, { id: "david", base: 45, variance: 0.35 },
       { id: "elijah", base: 50, variance: 0.25 }, { id: "jonah", base: 35, variance: 0.4 },
       { id: "noahs-ark", base: 25, variance: 0.2 }, { id: "burning-bush", base: 55, variance: 0.3 },
@@ -719,6 +729,7 @@
 
     let mpLobby = null, mpPlayers = {}, mpWs = null, mpIsReady = false;
     let mpVerseText = '', mpRaceStartTime = 0, mpFinishedCount = 0;
+    let mpRoundNum = 0, mpTotalRounds = 1, mpRoundScores = {};
     let mpTotalKeystrokes = 0, mpErrorKeystrokes = 0, mpPrevInput = '', mpLastProgressSend = 0;
 
     function mpShowBanner(msg, isError) { const el = document.getElementById('banner'); el.textContent = msg||''; el.style.display = msg?'block':'none'; el.className = isError?'error':''; }
@@ -754,14 +765,16 @@
       const ref = document.getElementById('mpVerseRefInput').value.trim() || ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
       const ver = document.getElementById('mpVersionSelect').value;
       const max = parseInt(document.getElementById('mpMaxPlayersSelect').value);
-      try { mpShowBanner('Creating lobby...'); const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) }); mpLobby = r; mpVerseText = r.verse_text; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
+      const rounds = parseInt(document.getElementById('mpRoundsSelect').value) || 1;
+      try { mpShowBanner('Creating lobby...'); const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race', total_rounds: rounds }) }); mpLobby = r; mpVerseText = r.verse_text; mpTotalRounds = r.total_rounds || 1; await mpLoadLobbyDetails(r.id); mpConnectWS(r.id); mpShowView('mpWaitingView'); mpShowBanner(''); }
       catch (e) { mpShowBanner(e.detail || 'Could not create lobby', true); }
     }
 
     async function mpLoadLobbyDetails(id) {
       const d = await mpApiCall(`/lobbies/${id}`); mpLobby = d; mpVerseText = d.verse_text;
+      mpTotalRounds = d.total_rounds || 1;
       document.getElementById('mpWaitingJoinCode').textContent = d.join_code;
-      document.getElementById('mpWaitingVerseRef').textContent = d.verse_ref;
+      document.getElementById('mpWaitingVerseRef').textContent = d.verse_ref + (mpTotalRounds > 1 ? ` · ${mpTotalRounds} Rounds` : '');
       document.getElementById('mpWaitingVerseText').textContent = d.verse_text;
       const uid = TofLeaderboard.getCurrentUser()?.user_id; mpPlayers = {};
       d.players.forEach(p => { mpPlayers[p.user_id] = p; if (p.user_id === uid) mpIsReady = p.ready; });
@@ -771,7 +784,7 @@
 
     function mpRenderPlayers() {
       const uid = TofLeaderboard.getCurrentUser()?.user_id;
-      document.getElementById('mpPlayerList').innerHTML = Object.values(mpPlayers).map(p => `<div class="player-card ${p.ready?'ready':''}"><img src="assets/avatars/${p.avatar_id||'moses'}-2d.png" /><div class="player-name">${p.username}${p.user_id===uid?' (You)':''}</div><div class="player-status">${p.ready?'Ready!':'Waiting...'}</div></div>`).join('');
+      document.getElementById('mpPlayerList').innerHTML = Object.values(mpPlayers).map(p => `<div class="player-card ${p.ready?'ready':''}"><img src="assets/avatars/${p.avatar_id||'cross'}-2d.png" /><div class="player-name">${p.username}${p.user_id===uid?' (You)':''}</div><div class="player-status">${p.ready?'Ready!':'Waiting...'}</div></div>`).join('');
     }
 
     function mpConnectWS(lobbyId) {
@@ -793,11 +806,14 @@
           if (msg.user_id === uid) { mpIsReady = msg.ready; document.getElementById('mpReadyBtn').textContent = mpIsReady ? 'Not Ready' : 'Ready'; }
           mpRenderPlayers(); break;
         case 'countdown': mpShowCountdown(msg.seconds); break;
-        case 'race_start': mpStartRace(msg.verse_text, msg.start_time); break;
+        case 'race_start':
+          mpRoundNum = msg.round || 1; mpTotalRounds = msg.total_rounds || 1;
+          mpStartRace(msg.verse_text, msg.start_time); break;
         case 'progress': mpUpdateProgress(msg.user_id, msg.chars, msg.wpm); break;
         case 'player_finished': mpUpdateProgress(msg.user_id, mpVerseText.length, msg.wpm); mpFinishedCount++;
           if (msg.user_id === uid) { showTrophy(mpFinishedCount); if (mpFinishedCount === 1) { showConfetti(); TofAudio.playRaceFinish(); } else TofAudio.playComplete(); } break;
-        case 'race_end': mpShowResults(msg.results); break;
+        case 'round_end': mpShowRoundEnd(msg); break;
+        case 'race_end': mpShowResults(msg.results, msg.cumulative, msg.total_rounds); break;
         case 'rematch': if (msg.user_id !== uid) { mpPlayers = {}; mpIsReady = false; mpJoinLobby(msg.join_code); } break;
       }
     }
@@ -813,10 +829,11 @@
       mpVerseText = text; mpRaceStartTime = startTime; mpFinishedCount = 0;
       mpTotalKeystrokes = 0; mpErrorKeystrokes = 0; mpPrevInput = ''; mpLastProgressSend = 0;
       mpShowView('mpRaceView'); document.getElementById('mpCountdownOverlay').style.display = 'none';
-      document.getElementById('mpRaceArena').innerHTML = Object.values(mpPlayers).map(p => `<div class="mp-race-lane" data-user="${p.user_id}"><div class="mp-lane-label">${p.username}</div><div class="mp-track"><img class="mp-avatar" src="assets/avatars/${p.avatar_id||'moses'}-2d.png" style="left:0;" /><div class="mp-finish-line"></div><div class="mp-pct">0%</div></div></div>`).join('');
+      document.getElementById('mpRaceArena').innerHTML = Object.values(mpPlayers).map(p => `<div class="mp-race-lane" data-user="${p.user_id}"><div class="mp-lane-label">${p.username}</div><div class="mp-track"><img class="mp-avatar" src="assets/avatars/${p.avatar_id||'cross'}-2d.png" style="left:0;" /><div class="mp-finish-line"></div><div class="mp-pct">0%</div></div></div>`).join('');
       document.querySelector('.mp-typed').textContent = ''; document.querySelector('.mp-incorrect').textContent = ''; document.querySelector('.mp-remaining').textContent = mpVerseText;
       const inp = document.getElementById('mpRaceInput'); inp.disabled = false; inp.value = ''; inp.focus();
-      document.getElementById('mpRaceStatus').textContent = 'Type the verse!'; TofAudio.playGo();
+      const roundLabel = mpTotalRounds > 1 ? `Round ${mpRoundNum}/${mpTotalRounds} · ` : '';
+      document.getElementById('mpRaceStatus').textContent = roundLabel + 'Type the verse!'; TofAudio.playGo();
     }
 
     function mpUpdateProgress(userId, chars, wpm) {
@@ -846,13 +863,26 @@
       }
     });
 
-    function mpShowResults(results) {
+    function mpShowRoundEnd(msg) {
+      // Show brief round results in status area, then wait for next race_start
+      const roundLabel = `Round ${msg.round}/${msg.total_rounds} complete!`;
+      document.getElementById('mpRaceStatus').textContent = roundLabel + ' Next round starting soon...';
+      const inp = document.getElementById('mpRaceInput'); inp.disabled = true;
+    }
+
+    function mpShowResults(results, cumulative, totalRounds) {
       mpShowView('mpResultsView');
+      const isMultiRound = totalRounds && totalRounds > 1;
+      const header = isMultiRound ? 'Race Complete! (All Rounds)' : 'Race Complete!';
+      document.querySelector('#mpResultsView h2').textContent = header;
       document.getElementById('mpResultsBody').innerHTML = results.map(r => {
-        const p = mpPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'moses' };
+        const p = mpPlayers[r.user_id] || { username: 'Unknown', avatar_id: 'cross' };
         const pc = r.place===1?'place-1':r.place===2?'place-2':r.place===3?'place-3':'';
         const pt = r.place===1?'1st':r.place===2?'2nd':r.place===3?'3rd':`${r.place}th`;
-        return `<tr><td class="${pc}">${pt}</td><td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id||'moses'}-2d.png" />${p.username}</div></td><td>${r.time?r.time.toFixed(2)+'s':'DNF'}</td><td>${r.wpm||0}</td></tr>`;
+        const cum = cumulative && cumulative[r.user_id];
+        const timeCol = cum ? cum.total_time.toFixed(2) + 's' : (r.time ? r.time.toFixed(2) + 's' : 'DNF');
+        const wpmCol = cum ? cum.avg_wpm + ' avg' : (r.wpm || 0);
+        return `<tr><td class="${pc}">${pt}</td><td><div class="avatar-cell"><img src="assets/avatars/${p.avatar_id||'cross'}-2d.png" />${p.username}</div></td><td>${timeCol}</td><td>${wpmCol}</td></tr>`;
       }).join('');
     }
 
@@ -876,12 +906,12 @@
     document.getElementById('mpCopyCodeBtn').addEventListener('click', () => { navigator.clipboard.writeText(document.getElementById('mpWaitingJoinCode').textContent); mpShowBanner('Code copied!'); setTimeout(() => mpShowBanner(''), 2000); });
     document.getElementById('mpBackToLobbiesBtn').addEventListener('click', () => { mpLobby = null; mpPlayers = {}; mpShowView('mpBrowserView'); mpLoadLobbies(); });
     document.getElementById('mpRaceAgainBtn').addEventListener('click', async () => {
-      const ref = mpLobby?.verse_ref || ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
-      const ver = mpLobby?.version || 'WEB'; const max = mpLobby?.max_players || 4; const oldWs = mpWs;
+      const ref = ALL_REFERENCES[Math.floor(Math.random()*ALL_REFERENCES.length)];
+      const ver = mpLobby?.version || 'WEB'; const max = mpLobby?.max_players || 4; const rounds = mpLobby?.total_rounds || mpTotalRounds || 1; const oldWs = mpWs;
       mpPlayers = {}; mpIsReady = false;
       try {
         mpShowBanner('Creating new lobby...');
-        const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race' }) });
+        const r = await mpApiCall('/lobbies/create', { method: 'POST', body: JSON.stringify({ verse_ref: ref, version: ver, max_players: max, mode: 'race', total_rounds: rounds }) });
         // Notify other players on old connection before switching
         if (oldWs && oldWs.readyState === WebSocket.OPEN) {
           oldWs.send(JSON.stringify({ type: 'rematch', join_code: r.join_code }));

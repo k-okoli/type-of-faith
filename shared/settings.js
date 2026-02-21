@@ -89,7 +89,7 @@
     const isMuted = typeof TofAudio !== "undefined" && TofAudio.isMuted();
     const previewSec = localStorage.getItem("tof_preview_sec") || "5";
     const peekSec = localStorage.getItem("tof_peek_sec") || "3";
-    const currentAvatar = localStorage.getItem("tof_avatar") || "moses";
+    const currentAvatar = localStorage.getItem("tof_avatar") || "cross";
 
     // Build avatar grid
     let avatarHTML = "";
