@@ -78,6 +78,19 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
+.tof-nav .tof-kofi-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.tof-nav .tof-kofi-link:hover {
+  background: color-mix(in srgb, var(--accent) 15%, var(--panel));
+}
 .tof-nav .tof-mute-btn {
   font-size: 18px;
   padding: 4px 8px;

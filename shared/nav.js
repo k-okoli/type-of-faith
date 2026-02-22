@@ -43,6 +43,16 @@
   spacer.className = "tof-spacer";
   nav.appendChild(spacer);
 
+  // Ko-fi support link
+  const kofi = document.createElement("a");
+  kofi.href = "https://ko-fi.com/typeoffaith";
+  kofi.target = "_blank";
+  kofi.rel = "noopener";
+  kofi.className = "tof-kofi-link";
+  kofi.title = "Support on Ko-fi";
+  kofi.textContent = "Support";
+  nav.appendChild(kofi);
+
   // Mute button
   const muteBtn = document.createElement("button");
   muteBtn.id = "muteBtn";

@@ -57,7 +57,7 @@
 
 ## Race Track / Avatars
 - [x] Race track progress bar on all pages
-- [ ] 3D avatar toggle (assets ready in assets/avatars/)
+- [-] 3D avatar toggle (assets ready in assets/avatars/)
 - [x] Avatar unlocking through achievements (7 avatars with unlock conditions)
 
 ## Future Features
@@ -70,10 +70,10 @@
 - [x] Animations for completion/achievements (confetti, trophy, milestone toasts, achievement unlocks)
 
 ## Release Checklist
-- [ ] Secure API key — ensure .env is not in git history, rotate key if exposed
-- [ ] Lock down CORS — set ALLOWED_ORIGINS to production domain in server.py
+- [x] Secure API key — ensure .env is not in git history, rotate key if exposed
+- [x] Lock down CORS — set ALLOWED_ORIGINS to production domain in server.py
 - [ ] Test Render deployment end-to-end (WebSockets, PostgreSQL, Bible API proxy)
-- [ ] Commit new avatar images (lost-sheep, prodigal-son, water-into-wine)
+- [x] Commit new avatar images
 - [ ] Add PWA manifest + basic service worker for mobile install support
 - [x] Add social meta tags (og:title, og:description, og:image) for link sharing
 - [x] Landing page with feature cards and player stats (index.html)
@@ -86,5 +86,5 @@
 
 ## Monetization
 - [ ] Add Google AdSense (non-intrusive banner placements)
-- [ ] Add Ko-fi or Buy Me a Coffee donation link
+- [x] Add Ko-fi or Buy Me a Coffee donation link
 - [ ] Premium tier — ad-free experience, extra avatars, advanced stats

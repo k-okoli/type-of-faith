@@ -434,15 +434,17 @@ async def generate_quiz_question(version: str) -> dict:
     }
 
 # ---------- CORS ----------
-# Production: add your deployed domain to this list
-# Allow any origin for dev/LAN use. In production, replace "*" with your domain.
-ALLOWED_ORIGINS = ["*"]
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else [
+    "https://type-of-faith.onrender.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],  # POST for auth and score submission
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
