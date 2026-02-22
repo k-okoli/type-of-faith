@@ -81,8 +81,8 @@
 - [x] Mobile keyboard fix for lessons page
 - [ ] Register a custom domain
 - [ ] Add lightweight analytics (Plausible or server-side logging)
-- [ ] Add first-time user onboarding/welcome flow
-- [ ] Surface "Start Here" suggestions for new typists
+- [x] Add first-time user onboarding/welcome flow
+- [x] Surface "Start Here" suggestions for new typists
 
 ## Monetization
 - [ ] Add Google AdSense (non-intrusive banner placements)
