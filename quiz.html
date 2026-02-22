@@ -160,6 +160,9 @@
     .mp-score-row .mp-score-pts{ font-weight:700; color:var(--accent); }
     .mp-score-row.locked-out{ opacity:0.4; }
     .mp-status{ text-align:center; font-size:14px; color:var(--muted); margin-top:12px; }
+    .round-result{ font-size:18px; font-weight:700; }
+    .round-result.win{ color:var(--ok); }
+    .round-result.lose{ color:var(--err); }
 
     /* Results */
     .results-panel{ text-align:center; }
@@ -862,35 +865,34 @@ function mpHandleWsMessage(msg){
       mpRenderScoreboard();
       break;
 
-    case 'round_result':
+    case 'round_result': {
       mpScores = msg.scores || mpScores;
+      const iWon = msg.winner_id === currentUserId;
+      // Highlight correct answer: green for winner, gold for everyone else
       document.querySelectorAll('#mpOptions .opt').forEach(b => {
         b.disabled = true;
-        if(b.textContent.trim() === msg.correct_ref) b.classList.add('correct');
+        if(b.textContent.trim() === msg.correct_ref) b.classList.add(iWon ? 'correct' : 'beaten');
       });
       // Update selected button color based on outcome
       if(mpMySelectedBtn){
         mpMySelectedBtn.classList.remove('selected');
-        if(mpMySelectedBtn.textContent.trim() === msg.correct_ref){
-          if(msg.winner_id === currentUserId){
-            mpMySelectedBtn.classList.add('correct');
-          } else {
-            mpMySelectedBtn.classList.add('beaten');
-          }
-        }
         // If wrong, it's already marked 'wrong' from player_locked_out
       }
+      const statusEl = document.getElementById('mpStatus');
       if(msg.winner_id){
         const winnerName = msg.winner_username || 'Someone';
-        document.getElementById('mpStatus').textContent = msg.winner_id === currentUserId
-          ? 'You got it right!'
-          : `${winnerName} got it right!`;
-        if(msg.winner_id === currentUserId) TofAudio.playComplete();
+        if(iWon){
+          statusEl.innerHTML = '<span class="round-result win">You got it! +1 point</span>';
+          TofAudio.playComplete();
+        } else {
+          statusEl.innerHTML = `<span class="round-result lose">${winnerName} got it first!</span>`;
+        }
       } else {
-        document.getElementById('mpStatus').textContent = 'Nobody got it right!';
+        statusEl.innerHTML = '<span class="round-result lose">Nobody got it right!</span>';
       }
       mpRenderScoreboard();
       break;
+    }
 
     case 'quiz_end':
       mpShowResults(msg.results);
