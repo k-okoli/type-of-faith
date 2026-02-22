@@ -64,9 +64,9 @@
     }
     .opt:hover:not(:disabled){ transform: translateY(-1px); }
     .opt:disabled{ cursor:default; opacity:0.7; }
+    .opt.selected{ background: color-mix(in srgb, var(--accent) 15%, var(--panel)); border-color: var(--accent); }
     .opt.correct{ background:var(--opt-correct); border-color:var(--opt-correct-br); }
     .opt.wrong{ background:var(--opt-wrong); border-color:var(--opt-wrong-br); }
-    .opt.selected{ background: color-mix(in srgb, var(--accent) 15%, var(--panel)); border-color: var(--accent); }
     .opt.beaten{ background: #fff8e1; border-color: #f0c040; }
     :root[data-theme="dark"] .opt.beaten{ background: #2a2510; border-color: #d4a520; }
 

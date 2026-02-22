@@ -1164,6 +1164,9 @@
       }
 
       dailyBtn.addEventListener('click', async () => {
+        if (!TofLeaderboard.isAuthenticated()) {
+          showBanner("info", "Log in to submit your score to the daily leaderboard!");
+        }
         dailyBtn.disabled = true;
         dailyBtn.textContent = 'Loading...';
         try {
@@ -2114,15 +2117,11 @@
         TofAchievements.recordDailyChallenge();
 
         // Submit to global leaderboard (if logged in)
-        if (TofLeaderboard.isAuthenticated()) {
-          submitToLeaderboard(wordsPerMinute, accuracyPercent, elapsedSeconds, state.reference).then(result => {
-            if (result && result.rank) {
-              showBanner("success", result.message);
-            }
-          });
-        } else {
-          showBanner("info", "Log in to submit your score to the daily leaderboard!");
-        }
+        submitToLeaderboard(wordsPerMinute, accuracyPercent, elapsedSeconds, state.reference).then(result => {
+          if (result && result.rank) {
+            showBanner("success", result.message);
+          }
+        });
       }
 
       // Record practice session and check for new avatar unlocks

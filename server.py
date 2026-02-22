@@ -1263,11 +1263,18 @@ async def toggle_ready(
 # WEBSOCKET PING / IDLE TIMEOUT HELPERS
 # ==============================================
 
-async def _ws_ping_loop(websocket: WebSocket):
-    """Send pings every 30s so clients know the connection is alive."""
+async def _ws_ping_loop(websocket: WebSocket, last_activity: dict, timeout: int = 120):
+    """Send pings every 30s. Disconnect if no user activity for timeout seconds."""
     try:
         while True:
             await asyncio.sleep(30)
+            if time.time() - last_activity["t"] > timeout:
+                try:
+                    await websocket.send_json({"type": "error", "detail": "Disconnected due to inactivity"})
+                    await websocket.close()
+                except Exception:
+                    pass
+                return
             await websocket.send_json({"type": "ping"})
     except Exception:
         pass
@@ -1346,23 +1353,18 @@ async def websocket_race(
         "avatar_id": user.avatar_id
     })
 
-    ping_task = asyncio.create_task(_ws_ping_loop(websocket))
+    last_activity = {"t": time.time()}
+    ping_task = asyncio.create_task(_ws_ping_loop(websocket, last_activity))
     try:
         while True:
-            try:
-                raw = await asyncio.wait_for(websocket.receive_text(), timeout=120)
-            except asyncio.TimeoutError:
-                try:
-                    await websocket.send_json({"type": "error", "detail": "Disconnected due to inactivity"})
-                    await websocket.close()
-                except Exception:
-                    pass
-                break
+            raw = await websocket.receive_text()
             data = json.loads(raw)
             msg_type = data.get("type")
 
             if msg_type == "pong":
                 continue
+
+            last_activity["t"] = time.time()
 
             if msg_type == "ready":
                 # Toggle ready status
@@ -1703,23 +1705,18 @@ async def websocket_quiz(
         "avatar_id": user.avatar_id
     })
 
-    ping_task = asyncio.create_task(_ws_ping_loop(websocket))
+    last_activity = {"t": time.time()}
+    ping_task = asyncio.create_task(_ws_ping_loop(websocket, last_activity))
     try:
         while True:
-            try:
-                raw = await asyncio.wait_for(websocket.receive_text(), timeout=120)
-            except asyncio.TimeoutError:
-                try:
-                    await websocket.send_json({"type": "error", "detail": "Disconnected due to inactivity"})
-                    await websocket.close()
-                except Exception:
-                    pass
-                break
+            raw = await websocket.receive_text()
             data = json.loads(raw)
             msg_type = data.get("type")
 
             if msg_type == "pong":
                 continue
+
+            last_activity["t"] = time.time()
 
             if msg_type == "ready":
                 player.ready = not player.ready
