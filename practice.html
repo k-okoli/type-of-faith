@@ -1164,6 +1164,15 @@
       }
 
       dailyBtn.addEventListener('click', async () => {
+        if (!TofLeaderboard.isAuthenticated()) {
+          try {
+            await TofLeaderboard.showAuthModal();
+            renderUserBar();
+          } catch (e) {
+            // User cancelled login — don't start challenge
+            return;
+          }
+        }
         dailyBtn.disabled = true;
         dailyBtn.textContent = 'Loading...';
         try {
@@ -2226,10 +2235,6 @@
         setTypingEnabled(true);
         showVerse();
         elements.banner.style.display = "none";
-
-        if (!TofLeaderboard.isAuthenticated()) {
-          showBanner("info", "Log in to submit your score to the daily leaderboard!");
-        }
 
         const lengthClass = classifyVerseLength(result.text);
         elements.meta.textContent = `${state.reference} (${versionCode}) · ${titleCase(lengthClass)} · Daily Challenge`;
