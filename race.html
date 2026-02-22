@@ -821,6 +821,7 @@
           if (msg.user_id === uid) { showTrophy(mpFinishedCount); if (mpFinishedCount === 1) { showConfetti(); TofAudio.playRaceFinish(); } else TofAudio.playComplete(); } break;
         case 'round_end': mpShowRoundEnd(msg); break;
         case 'race_end': mpShowResults(msg.results, msg.cumulative, msg.total_rounds); break;
+        case 'ping': if (mpWs && mpWs.readyState === WebSocket.OPEN) mpWs.send(JSON.stringify({ type: 'pong' })); break;
         case 'rematch': if (msg.user_id !== uid) { mpPlayers = {}; mpIsReady = false; mpJoinLobby(msg.join_code); } break;
       }
     }

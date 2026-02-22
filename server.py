@@ -1260,6 +1260,20 @@ async def toggle_ready(
 
 
 # ==============================================
+# WEBSOCKET PING / IDLE TIMEOUT HELPERS
+# ==============================================
+
+async def _ws_ping_loop(websocket: WebSocket):
+    """Send pings every 30s so clients know the connection is alive."""
+    try:
+        while True:
+            await asyncio.sleep(30)
+            await websocket.send_json({"type": "ping"})
+    except Exception:
+        pass
+
+
+# ==============================================
 # WEBSOCKET FOR REAL-TIME RACING
 # ==============================================
 
@@ -1332,10 +1346,23 @@ async def websocket_race(
         "avatar_id": user.avatar_id
     })
 
+    ping_task = asyncio.create_task(_ws_ping_loop(websocket))
     try:
         while True:
-            data = await websocket.receive_json()
+            try:
+                raw = await asyncio.wait_for(websocket.receive_text(), timeout=120)
+            except asyncio.TimeoutError:
+                try:
+                    await websocket.send_json({"type": "error", "detail": "Disconnected due to inactivity"})
+                    await websocket.close()
+                except Exception:
+                    pass
+                break
+            data = json.loads(raw)
             msg_type = data.get("type")
+
+            if msg_type == "pong":
+                continue
 
             if msg_type == "ready":
                 # Toggle ready status
@@ -1551,6 +1578,7 @@ async def websocket_race(
     except WebSocketDisconnect:
         pass
     finally:
+        ping_task.cancel()
         ws_manager.disconnect(lobby_id, user.id)
         await ws_manager.broadcast_to_lobby(lobby_id, {
             "type": "player_left",
@@ -1675,10 +1703,23 @@ async def websocket_quiz(
         "avatar_id": user.avatar_id
     })
 
+    ping_task = asyncio.create_task(_ws_ping_loop(websocket))
     try:
         while True:
-            data = await websocket.receive_json()
+            try:
+                raw = await asyncio.wait_for(websocket.receive_text(), timeout=120)
+            except asyncio.TimeoutError:
+                try:
+                    await websocket.send_json({"type": "error", "detail": "Disconnected due to inactivity"})
+                    await websocket.close()
+                except Exception:
+                    pass
+                break
+            data = json.loads(raw)
             msg_type = data.get("type")
+
+            if msg_type == "pong":
+                continue
 
             if msg_type == "ready":
                 player.ready = not player.ready
@@ -1799,6 +1840,7 @@ async def websocket_quiz(
     except WebSocketDisconnect:
         pass
     finally:
+        ping_task.cancel()
         ws_manager.disconnect(lobby_id, user.id)
         await ws_manager.broadcast_to_lobby(lobby_id, {
             "type": "player_left",
@@ -1870,6 +1912,39 @@ async def _end_quiz(lobby_id: str, lobby, db):
 
     # Clean up quiz state
     ws_manager.quiz_state.pop(lobby_id, None)
+
+
+# ==============================================
+# STALE LOBBY CLEANUP
+# ==============================================
+
+async def _lobby_cleanup_loop():
+    """Periodically remove lobbies older than 2 hours with no active connections."""
+    while True:
+        await asyncio.sleep(3600)  # Run every hour
+        try:
+            db = SessionLocal()
+            cutoff = datetime.utcnow() - timedelta(hours=2)
+            stale = db.query(RaceLobby).filter(
+                RaceLobby.created_at < cutoff,
+                RaceLobby.status.in_(["waiting", "finished"])
+            ).all()
+            for lobby in stale:
+                connected = ws_manager.get_connected_users(lobby.id)
+                if not connected:
+                    db.query(LobbyPlayer).filter(LobbyPlayer.lobby_id == lobby.id).delete()
+                    db.delete(lobby)
+            db.commit()
+            if stale:
+                logger.info(f"Cleaned up {len(stale)} stale lobbies")
+            db.close()
+        except Exception as e:
+            logger.error(f"Lobby cleanup error: {e}")
+
+
+@app.on_event("startup")
+async def start_lobby_cleanup():
+    asyncio.create_task(_lobby_cleanup_loop())
 
 
 # ---------- Serve static frontend files ----------

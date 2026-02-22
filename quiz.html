@@ -66,6 +66,9 @@
     .opt:disabled{ cursor:default; opacity:0.7; }
     .opt.correct{ background:var(--opt-correct); border-color:var(--opt-correct-br); }
     .opt.wrong{ background:var(--opt-wrong); border-color:var(--opt-wrong-br); }
+    .opt.selected{ background: color-mix(in srgb, var(--accent) 15%, var(--panel)); border-color: var(--accent); }
+    .opt.beaten{ background: #fff8e1; border-color: #f0c040; }
+    :root[data-theme="dark"] .opt.beaten{ background: #2a2510; border-color: #d4a520; }
 
     .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
     .stat{ font-variant-numeric: tabular-nums; }
@@ -645,6 +648,7 @@ let mpIsReady = false;
 let mpScores = {};
 let mpLockedOut = new Set();
 let mpMyLockedOut = false;
+let mpMySelectedBtn = null;
 
 function mpShowBanner(msg, isError){
   const el = document.getElementById('banner');
@@ -830,6 +834,7 @@ function mpHandleWsMessage(msg){
     case 'question':
       mpLockedOut = new Set();
       mpMyLockedOut = false;
+      mpMySelectedBtn = null;
       document.getElementById('mpRoundLabel').textContent = `Round ${msg.round} / ${msg.total_rounds}`;
       document.getElementById('mpVerseText').textContent = msg.verse_text;
       document.getElementById('mpStatus').textContent = 'Pick the correct reference!';
@@ -850,8 +855,8 @@ function mpHandleWsMessage(msg){
       mpLockedOut.add(msg.user_id);
       if(msg.user_id === currentUserId){
         mpMyLockedOut = true;
+        if(mpMySelectedBtn){ mpMySelectedBtn.classList.remove('selected'); mpMySelectedBtn.classList.add('wrong'); }
         document.getElementById('mpStatus').textContent = 'Wrong answer! Locked out this round.';
-        // Disable remaining buttons
         document.querySelectorAll('#mpOptions .opt:not(.wrong)').forEach(b => b.disabled = true);
       }
       mpRenderScoreboard();
@@ -859,11 +864,22 @@ function mpHandleWsMessage(msg){
 
     case 'round_result':
       mpScores = msg.scores || mpScores;
-      // Highlight correct answer
       document.querySelectorAll('#mpOptions .opt').forEach(b => {
         b.disabled = true;
         if(b.textContent.trim() === msg.correct_ref) b.classList.add('correct');
       });
+      // Update selected button color based on outcome
+      if(mpMySelectedBtn){
+        mpMySelectedBtn.classList.remove('selected');
+        if(mpMySelectedBtn.textContent.trim() === msg.correct_ref){
+          if(msg.winner_id === currentUserId){
+            mpMySelectedBtn.classList.add('correct');
+          } else {
+            mpMySelectedBtn.classList.add('beaten');
+          }
+        }
+        // If wrong, it's already marked 'wrong' from player_locked_out
+      }
       if(msg.winner_id){
         const winnerName = msg.winner_username || 'Someone';
         document.getElementById('mpStatus').textContent = msg.winner_id === currentUserId
@@ -878,6 +894,10 @@ function mpHandleWsMessage(msg){
 
     case 'quiz_end':
       mpShowResults(msg.results);
+      break;
+
+    case 'ping':
+      if(mpWs && mpWs.readyState === WebSocket.OPEN) mpWs.send(JSON.stringify({ type: 'pong' }));
       break;
 
     case 'rematch':
@@ -912,7 +932,8 @@ function mpSubmitAnswer(ref, btn){
   if(mpMyLockedOut) return;
   if(mpWs && mpWs.readyState === WebSocket.OPEN){
     mpWs.send(JSON.stringify({ type: 'answer', ref }));
-    btn.classList.add('wrong'); // Visually mark as chosen; server will confirm
+    mpMySelectedBtn = btn;
+    btn.classList.add('selected');
     btn.disabled = true;
   }
 }
